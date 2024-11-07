@@ -47,7 +47,6 @@ class FetchArticle:
                 if parsed_url:
                     news_results.append(parsed_url[0])
         return news_results
-    
 
     @staticmethod
     def extract_article_details(url):
