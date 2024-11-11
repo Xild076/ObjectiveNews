@@ -10,6 +10,7 @@ import validators
 from scaper import FetchArticle
 from datetime import datetime, timedelta
 from util import get_keywords, find_bias_rating
+from typing import Literal
 
 
 class GroupText:
@@ -23,7 +24,6 @@ class GroupText:
     def group_text(texts: list, dist_threshold=15, _visualize=False):
         all_sentences = []
         sentence_info = []
-        unique_sources = set()
         for text in texts:
             sentences = SentenceSplitter(language='en').split(text['text'])
             all_sentences.extend(sentences)
@@ -31,8 +31,7 @@ class GroupText:
                 sentence_info.append({sentence: text['source']})
 
         embeddings = GroupText.model.encode(all_sentences)
-        clustering = AgglomerativeClustering(
-            distance_threshold=dist_threshold, n_clusters=None)
+        clustering = AgglomerativeClustering(distance_threshold=dist_threshold, n_clusters=None)
         clustering.fit(embeddings)
         labels = clustering.labels_
 
@@ -55,25 +54,29 @@ class GroupText:
             representative_sentences[label] = representative_sentence
 
         if _visualize:
+            tsne = TSNE(n_components=3, random_state=42)
+            embeddings_3d = tsne.fit_transform(embeddings)
             fig = plt.figure(figsize=(10, 8))
             ax = fig.add_subplot(111, projection='3d')
-            scatter = ax.scatter(embeddings[:, 0], embeddings[:, 1], embeddings[:, 2],
-                                c=labels, cmap='viridis', s=100)
+            scatter = ax.scatter(embeddings_3d[:, 0], embeddings_3d[:, 1], embeddings_3d[:, 2], c=labels, cmap='viridis', s=100)
             ax.set_title('3D Visualization of Sentence Clusters')
             ax.set_xlabel('Component 1')
             ax.set_ylabel('Component 2')
             ax.set_zlabel('Component 3')
             plt.colorbar(scatter, ticks=range(len(set(labels))), label='Cluster Label')
 
-            for i, txt in enumerate(all_sentences):
-                ax.text(embeddings[i, 0], embeddings[i, 1], embeddings[i, 2],
-                        txt, size=10, zorder=1, color='k')
+            sentence_to_index = {sentence: idx for idx, sentence in enumerate(all_sentences)}
+            for label in representative_sentences:
+                sentence = representative_sentences[label]
+                idx = sentence_to_index[sentence]
+                x, y, z = embeddings_3d[idx, 0], embeddings_3d[idx, 1], embeddings_3d[idx, 2]
+                ax.text(x, y, z, sentence, size=10, zorder=1, color='k')
 
             plt.show()
 
-        return cluster_sentences, representative_sentences    
+        return cluster_sentences, representative_sentences 
     
-    def article_analyse(link, type='news'):
+    def article_analyse(link, type=Literal['news', 'data']):
         if not validators.url(link):
             raise TypeError(f"Link {link} is not valid")
         article = FetchArticle.extract_article_details(link)
@@ -81,8 +84,8 @@ class GroupText:
 
         keywords = get_keywords(text)
         if type == 'news':
-            date_range = 5
-        else:
+            date_range = 2
+        elif type == 'data':
             date_range = 30
         start_date = (datetime.strptime(article['date'], '%Y-%m-%d') - timedelta(days=date_range)).strftime('%Y-%m-%d')
         end_date = (datetime.strptime(article['date'], '%Y-%m-%d') + timedelta(days=date_range)).strftime('%Y-%m-%d')
@@ -110,7 +113,27 @@ class GroupText:
                 total_bias += find_bias_rating(source)
             reliability[label] = abs(total_bias) / len(source)
         return reliability
+    
+    def split_by_reliability(full_info):
+        high_reliable = []
+        medium_reliability = []
+        low_reliability = []
+        for label in full_info:
+            item = full_info[label]
+            bias = item['bias']
+
+            if bias <= 5:
+                high_reliable.append(item)
+            elif bias <= 20:
+                medium_reliability.append(item)
+            else:
+                low_reliability.append(item)
+        return {
+            'high': high_reliable,
+            'medium': medium_reliability,
+            'low': low_reliability
+        }
 
 
-with open('scraperd.txt', 'w+') as f:
-    f.write(str(GroupText.article_analyse('https://www.cbsnews.com/live-updates/election-2024-trump-celebrates-win/')))
+with open('saved/texts/scrape5.txt', 'w+') as f:
+    f.write(str(GroupText.split_by_reliability(GroupText.article_analyse('https://www.cbsnews.com/live-updates/election-2024-trump-celebrates-win/', 'news'))))

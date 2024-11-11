@@ -1,7 +1,4 @@
 import spacy
-from collections import Counter
-from fuzzywuzzy import process, fuzz
-import nltk
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 import yake
