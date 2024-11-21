@@ -1,82 +1,94 @@
 from sklearn.cluster import AgglomerativeClustering
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import euclidean_distances
-from sklearn.manifold import TSNE
+from sklearn.metrics import silhouette_score
+from util import preprocess_text, get_keywords, find_bias_rating
 import numpy as np
-import matplotlib.pyplot as plt
-from sentence_splitter import SentenceSplitter
-from transformers import pipeline, AutoTokenizer
-import validators
+from nltk.tokenize import sent_tokenize
 from scaper import FetchArticle
 from datetime import datetime, timedelta
-from util import get_keywords, find_bias_rating
 from typing import Literal
-
+import validators
 
 class GroupText:
-    model = SentenceTransformer('bert-base-nli-mean-tokens')
-    summarizer = pipeline('summarization', device='mps')
-    summarizer_model_name = summarizer.model.name_or_path
-    tokenizer = AutoTokenizer.from_pretrained(summarizer_model_name)
+    model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
-    
     @staticmethod
-    def group_text(texts: list, dist_threshold=15, _visualize=False):
-        all_sentences = []
-        sentence_info = []
-        for text in texts:
-            sentences = SentenceSplitter(language='en').split(text['text'])
-            all_sentences.extend(sentences)
-            for sentence in sentences:
-                sentence_info.append({sentence: text['source']})
-
-        embeddings = GroupText.model.encode(all_sentences)
-        clustering = AgglomerativeClustering(distance_threshold=dist_threshold, n_clusters=None)
-        clustering.fit(embeddings)
-        labels = clustering.labels_
-
-        cluster_sentences = {label: [] for label in set(labels)}
-        cluster_embeddings = {label: [] for label in set(labels)}
-
-        for sentence, label, embedding in zip(sentence_info, labels, embeddings):
-            cluster_sentences[label].append(sentence)
+    def _find_representative_sentences(sentences, embeddings, labels):
+        cluster_embeddings = {l:[] for l in labels}
+        cluster_sentences = {l:[] for l in labels}
+        for sentence, embedding, label in zip(sentences, embeddings, labels):
             cluster_embeddings[label].append(embedding)
-
+            cluster_sentences[label].append(sentence)
         representative_sentences = {}
-        for label in cluster_sentences:
-            sentences = cluster_sentences[label]
-            cluster_embeds = cluster_embeddings[label]
-            cluster_embeds = np.array(cluster_embeds)
+        for label in cluster_embeddings:
+            cluster_embeds = np.vstack(cluster_embeddings[label])
             centroid = np.mean(cluster_embeds, axis=0)
             distances = np.linalg.norm(cluster_embeds - centroid, axis=1)
-            min_index = np.argmin(distances)
-            representative_sentence = list(sentences[min_index].keys())[0]
-            representative_sentences[label] = representative_sentence
+            min_idx = np.argmin(distances)
+            representative_sentences[label] = cluster_sentences[label][min_idx]
+        return representative_sentences
 
-        if _visualize:
-            tsne = TSNE(n_components=3, random_state=42)
-            embeddings_3d = tsne.fit_transform(embeddings)
-            fig = plt.figure(figsize=(10, 8))
-            ax = fig.add_subplot(111, projection='3d')
-            scatter = ax.scatter(embeddings_3d[:, 0], embeddings_3d[:, 1], embeddings_3d[:, 2], c=labels, cmap='viridis', s=100)
-            ax.set_title('3D Visualization of Sentence Clusters')
-            ax.set_xlabel('Component 1')
-            ax.set_ylabel('Component 2')
-            ax.set_zlabel('Component 3')
-            plt.colorbar(scatter, ticks=range(len(set(labels))), label='Cluster Label')
+    @staticmethod
+    def _group_text_individual(text):
+        sentences = [sentence.strip() for sentence in sent_tokenize(text) if sentence.strip()]
+        if not sentences:
+            return {}, {}
+        processed_sentences = [preprocess_text(sentence) for sentence in sentences]
+        embeddings = GroupText.model.encode(processed_sentences)
+        num_sentences = len(sentences)
+        if num_sentences < 2:
+            labels = np.zeros(num_sentences, dtype=int)
+        else:
+            max_clusters = min(4, num_sentences - 1)
+            best_score = -1
+            best_labels = None
+            for n_clusters in range(3, max_clusters + 1):
+                clustering_algc = AgglomerativeClustering(n_clusters=n_clusters)
+                labels = clustering_algc.fit_predict(embeddings)
+                score = silhouette_score(embeddings, labels)
+                if score > best_score:
+                    best_score = score
+                    best_labels = labels
+            labels = best_labels
+        cluster_sentences = {l:[] for l in labels}
+        for sentence, label in zip(sentences, labels):
+            cluster_sentences[label].append(sentence)
+        representative_sentences = GroupText._find_representative_sentences(sentences, embeddings, labels)
+        return cluster_sentences, representative_sentences
 
-            sentence_to_index = {sentence: idx for idx, sentence in enumerate(all_sentences)}
-            for label in representative_sentences:
-                sentence = representative_sentences[label]
-                idx = sentence_to_index[sentence]
-                x, y, z = embeddings_3d[idx, 0], embeddings_3d[idx, 1], embeddings_3d[idx, 2]
-                ax.text(x, y, z, sentence, size=10, zorder=1, color='k')
+    @staticmethod
+    def group_text(texts):
+        all_representative_sentences = []
+        for text in texts:
+            _, rep_sent = GroupText._group_text_individual(text)
+            all_representative_sentences.extend(rep_sent.values())
+        if not all_representative_sentences:
+            return {}, {}
+        processed_sentences = [preprocess_text(sentence) for sentence in all_representative_sentences]
+        embeddings = GroupText.model.encode(processed_sentences)
+        num_sentences = len(all_representative_sentences)
+        if num_sentences < 2:
+            labels = np.zeros(num_sentences, dtype=int)
+        else:
+            max_clusters = min(4, num_sentences - 1)
+            best_score = -1
+            best_labels = None
+            for n_clusters in range(3, max_clusters + 1):
+                clustering_algc = AgglomerativeClustering(n_clusters=n_clusters)
+                labels = clustering_algc.fit_predict(embeddings)
+                score = silhouette_score(embeddings, labels)
+                if score > best_score:
+                    best_score = score
+                    best_labels = labels
+            labels = best_labels
+        cluster_sentences = {l:[] for l in labels}
+        for sentence, label in zip(all_representative_sentences, labels):
+            cluster_sentences[label].append(sentence)
+        representative_sentences = GroupText._find_representative_sentences(all_representative_sentences, embeddings, labels)
+        return cluster_sentences, representative_sentences
 
-            plt.show()
-
-        return cluster_sentences, representative_sentences 
-    
-    def article_analyse(link, type=Literal['news', 'data']):
+    @staticmethod
+    def article_analyse(link, type:Literal['news', 'data']='news'):
         if not validators.url(link):
             raise TypeError(f"Link {link} is not valid")
         article = FetchArticle.extract_article_details(link)
@@ -89,51 +101,9 @@ class GroupText:
             date_range = 30
         start_date = (datetime.strptime(article['date'], '%Y-%m-%d') - timedelta(days=date_range)).strftime('%Y-%m-%d')
         end_date = (datetime.strptime(article['date'], '%Y-%m-%d') + timedelta(days=date_range)).strftime('%Y-%m-%d')
-        links = FetchArticle.retrieve_links(keywords, start_date, end_date, 20)
+        links = FetchArticle.retrieve_links(keywords, start_date, end_date, 10)
+
         articles = FetchArticle.extract_many_article_details(links)
-
-        cluster_s, rep_s = GroupText.group_text(articles, 15, True)
-        reliability = GroupText.get_reliability(cluster_s)
         
-        final_info = {}
-        for label in rep_s:
-            final_info[label] = {'rep_sent': rep_s[label], 'all_sents': cluster_s[label], 'bias': reliability[label]}
-        
-        return final_info
 
-    def get_reliability(cluster_s):
-        reliability = {}
-        sources = set()
-        for label in cluster_s:
-            total_bias = 0
-            for item in cluster_s[label]:
-                for sentence in item:
-                    sources.add(item[sentence])
-            for source in sources:
-                total_bias += find_bias_rating(source)
-            reliability[label] = abs(total_bias) / len(source)
-        return reliability
-    
-    def split_by_reliability(full_info):
-        high_reliable = []
-        medium_reliability = []
-        low_reliability = []
-        for label in full_info:
-            item = full_info[label]
-            bias = item['bias']
-
-            if bias <= 5:
-                high_reliable.append(item)
-            elif bias <= 20:
-                medium_reliability.append(item)
-            else:
-                low_reliability.append(item)
-        return {
-            'high': high_reliable,
-            'medium': medium_reliability,
-            'low': low_reliability
-        }
-
-
-with open('saved/texts/scrape5.txt', 'w+') as f:
-    f.write(str(GroupText.split_by_reliability(GroupText.article_analyse('https://www.cbsnews.com/live-updates/election-2024-trump-celebrates-win/', 'news'))))
+GroupText.article_analyse('https://www.cbsnews.com/news/matt-gaetz-depositions-leak-investigations/')
