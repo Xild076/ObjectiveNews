@@ -3,10 +3,20 @@ import ssl
 import yake
 import re
 import nltk
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet, words
 from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk import pos_tag
 from nltk.stem import WordNetLemmatizer
 import pandas as pd
+from keybert import KeyBERT
+import tqdm
+from functools import wraps
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.corpus import sentiwordnet as swn
+import numpy as np
+import inflect
+from pyinflect import getInflection
+
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -17,6 +27,9 @@ nltk.download('omw-1.4')
 
 nlp = spacy.load("en_core_web_sm")
 stop_words = set(stopwords.words('english'))
+nlp = spacy.load('en_core_web_sm')
+english_vocab = set(w.lower() for w in words.words())
+
 lemmatizer = WordNetLemmatizer()
 
 def split_paragraph(text):
@@ -30,23 +43,47 @@ def split_paragraph(text):
     """
     return re.split(r'\n{2,}', text)
 
+def with_progress_bar(desc=None, **tqdm_kwargs):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs_inner):
+            result = func(*args, **kwargs_inner)
+            bar_desc = desc if desc else func.__name__
+            if hasattr(result, '__iter__') and not isinstance(result, (str, bytes)):
+                iterable = tqdm(result, desc=bar_desc, **tqdm_kwargs)
+                return iterable
+            else:
+                return result
+        return wrapper
+    return decorator
+
 def get_keywords(text):
     """
-    Function: retrieves keywords of texts
-    
-    def get_keywords(text)
-    - text: full text
+    Extracts and filters keywords from the provided text using KeyBERT.
 
-    return overlapping_keywords
-    - overlapping_keywords: a list of important keywords
+    Parameters:
+    - text (str): The input text from which to extract keywords.
+
+    Returns:
+    - list: A list of filtered, unique, non-overlapping keywords in lowercase.
     """
-    spacy_kw = [ent.text for ent in nlp(text).ents]
-    yake_extractor = yake.KeywordExtractor(lan='en', features=None)
-    yake_kw = [kw[0] for kw in yake_extractor.extract_keywords(text)]
-    overlapping_keywords = list(set(spacy_kw).intersection(yake_kw))
-    if 'Link Copied' in overlapping_keywords:
-        overlapping_keywords.remove('Link Copied')
-    return overlapping_keywords
+    kw_model = KeyBERT()
+    keywords = kw_model.extract_keywords(
+        text,
+        keyphrase_ngram_range=(1, 2),
+        stop_words='english',
+        top_n=3,
+        use_mmr=True,
+        diversity=0.7
+    )
+    unique_words = []
+    seen = set()
+    for keyword, _ in keywords:
+        for word in keyword.lower().split():
+            if len(word) > 3 and word not in seen:
+                unique_words.append(word)
+                seen.add(word)
+    return unique_words
 
 def preprocess_text(text):
     """
@@ -97,4 +134,4 @@ def find_bias_rating(url):
             multiplier = 1.25
         return abs(bias_rating) * multiplier
     else:
-        return 10
+        return 20
