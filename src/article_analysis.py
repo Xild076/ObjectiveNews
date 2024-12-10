@@ -72,7 +72,6 @@ def is_cluster_valid(cluster, min_avg_sentence_length=50, alpha_ratio_threshold=
         'log in',
         'sign out',
         'coverage',
-        'reporting',
         'news anchor'
     ]
     representative_lower = representative.lower()
@@ -107,35 +106,60 @@ def cluster_articles(link, type: Literal['news', 'data']='news', link_num: int=1
     if debug_print:
         print(Fore.GREEN + f"Start Date: {start_date}, End Date: {end_date}" + Fore.RESET)
     links = FetchArticle.retrieve_links(keywords, start_date, end_date, link_num)
-    articles = FetchArticle.extract_many_article_details(links)
+    with ThreadPoolExecutor() as executor:
+        future_to_link = {executor.submit(FetchArticle.extract_article_details, link): link for link in links}
+        articles = []
+        for future in as_completed(future_to_link):
+            try:
+                article_detail = future.result()
+                articles.append(article_detail)
+            except Exception as e:
+                if debug_print:
+                    print(Fore.RED + f"Failed to fetch article: {future_to_link[future]} with error {e}" + Fore.RESET)
     articles.append(article)
     if debug_print:
         print(Fore.GREEN + "Links: " + Fore.RESET + str(links))
     rep_sentences = []
-    for article in articles:
-        text = article['text']
-        sentences = nltk.sent_tokenize(text)
-        max_clusters = max(round(len(sentences) / 6), 10)
-        clusters_article = cluster_text(sentences, context=True, context_weights={'single': 0.4, 'context': 0.6}, 
-                                        score_weights={'sil': 0.45, 'db': 0.55, 'ch': 0.1}, 
-                                        clustering_method=AgglomerativeClustering, max_clusters=max_clusters)
-        if clusters_article:
-            for cluster in clusters_article['clusters']:
-                rep_sentences.append({'text': cluster['representative_with_context'], 'source': article['source']})
-    max_clusters = max(round(len(rep_sentences) / 8), 15)
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(process_article_clusters, article): article for article in articles}
+        for future in as_completed(futures):
+            rep_sentences.extend(future.result())
+    max_clusters = min(round(len(rep_sentences) / 6), 20)
     if debug_print:
         print(Fore.GREEN + f"Representative Sentences: {len(rep_sentences)}, Max Clusters: {max_clusters}" + Fore.RESET)
     clusters = cluster_text(rep_sentences, score_weights={'sil': 0.5, 'db': 0.3, 'ch': 0.2}, 
                             clustering_method=AgglomerativeClustering, max_clusters=max_clusters)
     valid_clusters = []
     for cluster in clusters['clusters']:
-        if is_cluster_valid(cluster, debug_print=debug_print):
+        if is_cluster_valid(cluster):
             valid_clusters.append(cluster)
         else:
             if debug_print:
                 print(Fore.RED + f"Removed Cluster {cluster['cluster_id']} due to invalid content." + Fore.RESET)
     clusters['clusters'] = valid_clusters
     return clusters
+
+def process_article_clusters(article):
+    rep_sentences = []
+    text = article['text']
+    sentences = nltk.sent_tokenize(text)
+    max_clusters = max(round(len(sentences) / 6), 10)
+    clusters_article = cluster_text(sentences, context=True, context_weights={'single': 0.4, 'context': 0.6}, 
+                                    score_weights={'sil': 0.45, 'db': 0.55, 'ch': 0.1}, 
+                                    clustering_method=AgglomerativeClustering, max_clusters=max_clusters)
+    if clusters_article:
+        for cluster in clusters_article['clusters']:
+            rep_sentences.append({'text': cluster['representative_with_context'], 'source': article['source']})
+    return rep_sentences
+
+def provide_metrics(result_dict: dict) -> dict:
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(calculate_reliability_and_summary, cluster): cluster for cluster in result_dict['clusters']}
+        for future in as_completed(futures):
+            completed_cluster = future.result()
+            index = result_dict['clusters'].index(futures[future])
+            result_dict['clusters'][index].update(completed_cluster)
+    return result_dict
 
 def objectify_and_summarize(text_list: List[str]) -> str:
     if not text_list:
@@ -171,16 +195,6 @@ def calculate_reliability_and_summary(cluster):
     summary = objectify_and_summarize(cluster['sentences'])
     cluster['summary'] = summary
     return cluster
-
-def provide_metrics(result_dict: dict) -> dict:
-    with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(calculate_reliability_and_summary, cluster) for cluster in result_dict['clusters']]
-        for future in as_completed(futures):
-            completed_cluster = future.result()
-            for cluster in result_dict['clusters']:
-                if cluster == completed_cluster:
-                    cluster.update(completed_cluster)
-    return result_dict
 
 def organize_clusters(clusters:dict):
     clusters_organized = []

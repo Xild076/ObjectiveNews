@@ -10,35 +10,12 @@ import validators
 from scraper import FetchArticle
 from datetime import datetime, timedelta
 from util import get_keywords
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 lemmatizer = WordNetLemmatizer()
 model = SentenceTransformer('all-mpnet-base-v2')
 
-def encode_text(sentences: List[str], 
-                weights: Dict[str,float] = {'single':0.7,'context':0.3}, 
-                context: bool = False, 
-                context_len: int = 1, 
-                lemmatize: bool = False) -> np.ndarray:
-    processed_sentences = []
-    if lemmatize:
-        for sent in sentences:
-            tokens = sent.split()
-            lem_tokens = [lemmatizer.lemmatize(t) for t in tokens]
-            processed_sentences.append(" ".join(lem_tokens))
-    else:
-        processed_sentences = sentences
-    embeddings = []
-    for i, s in enumerate(processed_sentences):
-        e_s = model.encode(s)
-        if context:
-            start = max(i - context_len, 0)
-            end = min(i + context_len + 1, len(processed_sentences))
-            c_sents = " ".join(processed_sentences[start:end])
-            e_c = model.encode(c_sents)
-        else:
-            e_c = e_s
-        embeddings.append((e_s*weights['single'])+(e_c*weights['context']))
-    return np.array(embeddings)
 
 def find_representative_sentence(X: np.ndarray, 
                                  labels: np.ndarray, 
@@ -57,6 +34,36 @@ def get_sentence_with_context(sentences: List[str],
     end = min(rep_index + context_len + 1, len(sentences))
     context_sents = [s.strip() for s in sentences[start:end]]
     return " ".join(context_sents)
+
+def encode_text(sentences: List[str], 
+               weights: Dict[str,float] = {'single':0.7,'context':0.3}, 
+               context: bool = False, 
+               context_len: int = 1, 
+               lemmatize: bool = False) -> np.ndarray:
+    processed_sentences = []
+    if lemmatize:
+        for sent in sentences:
+            tokens = sent.split()
+            lem_tokens = [lemmatizer.lemmatize(t) for t in tokens]
+            processed_sentences.append(" ".join(lem_tokens))
+    else:
+        processed_sentences = sentences
+    embeddings = []
+    with ThreadPoolExecutor() as executor:
+        future_to_index = {executor.submit(model.encode, s): i for i, s in enumerate(processed_sentences)}
+        results = {}
+        for future in as_completed(future_to_index):
+            i = future_to_index[future]
+            e_s = future.result()
+            if context:
+                start = max(i - context_len, 0)
+                end = min(i + context_len + 1, len(processed_sentences))
+                c_sents = " ".join(processed_sentences[start:end])
+                e_c = model.encode(c_sents)
+            else:
+                e_c = e_s
+            embeddings.append((e_s * weights['single']) + (e_c * weights['context']))
+    return np.array(embeddings)
 
 def cluster_text(
     sentences: Union[List[str], List[Dict[str, Any]], np.ndarray], 
@@ -82,18 +89,24 @@ def cluster_text(
         X = encode_text(texts, context_weights, context, context_len, lemmatize)
 
     results = []
-    for n in range(2, min(len(texts), max_clusters)):
-        if clustering_method == AgglomerativeClustering:
-            algo = AgglomerativeClustering(n_clusters=n)
-        else:
-            algo = KMeans(n_clusters=n, n_init='auto')
-        labels = algo.fit_predict(X)
-        if len(set(labels)) == 1:
-            continue
-        sil = silhouette_score(X, labels)
-        db = davies_bouldin_score(X, labels)
-        ch = calinski_harabasz_score(X, labels)
-        results.append((n, labels, sil, db, ch))
+    with ThreadPoolExecutor() as executor:
+        future_to_n = {}
+        for n in range(2, min(len(texts), max_clusters)):
+            if clustering_method == AgglomerativeClustering:
+                algo = AgglomerativeClustering(n_clusters=n)
+            else:
+                algo = KMeans(n_clusters=n, n_init='auto')
+            future = executor.submit(algo.fit_predict, X)
+            future_to_n[future] = n
+        for future in as_completed(future_to_n):
+            n = future_to_n[future]
+            lbls = future.result()
+            if len(set(lbls)) == 1:
+                continue
+            sil = silhouette_score(X, lbls)
+            db = davies_bouldin_score(X, lbls)
+            ch = calinski_harabasz_score(X, lbls)
+            results.append((n, lbls, sil, db, ch))
     if not results:
         return {}
     sils = [r[2] for r in results]

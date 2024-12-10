@@ -152,7 +152,7 @@ Israel will now be trying to calculate what comes next in Syria. Like everyone, 
 
 """
 
-clusters = organize_clusters(provide_metrics(cluster_articles('https://www.bbc.com/news/articles/cp9nxee2r0do')))
+clusters = organize_clusters(provide_metrics(cluster_articles('https://www.bbc.com/news/articles/cp9nxee2r0do', link_num=5)))
 
 for i, cluster in enumerate(clusters):
     print(Fore.YELLOW + Style.BRIGHT + f"Group {i}" + Style.RESET_ALL)
@@ -161,6 +161,7 @@ for i, cluster in enumerate(clusters):
     print(Fore.BLUE + f"Sources:", Fore.RESET + str(cluster['sources']))
     print(Fore.BLUE + f"Reliability:", Fore.RESET + str(cluster['reliability']))
     print("-" * 80)
+
 
 """sentences = nltk.sent_tokenize(text_3)
 print(Fore.RED + Style.BRIGHT + f"Number of sentences: {len(sentences)}" + Style.RESET_ALL)
@@ -191,7 +192,6 @@ print(f"Text 1: {len(sentences_1)} sentences, {len(result_1['clusters'])} cluste
 print(f"Text 2: {len(sentences_2)} sentences, {len(result_2['clusters'])} clusters")
 print(f"Text 3: {len(sentences_3)} sentences, {len(result_3['clusters'])} clusters")
 """
-
 """result = cluster_articles('https://www.bbc.com/news/articles/cy8y7ggm89lo', link_num=10, debug_print=True)
 
 for cluster in result['clusters']:
