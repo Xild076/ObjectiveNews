@@ -127,11 +127,11 @@ def find_bias_rating(url):
         bias_rating = result.iloc[0]['bias_rating']
         accuracy = result.iloc[0]['factual_reporting_rating']
         if accuracy == 'VERY HIGH':
-            multiplier = 0.75
+            multiplier = 0.5
         elif accuracy == 'HIGH':
             multiplier = 1
         else:
             multiplier = 1.25
         return abs(bias_rating) * multiplier
     else:
-        return 20
+        return 30

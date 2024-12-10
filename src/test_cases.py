@@ -6,7 +6,8 @@ from sentence_transformers import SentenceTransformer
 from typing import Union, Type, List, Dict, Any
 from nltk.stem import WordNetLemmatizer
 from colorama import Fore, Style
-from grouping import cluster_text, cluster_articles
+from grouping import cluster_text
+from article_analysis import cluster_articles
 
 
 text_1 = """

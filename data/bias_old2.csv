@@ -88,6 +88,7 @@ Anadolu Agency,aa.com.tr/en,24,MIXED
 Angry White Men,angrywhitemen.org,-21,HIGH
 Anniston Star,annistonstar.com,-16,HIGH
 Anthropocene Magazine,anthropocenemagazine.org,-4,VERY HIGH
+Anthropocene Magazine,anthropocenemagazine.org,-4,VERY HIGH
 Anti-Defamation League,adl.org,-11,HIGH
 Anti-Fascist News,antifascistnews.net,-18,MIXED
 Anti-War,antiwar.com,16,MIXED
@@ -481,6 +482,7 @@ Foreign Policy News,foreignpolicynews.org,-23,MIXED
 Foreign Policy Research Institute,fpri.org,10,VERY HIGH
 Foreign Policy,foreignpolicy.com,3,HIGH
 Fort Bend Herald,fbherald.com,13,HIGH
+Fort Worth Star-Telegram,star-telegram.com,10,HIGH
 Fort Worth Star-Telegram,star-telegram.com,10,HIGH
 Fort Worth Weekly,fwweekly.com,-14,HIGH
 Fortnightly Review,fortnightlyreview.co.uk,15,HIGH
@@ -1262,6 +1264,7 @@ The Daily Defender,thedailydefender.com,27,MIXED
 The Daily Gazette,dailygazette.com,-4,HIGH
 The Daily Liberator,thedailyliberator.com,24,MIXED
 The Daily News (Longview),tdn.com,-5,HIGH
+The Daily News (Longview),tdn.com,-5,HIGH
 The Daily Northwestern,dailynorthwestern.com,-4,HIGH
 The Daily Progress,dailyprogress.com,-2,HIGH
 The Daily Tarheel,dailytarheel.com,-12,HIGH
@@ -1360,6 +1363,7 @@ The Odyssey Online,theodysseyonline.com,-16,MIXED
 The Oklahoman,oklahoman.com/live,11,HIGH
 The Olympian,theolympian.com,-11,HIGH
 The Oslo Times,theoslotimes.com,-12,HIGH
+The Oslo Times,theoslotimes.com,-12,HIGH
 The Other 98%,other98.com,-25,MIXED
 The Outline,theoutline.com,-19,HIGH
 The Outlook (Monmouth University),outlook.monmouth.edu,-4,HIGH
@@ -1406,6 +1410,7 @@ The Stern Facts,thesternfacts.com,-27,MIXED
 The Straits Times,straitstimes.com/global,10,HIGH
 The Stranger,thestranger.com,-17,HIGH
 The Strategy Bridge,thestrategybridge.org,2,HIGH
+The Sun Magazine,thesunmagazine.org,-15,HIGH
 The Sun Magazine,thesunmagazine.org,-15,HIGH
 The Sun,thesun.co.uk,26,MIXED
 The Swedish Wire,swedishwire.com,-4,HIGH
@@ -1601,7 +1606,6 @@ ZDF (Zweites Deutsches Fernsehen),zdf.de,-5,HIGH
 (The) Interpreter Magazine,www.interpretermag.com,-8,HIGH
 (The) Interpreter Magazine,interpretermag.co.uk,-8,HIGH
 1600 Daily,www.whitehouse.gov,26,MIXED
-1600 Daily,whitehouse.gov,26,MIXED
 2ndVote,www.2ndvote.com,29,MIXED
 2ndVote,2ndvote.co.uk,29,MIXED
 680 News,www.680news.com,-3,HIGH
@@ -1610,7 +1614,6 @@ ZDF (Zweites Deutsches Fernsehen),zdf.de,-5,HIGH
 71 Republic,71republic.co.uk,15,HIGH
 9 News (Australia),www.9news.com.au,6,HIGH
 ABC News Australia,www.abc.net.au,-4,HIGH
-ABC News Australia,abc.net.au,-4,HIGH
 ABC News,www.abcnews.go.com,-13,HIGH
 ABC News,abcnews.go.co.uk,-13,HIGH
 ABC11 Eyewitness News,www.abc11.com,-11,HIGH
@@ -1633,7 +1636,6 @@ Advocate,advocate.co.uk,-22,HIGH
 Aeon,www.aeon.co,-10,HIGH
 Affinity Magazine,www.affinitymagazine.us,-15,MIXED
 AFP (Agence France Presse),www.afp.com,-5,HIGH
-AFP (Agence France Presse),afp.com,-5,HIGH
 AFP (Agence France Presse),afp.co.uk,-5,HIGH
 Africa News,www.africanews.com,-2,HIGH
 Africa News,africanews.co.uk,-2,HIGH
@@ -1641,7 +1643,6 @@ African Arguments,www.africanarguments.org,-12,HIGH
 Against Crony Capitialism,www.ac2news.com,24,MIXED
 Against Crony Capitialism,ac2news.co.uk,24,MIXED
 Agerpres,www.agerpres.ro,-1,HIGH
-Agerpres,agerpres.ro,-1,HIGH
 Ahram Online,www.english.ahram.org.eg,-2,HIGH
 Airwars,www.airwars.org,-1,HIGH
 Akkadian Times,www.akkadiantimes.com,-22,HIGH
@@ -1656,7 +1657,6 @@ Al Jazeera,aljazeera.co.uk,-8,HIGH
 Al Majalla,www.eng.majalla.com,-4,HIGH
 Al Majalla,eng.majalla.co.uk,-4,HIGH
 Al Monitor,www.al-monitor.com,-13,HIGH
-Al Monitor,al-monitor.com,-13,HIGH
 Al Monitor,al-monitor.co.uk,-13,HIGH
 Al-Hayat,www.alhayat.com,-13,HIGH
 Al-Hayat,alhayat.co.uk,-13,HIGH
@@ -1695,7 +1695,6 @@ AltNewsMedia.net,www.altnewsmedia.net,24,HIGH
 AM New York,www.amny.com,-13,HIGH
 AM New York,amny.co.uk,-13,HIGH
 Amandla,www.aidc.org.za,-23,HIGH
-Amandla,aidc.org.za,-23,HIGH
 America Magazine,www.americamagazine.org,-8,HIGH
 AmericaBlog,www.americablog.com,-23,HIGH
 AmericaBlog,americablog.co.uk,-23,HIGH
@@ -1737,12 +1736,11 @@ Americas Quarterly,www.americasquarterly.org,10,HIGH
 Ammoland,www.ammoland.com,24,HIGH
 Ammoland,ammoland.co.uk,24,HIGH
 Amnesty International,www.amnesty.org,-5,HIGH
-Amnesty International,amnesty.org,-5,HIGH
 Anadolu Agency,www.aa.com.tr,24,MIXED
-Anadolu Agency,aa.com.tr,24,MIXED
 Angry White Men,www.angrywhitemen.org,-21,HIGH
 Anniston Star,www.annistonstar.com,-16,HIGH
 Anniston Star,annistonstar.co.uk,-16,HIGH
+Anthropocene Magazine,www.anthropocenemagazine.org,-4,VERY HIGH
 Anthropocene Magazine,www.anthropocenemagazine.org,-4,VERY HIGH
 Anti-Defamation League,www.adl.org,-11,HIGH
 Anti-Fascist News,www.antifascistnews.net,-18,MIXED
@@ -1752,7 +1750,6 @@ AOL,www.aol.com,-14,HIGH
 AOL,aol.co.uk,-14,HIGH
 APM Reports,www.apmreports.org,-10,HIGH
 APTN News,www.aptnnews.ca,-4,HIGH
-APTN News,aptnnews.ca,-4,HIGH
 Ara News,www.aranews.net,-12,HIGH
 Arab News,www.arabnews.com,10,HIGH
 Arab News,arabnews.co.uk,10,HIGH
@@ -1782,7 +1779,6 @@ Asian News International (ANI),www.aninews.in,1,HIGH
 Associated Press,www.apnews.com,-5,VERY HIGH
 Associated Press,apnews.co.uk,-5,VERY HIGH
 Assyrian International News Agency,www.aina.org,22,MIXED
-Assyrian International News Agency,aina.org,22,MIXED
 Atavist Magazine,www.magazine.atavist.com,-8,VERY HIGH
 Atavist Magazine,magazine.atavist.co.uk,-8,VERY HIGH
 Atlanta Black Star,www.atlantablackstar.com,-15,HIGH
@@ -1805,7 +1801,6 @@ BackChannel,backchannel.co.uk,-8,VERY HIGH
 Backed by Fact,www.backedbyfact.com,-18,HIGH
 Backed by Fact,backedbyfact.co.uk,-18,HIGH
 Ballotpedia,www.ballotpedia.org,-1,VERY HIGH
-Ballotpedia,ballotpedia.org,-1,VERY HIGH
 Baltimore City Paper,www.citypaper.com,-21,MIXED
 Baltimore City Paper,citypaper.co.uk,-21,MIXED
 Baltimore Sun,www.baltimoresun.com,-13,HIGH
@@ -1830,7 +1825,6 @@ Bearing Arms,bearingarms.co.uk,27,MIXED
 Beijing Review,www.bjreview.com,-17,HIGH
 Beijing Review,bjreview.co.uk,-17,HIGH
 Being Liberal,www.themaven.net,-27,HIGH
-Being Liberal,themaven.net,-27,HIGH
 Being Libertarian,www.beinglibertarian.com,23,HIGH
 Being Libertarian,beinglibertarian.co.uk,23,HIGH
 Beliefnet,www.beliefnet.com,21,MIXED
@@ -1843,7 +1837,6 @@ Berkshire Eagle,www.berkshireeagle.com,-11,HIGH
 Berkshire Eagle,berkshireeagle.co.uk,-11,HIGH
 Better Government Association,www.bettergov.org,-5,HIGH
 Big Government News,www.biggovernment.news,28,MIXED
-Big Government News,biggovernment.news,28,MIXED
 Big League Politics,www.bigleaguepolitics.com,28,MIXED
 Big League Politics,bigleaguepolitics.co.uk,28,MIXED
 Big News Network,www.bignewsnetwork.com,-3,MIXED
@@ -1914,7 +1907,6 @@ Bust Magazine,bust.co.uk,-23,HIGH
 Bustle Magazine,www.bustle.com,-14,HIGH
 Bustle Magazine,bustle.co.uk,-14,HIGH
 Buzzfeed,www.buzzfeed.com,-17,MIXED
-Buzzfeed,buzzfeed.com,-17,MIXED
 Buzzfeed,buzzfeed.co.uk,-17,MIXED
 C-Span,www.c-span.org,-1,VERY HIGH
 Calgary Herald,www.calgaryherald.com,-13,HIGH
@@ -1959,7 +1951,6 @@ Casper Star-Tribune,trib.co.uk,1,HIGH
 Castanet,www.castanet.net,-4,HIGH
 Cato Institute,www.cato.org,17,HIGH
 CBC News (Canadian Broadcasting),www.cbc.ca,-12,HIGH
-CBC News (Canadian Broadcasting),cbc.ca,-12,HIGH
 CBS News,www.cbsnews.com,-12,HIGH
 CBS News,cbsnews.co.uk,-12,HIGH
 CCTV America,www.cctv-america.com,-10,HIGH
@@ -1973,7 +1964,6 @@ Center for Global Development,www.cgdev.org,-4,VERY HIGH
 Center for Inquiry,www.centerforinquiry.net,-1,VERY HIGH
 Center for International Policy,www.ciponline.org,-11,VERY HIGH
 Center for Media and Democracy (PR Watch),www.prwatch.org,-21,HIGH
-Center for Media and Democracy (PR Watch),prwatch.org,-21,HIGH
 Center for Popular Democracy,www.populardemocracy.org,-16,HIGH
 Center for Public Integrity,www.publicintegrity.org,-3,VERY HIGH
 Center for Responsive Politics (Open Secrets),www.opensecrets.org,-1,VERY HIGH
@@ -2026,7 +2016,6 @@ Citizens for Legitimate Government (CLG News),www.legitgov.org,-16,MIXED
 Citizens for Responsibility and Ethics in Washington (CREW),www.citizensforethics.org,-15,HIGH
 Citizens for Tax Justice,www.ctj.org,-13,HIGH
 Citizens United,www.citizensunited.org,23,MIXED
-Citizens United,citizensunited.org,23,MIXED
 City and State New York,www.cityandstateny.com,-3,HIGH
 City and State New York,cityandstateny.co.uk,-3,HIGH
 City Journal,www.city-journal.org,24,HIGH
@@ -2077,7 +2066,6 @@ Conservative HQ,www.conservativehq.com,29,MIXED
 Conservative HQ,conservativehq.co.uk,29,MIXED
 Conservative Institute,www.conservativeinstitute.org,22,HIGH
 Conservative Outfitters,www.conservativeoutfitters.com,28,MIXED
-Conservative Outfitters,conservativeoutfitters.com,28,MIXED
 Conservative Outfitters,conservativeoutfitters.co.uk,28,MIXED
 Conservative Review,www.conservativereview.com,24,MIXED
 Conservative Review,conservativereview.co.uk,24,MIXED
@@ -2158,7 +2146,6 @@ Daily Journal (Missouri),dailyjournalonline.co.uk,-3,HIGH
 Daily Kos,www.dailykos.com,-27,MIXED
 Daily Kos,dailykos.co.uk,-27,MIXED
 Daily Mail,www.dailymail.co.uk,24,MIXED
-Daily Mail,dailymail.co.uk,24,MIXED
 Daily Mirror,www.mirror.co.uk,-23,MIXED
 Daily News Bin,www.dailynewsbin.com,-28,MIXED
 Daily News Bin,dailynewsbin.co.uk,-28,MIXED
@@ -2166,6 +2153,7 @@ Daily Press,www.dailypress.com,7,HIGH
 Daily Press,dailypress.co.uk,7,HIGH
 Daily Record (Scotland),www.dailyrecord.co.uk,-22,MIXED
 Daily Record,www.dailyrecord.com,-4,HIGH
+Daily Record,dailyrecord.co.uk,-4,HIGH
 Daily Sabah,www.dailysabah.com,22,MIXED
 Daily Sabah,dailysabah.co.uk,22,MIXED
 Daily Signal,www.dailysignal.com,29,MIXED
@@ -2214,7 +2202,6 @@ Delaware Online – The News Journal,www.delawareonline.com,-9,HIGH
 Delaware Online – The News Journal,delawareonline.co.uk,-9,HIGH
 Democracy 21,www.democracy21.org,-16,HIGH
 Democracy Chronicles,www.democracychronicles.org,-24,HIGH
-Democracy Chronicles,democracychronicles.org,-24,HIGH
 Democracy Guardian,www.democracyguardian.com,-28,MIXED
 Democracy Guardian,democracyguardian.co.uk,-28,MIXED
 Democracy Now,www.democracynow.org,-22,HIGH
@@ -2240,7 +2227,6 @@ Detroit News,detroitnews.co.uk,12,HIGH
 Die Hard Democrat,www.dieharddemocrat.com,-26,HIGH
 Die Hard Democrat,dieharddemocrat.co.uk,-26,HIGH
 Die Zeit,www.zeit.de,-9,HIGH
-Die Zeit,zeit.de,-9,HIGH
 DifferenceBetween.net,www.differencebetween.net,0,VERY HIGH
 Digg,www.digg.com,-9,HIGH
 Digg,digg.co.uk,-9,HIGH
@@ -2266,13 +2252,11 @@ Dutch Daily News,dutchdailynews.co.uk,-13,HIGH
 Dutch Review,www.dutchreview.com,-13,MIXED
 Dutch Review,dutchreview.co.uk,-13,MIXED
 DW News,www.dw.com,-14,HIGH
-DW News,dw.com,-14,HIGH
 DW News,dw.co.uk,-14,HIGH
 Eagle Tribune,www.eagletribune.com,1,HIGH
 Eagle Tribune,eagletribune.co.uk,1,HIGH
 Earth First Journal,www.earthfirstjournal.org,-26,MIXED
 Earth Institute,www.earth.columbia.edu,-2,HIGH
-Earth Institute,earth.columbia.edu,-2,HIGH
 EarthJustice,www.earthjustice.org,-17,HIGH
 East Bay Times,www.eastbaytimes.com,-9,HIGH
 East Bay Times,eastbaytimes.co.uk,-9,HIGH
@@ -2292,7 +2276,6 @@ Egyptian Streets,egyptianstreets.co.uk,-12,MIXED
 EJ Insight (EJI),www.ejinsight.com,-5,HIGH
 EJ Insight (EJI),ejinsight.co.uk,-5,HIGH
 El Pais,www.elpais.com,-13,HIGH
-El Pais,elpais.com,-13,HIGH
 El Pais,elpais.co.uk,-13,HIGH
 El Paso Times,www.elpasotimes.com,-8,HIGH
 El Paso Times,elpasotimes.co.uk,-8,HIGH
@@ -2346,7 +2329,6 @@ FactCheck,www.factcheck.org,-1,VERY HIGH
 Facts and Logic About the Middle East (FLAME),www.factsandlogic.org,28,MIXED
 FactsCan,www.factscan.ca,-1,VERY HIGH
 Factwire News Agency,www.factwire.org,-1,HIGH
-Factwire News Agency,factwire.org,-1,HIGH
 Fair Observer,www.fairobserver.com,-3,HIGH
 Fair Observer,fairobserver.co.uk,-3,HIGH
 Fairness & Accuracy in Reporting (FAIR),www.fair.org,-14,HIGH
@@ -2412,6 +2394,8 @@ Fort Bend Herald,www.fbherald.com,13,HIGH
 Fort Bend Herald,fbherald.co.uk,13,HIGH
 Fort Worth Star-Telegram,www.star-telegram.com,10,HIGH
 Fort Worth Star-Telegram,star-telegram.co.uk,10,HIGH
+Fort Worth Star-Telegram,www.star-telegram.com,10,HIGH
+Fort Worth Star-Telegram,star-telegram.co.uk,10,HIGH
 Fort Worth Weekly,www.fwweekly.com,-14,HIGH
 Fort Worth Weekly,fwweekly.co.uk,-14,HIGH
 Fortnightly Review,www.fortnightlyreview.co.uk,15,HIGH
@@ -2424,7 +2408,6 @@ Foundation for Economic Education,www.fee.org,12,HIGH
 Fox News,www.foxnews.com,24,MIXED
 Fox News,foxnews.co.uk,24,MIXED
 France24,www.france24.com,-13,HIGH
-France24,france24.com,-13,HIGH
 France24,france24.co.uk,-13,HIGH
 Franklin Center for Government and Public Integrity,www.franklincenterhq.org,15,MIXED
 Fraser Institute,www.fraserinstitute.org,13,HIGH
@@ -2454,10 +2437,8 @@ Full Fact (UK),www.fullfact.org,-5,VERY HIGH
 Fusion,www.fusion.kinja.com,-16,MIXED
 Fusion,fusion.kinja.co.uk,-16,MIXED
 Future in America,www.futureinamerica.com,30,MIXED
-Future in America,futureinamerica.com,30,MIXED
 Future in America,futureinamerica.co.uk,30,MIXED
 Gallup,www.gallup.com,-2,VERY HIGH
-Gallup,gallup.com,-2,VERY HIGH
 Gallup,gallup.co.uk,-2,VERY HIGH
 Gatestone Institute,www.gatestoneinstitute.org,28,MIXED
 Gay Star News,www.gaystarnews.com,-15,HIGH
@@ -2474,7 +2455,6 @@ Gizmodo,gizmodo.co.uk,-20,HIGH
 Glamour Magazine,www.glamour.com,-14,HIGH
 Glamour Magazine,glamour.co.uk,-14,HIGH
 Global Citizen,www.globalcitizen.org,-11,HIGH
-Global Citizen,globalcitizen.org,-11,HIGH
 Global Integrity,www.globalintegrity.org,1,HIGH
 Global News,www.globalnews.ca,-8,HIGH
 Global Post,www.pri.org,-10,HIGH
@@ -2503,7 +2483,6 @@ GovTrack,www.govtrack.us,0,VERY HIGH
 GQ Magazine,www.gq.com,-19,HIGH
 GQ Magazine,gq.co.uk,-19,HIGH
 Grabien News,www.news.grabien.com,-3,MIXED
-Grabien News,news.grabien.com,-3,MIXED
 Grabien News,news.grabien.co.uk,-3,MIXED
 Grand Rapids Press,www.mlive.com,13,HIGH
 Grand Rapids Press,mlive.co.uk,13,HIGH
@@ -2538,7 +2517,6 @@ Happy Foxie,happy-foxie.co.uk,-28,MIXED
 Harper’s Magazine,www.harpers.org,-8,HIGH
 Harvard Business Review,www.hbr.org,-3,HIGH
 Harvard Gazette,www.news.harvard.edu,-4,HIGH
-Harvard Gazette,news.harvard.edu,-4,HIGH
 Harvard Political Review,www.harvardpolitics.com,-4,HIGH
 Harvard Political Review,harvardpolitics.co.uk,-4,HIGH
 Hastings Tribune,www.hastingstribune.com,-2,HIGH
@@ -2624,7 +2602,6 @@ Independent Australia,www.independentaustralia.net,-15,HIGH
 Independent Journal Review,www.ijr.com,26,HIGH
 Independent Journal Review,ijr.co.uk,26,HIGH
 Independent Media Center,www.indymedia.org,-14,MIXED
-Independent Media Center,indymedia.org,-14,MIXED
 Independent Record (Montana),www.helenair.com,1,HIGH
 Independent Record (Montana),helenair.co.uk,1,HIGH
 Independent Reporter (Ir.net),www.ir.net,-27,MIXED
@@ -2640,7 +2617,6 @@ iNews,www.inews.co.uk,-13,HIGH
 Informed Comment,www.juancole.com,-19,HIGH
 Informed Comment,juancole.co.uk,-19,HIGH
 Inquisitr,www.inquisitr.com,-14,MIXED
-Inquisitr,inquisitr.com,-14,MIXED
 Inquisitr,inquisitr.co.uk,-14,MIXED
 Inside Higher Ed,www.insidehighered.com,-7,HIGH
 Inside Higher Ed,insidehighered.co.uk,-7,HIGH
@@ -2664,7 +2640,6 @@ International Consortium of Investigative Journalists,www.icij.org,-4,VERY HIGH
 International Crisis Group,www.crisisgroup.org,-10,HIGH
 International Energy Agency (IEA),www.iea.org,-5,HIGH
 International Organization,www.journals.cambridge.org,1,VERY HIGH
-International Organization,journals.cambridge.org,1,VERY HIGH
 International Press Institute,www.freemedia.at,-1,VERY HIGH
 International Rescue Committee (IRC),www.rescue.org,-3,HIGH
 International Viewpoint,www.internationalviewpoint.org,-29,MIXED
@@ -2685,10 +2660,8 @@ iPolitics,www.ipolitics.ca,-9,HIGH
 IRIN News,www.irinnews.org,-10,HIGH
 Irish Independent,www.independent.ie,11,HIGH
 Israel Hayom,www.israelhayom.com,13,HIGH
-Israel Hayom,israelhayom.com,13,HIGH
 Israel Hayom,israelhayom.co.uk,13,HIGH
 ITV News,www.itv.com,8,HIGH
-ITV News,itv.com,8,HIGH
 ITV News,itv.co.uk,8,HIGH
 It’s Going Down,www.itsgoingdown.org,-28,MIXED
 Jackson Sun,www.jacksonsun.com,2,HIGH
@@ -2710,6 +2683,7 @@ Jezebel,jezebel.co.uk,-29,MIXED
 Jihadica,www.jihadica.com,-9,HIGH
 Jihadica,jihadica.co.uk,-9,HIGH
 Joint Center for Political and Economic Studies,www.jointcenter.org,-13,HIGH
+Journal Gazette & Times-Courier,www.opensecrets.org,-3,HIGH
 Journal of Politics and Society,www.helvidius.org,-10,VERY HIGH
 JStor Daily,www.daily.jstor.org,-1,VERY HIGH
 Judicial Crisis Network,www.judicialnetwork.com,28,MIXED
@@ -2881,7 +2855,6 @@ MediaShift,www.mediashift.org,-4,HIGH
 Medium,www.medium.com,-12,MIXED
 Medium,medium.co.uk,-12,MIXED
 Meduza,www.meduza.io,-19,HIGH
-Meduza,meduza.io,-19,HIGH
 Mehr News Agency,www.en.mehrnews.com,23,MIXED
 Mehr News Agency,en.mehrnews.co.uk,23,MIXED
 Memeorandum,www.memeorandum.com,-4,MIXED
@@ -2926,10 +2899,11 @@ Mint Press News,mintpressnews.co.uk,-16,MIXED
 Mises Daily,www.mises.org,16,MIXED
 Missoulian,www.missoulian.com,-3,HIGH
 Missoulian,missoulian.co.uk,-3,HIGH
+MLive (Michigan – Booth Newspapers),www.mlive.com,-1,HIGH
+MLive (Michigan – Booth Newspapers),mlive.co.uk,-1,HIGH
 Modern Liberals,www.modernliberals.com,-29,MIXED
 Modern Liberals,modernliberals.co.uk,-29,MIXED
 Molad The Center for the Renewal of Israeli Democracy,www.molad.org,-20,HIGH
-Molad The Center for the Renewal of Israeli Democracy,molad.org,-20,HIGH
 Mondoweiss,www.mondoweiss.net,-18,HIGH
 Mongabay,www.news.mongabay.com,-12,HIGH
 Mongabay,news.mongabay.co.uk,-12,HIGH
@@ -2984,7 +2958,6 @@ National Newswatch,nationalnewswatch.co.uk,-8,HIGH
 National Observer (Canada),www.nationalobserver.com,-15,HIGH
 National Observer (Canada),nationalobserver.co.uk,-15,HIGH
 National Post,www.nationalpost.com,13,HIGH
-National Post,nationalpost.com,13,HIGH
 National Post,nationalpost.co.uk,13,HIGH
 National Review,www.nationalreview.com,26,MIXED
 National Review,nationalreview.co.uk,26,MIXED
@@ -3073,7 +3046,6 @@ NewsLogue,newslogue.co.uk,-28,MIXED
 Newsmax,www.newsmax.com,26,MIXED
 Newsmax,newsmax.co.uk,26,MIXED
 NewsNow (UK),www.newsnow.co.uk,-3,MIXED
-NewsNow (UK),newsnow.co.uk,-3,MIXED
 NewsOne,www.newsone.com,-16,HIGH
 NewsOne,newsone.co.uk,-16,HIGH
 Newsweek,www.newsweek.com,-23,MIXED
@@ -3086,7 +3058,6 @@ Next News Network,nextnewsnetwork.co.uk,30,MIXED
 NextGov,www.nextgov.com,-2,HIGH
 NextGov,nextgov.co.uk,-2,HIGH
 NHK World,www.www3.nhk.or.jp,-2,HIGH
-NHK World,www3.nhk.or.jp,-2,HIGH
 Niskanen Center,www.niskanencenter.org,-5,HIGH
 NK News,www.nknews.org,-4,HIGH
 No Labels,www.nolabels.org,-3,HIGH
@@ -3107,7 +3078,6 @@ Now Magazine,nowtoronto.co.uk,-18,HIGH
 NowThis News,www.nowthisnews.com,-23,MIXED
 NowThis News,nowthisnews.co.uk,-23,MIXED
 NPR (National Public Radio),www.npr.org,-9,VERY HIGH
-NPR (National Public Radio),npr.org,-9,VERY HIGH
 NTD.TV (New Tang Dynasty),www.ntd.tv,14,HIGH
 NTK Network,www.ntknetwork.com,27,MIXED
 NTK Network,ntknetwork.co.uk,27,MIXED
@@ -3147,7 +3117,6 @@ OpsLens,opslens.co.uk,30,MIXED
 Orange County Register,www.ocregister.com,11,HIGH
 Orange County Register,ocregister.co.uk,11,HIGH
 Oregonian,www.oregonlive.com,12,HIGH
-Oregonian,oregonlive.com,12,HIGH
 Oregonian,oregonlive.co.uk,12,HIGH
 Orlando Sentinel,www.orlandosentinel.com,10,HIGH
 Orlando Sentinel,orlandosentinel.co.uk,10,HIGH
@@ -3164,7 +3133,6 @@ Ozy Media,ozy.co.uk,-13,HIGH
 Pacific Daily News,www.guampdn.com,-3,HIGH
 Pacific Daily News,guampdn.co.uk,-3,HIGH
 Pacific Research Institute,www.pacificresearch.org,9,HIGH
-Pacific Research Institute,pacificresearch.org,9,HIGH
 Pacific Standard Magazine,www.psmag.com,-10,HIGH
 Pacific Standard Magazine,psmag.co.uk,-10,HIGH
 Palmer Report,www.palmerreport.com,-27,MIXED
@@ -3184,7 +3152,6 @@ Patriotic Millionaires,www.patrioticmillionaires.org,-12,HIGH
 PatriotRetort.com,www.patriotretort.com,28,MIXED
 PatriotRetort.com,patriotretort.co.uk,28,MIXED
 PBS News Hour,www.pbs.org,-10,HIGH
-PBS News Hour,pbs.org,-10,HIGH
 Peacock Panache,www.peacock-panache.com,-27,HIGH
 Peacock Panache,peacock-panache.co.uk,-27,HIGH
 Peninsula Daily News,www.peninsuladailynews.com,8,HIGH
@@ -3193,14 +3160,12 @@ Pensacola News Journal,www.pnj.com,-4,HIGH
 Pensacola News Journal,pnj.co.uk,-4,HIGH
 People for the American Way (PFAW),www.pfaw.org,-19,HIGH
 People Magazine,www.people.com,-20,HIGH
-People Magazine,people.com,-20,HIGH
 People Magazine,people.co.uk,-20,HIGH
 Peterson Foundation,www.pgpf.org,1,HIGH
 Peterson Institute for International Economics,www.piie.com,2,HIGH
 Peterson Institute for International Economics,piie.co.uk,2,HIGH
 Pew Research,www.pewresearch.org,-1,VERY HIGH
 Philadelphia Inquirer,www.philly.com,-11,HIGH
-Philadelphia Inquirer,philly.com,-11,HIGH
 Philadelphia Inquirer,philly.co.uk,-11,HIGH
 Philadelphia Tribune,www.phillytrib.com,-11,HIGH
 Philadelphia Tribune,phillytrib.co.uk,-11,HIGH
@@ -3210,7 +3175,6 @@ Phoenix New Times,phoenixnewtimes.co.uk,-16,HIGH
 PINAC,www.photographyisnotacrime.com,-18,HIGH
 PINAC,photographyisnotacrime.co.uk,-18,HIGH
 Pink News,www.pinknews.co.uk,-20,HIGH
-Pink News,pinknews.co.uk,-20,HIGH
 Pittsburgh Post-Gazette,www.post-gazette.com,7,HIGH
 Pittsburgh Post-Gazette,post-gazette.co.uk,7,HIGH
 Pittsburgh Tribune Review,www.triblive.com,10,HIGH
@@ -3220,6 +3184,7 @@ PJ Media,pjmedia.co.uk,24,MIXED
 Places Journal,www.placesjournal.org,-3,VERY HIGH
 Pluralist,www.pluralist.com,-11,HIGH
 Pluralist,pluralist.co.uk,-11,HIGH
+Policy Review,www.hoover.org,22,HIGH
 PolicyEd,www.policyed.org,16,HIGH
 Political Critique,www.politicalcritique.org,-13,HIGH
 Political Dig,www.politicaldig.com,-28,MIXED
@@ -3282,6 +3247,7 @@ Public Citizen,www.citizen.org,-13,HIGH
 Public Interest Legal Foundation,www.publicinterestlegal.org,23,MIXED
 Public Policy Polling (PPP),www.publicpolicypolling.com,0,VERY HIGH
 Public Policy Polling (PPP),publicpolicypolling.co.uk,0,VERY HIGH
+Public Radio International (PRI),www.pri.org,-13,HIGH
 Public Religion Research Institute (PRRI),www.prri.org,2,VERY HIGH
 PunchingBag Post,www.punchingbagpost.com,13,HIGH
 PunchingBag Post,punchingbagpost.co.uk,13,HIGH
@@ -3298,7 +3264,6 @@ Quillette,quillette.co.uk,11,HIGH
 R Street Institute,www.rstreet.org,10,HIGH
 Rabble.ca,www.rabble.ca,-25,HIGH
 Radio Free Asia,www.rfa.org,-7,HIGH
-Radio Free Asia,rfa.org,-7,HIGH
 Radio Free Europe / Radio Liberty,www.rferl.org,-2,HIGH
 Raleigh News and Observer,www.newsobserver.com,-9,HIGH
 Raleigh News and Observer,newsobserver.co.uk,-9,HIGH
@@ -3313,7 +3278,6 @@ Rare News,www.rare.us,9,HIGH
 Rasmussen Reports,www.rasmussenreports.com,7,HIGH
 Rasmussen Reports,rasmussenreports.co.uk,7,HIGH
 RationalWiki,www.rationalwiki.org,-11,HIGH
-RationalWiki,rationalwiki.org,-11,HIGH
 Raw Progressive,www.rawprogressive.com,-29,MIXED
 Raw Progressive,rawprogressive.co.uk,-29,MIXED
 Raw Story,www.rawstory.com,-23,MIXED
@@ -3333,7 +3297,6 @@ Real Clear Policy,realclearpolicy.co.uk,9,HIGH
 Real Clear Politics,www.realclearpolitics.com,9,HIGH
 Real Clear Politics,realclearpolitics.co.uk,9,HIGH
 Real News Network,www.therealnews.com,-19,HIGH
-Real News Network,therealnews.com,-19,HIGH
 Real News Network,therealnews.co.uk,-19,HIGH
 RealClearReligion,www.realclearreligion.org,9,HIGH
 Reason,www.reason.com,14,HIGH
@@ -3351,6 +3314,7 @@ Red State Disaster,redstatedisaster.co.uk,-23,HIGH
 Red Youth,www.redyouth.org,-26,MIXED
 Regated News,www.regated.com,29,MIXED
 Regated News,regated.co.uk,29,MIXED
+Regulation Magazine,www.cato.org,16,MIXED
 Relevant Magazine,www.relevantmagazine.com,3,HIGH
 Relevant Magazine,relevantmagazine.co.uk,3,HIGH
 Religion News Service (RNS),www.religionnews.com,-11,HIGH
@@ -3361,7 +3325,6 @@ RenewedRight.com,www.renewedright.com,29,MIXED
 RenewedRight.com,renewedright.co.uk,29,MIXED
 Reporters Lab,www.reporterslab.org,-1,VERY HIGH
 Reporters Without Borders,www.rsf.org,-5,HIGH
-Reporters Without Borders,rsf.org,-5,HIGH
 Represent.Us,www.represent.us,-5,HIGH
 Republic World,www.republicworld.com,-14,MIXED
 Republic World,republicworld.co.uk,-14,MIXED
@@ -3400,13 +3363,10 @@ Ron Paul Liberty Report,www.ronpaullibertyreport.com,21,MIXED
 Ron Paul Liberty Report,ronpaullibertyreport.co.uk,21,MIXED
 Roosevelt Institute,www.rooseveltinstitute.org,-12,HIGH
 RT News,www.rt.com,13,MIXED
-RT News,rt.com,13,MIXED
 RT News,rt.co.uk,13,MIXED
 RTE (Radio Television of Ireland),www.rte.ie,-3,HIGH
 Rudaw,www.rudaw.net,-10,HIGH
-Rudaw,rudaw.net,-10,HIGH
 Russia Insider,www.russia-insider.com,17,MIXED
-Russia Insider,russia-insider.com,17,MIXED
 Russia Insider,russia-insider.co.uk,17,MIXED
 Russian Media Monitor,www.russialies.com,-5,HIGH
 Russian Media Monitor,russialies.co.uk,-5,HIGH
@@ -3491,14 +3451,12 @@ Sky News,news.sky.co.uk,-12,HIGH
 Slate,www.slate.com,-23,HIGH
 Slate,slate.co.uk,-23,HIGH
 SmartNews,www.smartnews.com,-4,MIXED
-SmartNews,smartnews.com,-4,MIXED
 SmartNews,smartnews.co.uk,-4,MIXED
 Smirking Chimp,www.smirkingchimp.com,-22,HIGH
 Smirking Chimp,smirkingchimp.co.uk,-22,HIGH
 Snopes,www.snopes.com,-3,HIGH
 Snopes,snopes.co.uk,-3,HIGH
 Socialist Standard,www.worldsocialism.org,-24,HIGH
-Socialist Standard,worldsocialism.org,-24,HIGH
 SocialistWorker.org,www.socialistworker.org,-27,HIGH
 SOFREP,www.sofrep.com,11,HIGH
 SOFREP,sofrep.co.uk,11,HIGH
@@ -3508,7 +3466,6 @@ Sonoran News,sonorannews.co.uk,24,MIXED
 SooToday.com,www.sootoday.com,-13,HIGH
 SooToday.com,sootoday.co.uk,-13,HIGH
 SourceWatch,www.sourcewatch.org,-20,HIGH
-SourceWatch,sourcewatch.org,-20,HIGH
 South Bend Tribune,www.southbendtribune.com,-4,HIGH
 South Bend Tribune,southbendtribune.co.uk,-4,HIGH
 South China Morning Post,www.scmp.com,-4,HIGH
@@ -3519,12 +3476,10 @@ Southern Poverty Law Center,www.splcenter.org,-11,HIGH
 Sparks/CnnTimes,www.cnntimes.online,-29,MIXED
 Special Broadcasting Service (SBS),www.sbs.com.au,-8,HIGH
 Spectrum News – NY1,www.ny1.com,-3,HIGH
-Spectrum News – NY1,ny1.com,-3,HIGH
 Spectrum News – NY1,ny1.co.uk,-3,HIGH
 Spectrum Report,www.spectrumreport.com,-1,MIXED
 Spectrum Report,spectrumreport.co.uk,-1,MIXED
 Spiegel Online,www.spiegel.de,-11,HIGH
-Spiegel Online,spiegel.de,-11,HIGH
 Spiked Magazine,www.spiked-online.com,21,MIXED
 Spiked Magazine,spiked-online.co.uk,21,MIXED
 Splinter,www.splinternews.com,-27,MIXED
@@ -3540,7 +3495,6 @@ St. Paul Pioneer Press,twincities.co.uk,-8,HIGH
 St. Pete for Peace,www.stpete4peace.org,-19,HIGH
 Standpoint Magazine,www.standpointmag.co.uk,29,MIXED
 Star-Ledger,www.nj.com,-14,HIGH
-Star-Ledger,nj.com,-14,HIGH
 Star-Ledger,nj.co.uk,-14,HIGH
 Stars and Stripes,www.stripes.com,0,HIGH
 Stars and Stripes,stripes.co.uk,0,HIGH
@@ -3572,7 +3526,6 @@ Swarajya,www.swarajyamag.com,11,HIGH
 Swarajya,swarajyamag.co.uk,11,HIGH
 SWI – Swissinfo.ch,www.swissinfo.ch,-8,HIGH
 Syrian Observatory for Human Rights (SOHR),www.syriahr.com,-14,HIGH
-Syrian Observatory for Human Rights (SOHR),syriahr.com,-14,HIGH
 Syrian Observatory for Human Rights (SOHR),syriahr.co.uk,-14,HIGH
 Syriana Analysis,www.syriana-analysis.com,-19,MIXED
 Syriana Analysis,syriana-analysis.co.uk,-19,MIXED
@@ -3594,13 +3547,11 @@ Tampa Tribune,tbo.co.uk,13,HIGH
 Task and Purpose,www.taskandpurpose.com,-4,HIGH
 Task and Purpose,taskandpurpose.co.uk,-4,HIGH
 Tasnim News Agency,www.tasnimnews.com,26,MIXED
-Tasnim News Agency,tasnimnews.com,26,MIXED
 Tasnim News Agency,tasnimnews.co.uk,26,MIXED
 Tax Foundation,www.taxfoundation.org,7,VERY HIGH
 Tax Justice Network,www.taxjustice.net,-11,HIGH
 Tax Policy Center,www.taxpolicycenter.org,-8,HIGH
 Tea Party News (The Point),www.westernjournalism.com,30,MIXED
-Tea Party News (The Point),westernjournalism.com,30,MIXED
 Tea Party News (The Point),westernjournalism.co.uk,30,MIXED
 Tea Party Patriots,www.teapartypatriots.org,20,HIGH
 Tea Party Tribune,www.teapartytribune.com,28,HIGH
@@ -3612,13 +3563,11 @@ Techdirt,techdirt.co.uk,-14,HIGH
 Tehran Times,www.tehrantimes.com,22,MIXED
 Tehran Times,tehrantimes.co.uk,22,MIXED
 TeleSUR,www.telesurtv.net,-19,MIXED
-TeleSUR,telesurtv.net,-19,MIXED
 Texas Monthly,www.texasmonthly.com,-12,HIGH
 Texas Monthly,texasmonthly.co.uk,-12,HIGH
 Texas Standard,www.texasstandard.org,-2,HIGH
 Texas Tribune,www.texastribune.org,-2,HIGH
 Tharawat Magazine,www.tharawat-magazine.com,8,HIGH
-Tharawat Magazine,tharawat-magazine.com,8,HIGH
 Tharawat Magazine,tharawat-magazine.co.uk,8,HIGH
 That’s Nonsense,www.thatsnonsense.com,-1,HIGH
 That’s Nonsense,thatsnonsense.co.uk,-1,HIGH
@@ -3660,7 +3609,6 @@ The Blacksphere (Kevin Jackson),www.theblacksphere.net,28,MIXED
 The Blaze,www.theblaze.com,30,MIXED
 The Blaze,theblaze.co.uk,30,MIXED
 The Blue Route,www.blue-route.org,-28,MIXED
-The Blue Route,blue-route.org,-28,MIXED
 The Budapest Beacon,www.budapestbeacon.com,-15,HIGH
 The Budapest Beacon,budapestbeacon.co.uk,-15,HIGH
 The Bureau of Investigative Journalism,www.thebureauinvestigates.com,-4,HIGH
@@ -3692,7 +3640,6 @@ The College Fix,thecollegefix.co.uk,28,MIXED
 The Conservative Nut,www.theconservativenut.gop,22,MIXED
 The Conservative Woman,www.conservativewoman.co.uk,30,MIXED
 The Conversation,www.theconversation.com,-4,HIGH
-The Conversation,theconversation.com,-4,HIGH
 The Conversation,theconversation.co.uk,-4,HIGH
 The Council of Canadians,www.canadians.org,-13,HIGH
 The Courier Mail,www.couriermail.com.au,14,HIGH
@@ -3710,6 +3657,8 @@ The Daily Gazette,www.dailygazette.com,-4,HIGH
 The Daily Gazette,dailygazette.co.uk,-4,HIGH
 The Daily Liberator,www.thedailyliberator.com,24,MIXED
 The Daily Liberator,thedailyliberator.co.uk,24,MIXED
+The Daily News (Longview),www.tdn.com,-5,HIGH
+The Daily News (Longview),tdn.co.uk,-5,HIGH
 The Daily News (Longview),www.tdn.com,-5,HIGH
 The Daily News (Longview),tdn.co.uk,-5,HIGH
 The Daily Northwestern,www.dailynorthwestern.com,-4,HIGH
@@ -3765,7 +3714,6 @@ The Gazette (Cedar Rapids),thegazette.co.uk,11,HIGH
 The Globe and Mail,www.theglobeandmail.com,7,HIGH
 The Globe and Mail,theglobeandmail.co.uk,7,HIGH
 The Guardian,www.theguardian.com,-14,HIGH
-The Guardian,theguardian.com,-14,HIGH
 The Guardian,theguardian.co.uk,-14,HIGH
 The Hartford Courant,www.courant.com,-12,HIGH
 The Hartford Courant,courant.co.uk,-12,HIGH
@@ -3805,6 +3753,8 @@ The Japan News,www.the-japan-news.com,8,HIGH
 The Japan News,the-japan-news.co.uk,8,HIGH
 The Jerusalem Post,www.jpost.com,-3,HIGH
 The Jerusalem Post,jpost.co.uk,-3,HIGH
+The Jerusalem Report,www.jpost.com,-12,HIGH
+The Jerusalem Report,jpost.co.uk,-12,HIGH
 The Jewish Press,www.jewishpress.com,9,HIGH
 The Jewish Press,jewishpress.co.uk,9,HIGH
 The Jordan Times,www.jordantimes.com,-4,HIGH
@@ -3824,15 +3774,12 @@ The Local (Norway),www.thelocal.no,-12,HIGH
 The London Economic,www.thelondoneconomic.com,-28,MIXED
 The London Economic,thelondoneconomic.co.uk,-28,MIXED
 The Manila Times,www.manilatimes.net,10,HIGH
-The Manila Times,manilatimes.net,10,HIGH
 The Marshall Project,www.themarshallproject.org,-3,HIGH
-The Marshall Project,themarshallproject.org,-3,HIGH
 The Mary Sue,www.themarysue.com,-21,HIGH
 The Mary Sue,themarysue.co.uk,-21,HIGH
 The Meme Policeman,www.memepoliceman.com,2,HIGH
 The Meme Policeman,memepoliceman.co.uk,2,HIGH
 The Middle East in London,www.soas.ac.uk,3,HIGH
-The Middle East in London,soas.ac.uk,3,HIGH
 The Militant,www.themilitant.com,-19,HIGH
 The Militant,themilitant.co.uk,-19,HIGH
 The Millennial Review,www.themilreview.com,26,HIGH
@@ -3855,7 +3802,6 @@ The Nevada Independent,thenevadaindependent.co.uk,-13,HIGH
 The New American,www.thenewamerican.com,23,MIXED
 The New American,thenewamerican.co.uk,23,MIXED
 The New Arab,www.alaraby.co.uk,-14,HIGH
-The New Arab,alaraby.co.uk,-14,HIGH
 The New Atlantis,www.thenewatlantis.com,9,HIGH
 The New Atlantis,thenewatlantis.co.uk,9,HIGH
 The New Civil Rights Movement,www.thenewcivilrightsmovement.com,-26,MIXED
@@ -3878,13 +3824,16 @@ The Next Web,thenextweb.co.uk,-9,HIGH
 The Objective Standard,www.theobjectivestandard.com,15,HIGH
 The Objective Standard,theobjectivestandard.co.uk,15,HIGH
 The Observatory,www.observatory.journalism.wisc.edu,-3,HIGH
+The Observer (UK),www.theguardian.com,-13,HIGH
+The Observer (UK),theguardian.co.uk,-13,HIGH
 The Odyssey Online,www.theodysseyonline.com,-16,MIXED
 The Odyssey Online,theodysseyonline.co.uk,-16,MIXED
 The Oklahoman,www.oklahoman.com,11,HIGH
-The Oklahoman,oklahoman.com,11,HIGH
 The Oklahoman,oklahoman.co.uk,11,HIGH
 The Olympian,www.theolympian.com,-11,HIGH
 The Olympian,theolympian.co.uk,-11,HIGH
+The Oslo Times,www.theoslotimes.com,-12,HIGH
+The Oslo Times,theoslotimes.co.uk,-12,HIGH
 The Oslo Times,www.theoslotimes.com,-12,HIGH
 The Oslo Times,theoslotimes.co.uk,-12,HIGH
 The Other 98%,www.other98.com,-25,MIXED
@@ -3900,7 +3849,6 @@ The Patriot-News,pennlive.co.uk,-7,HIGH
 The Phnom Penh Post,www.phnompenhpost.com,-2,HIGH
 The Phnom Penh Post,phnompenhpost.co.uk,-2,HIGH
 The Plain Dealer,www.cleveland.com,-12,HIGH
-The Plain Dealer,cleveland.com,-12,HIGH
 The Plain Dealer,cleveland.co.uk,-12,HIGH
 The Post and Courier,www.postandcourier.com,2,HIGH
 The Post and Courier,postandcourier.co.uk,2,HIGH
@@ -3954,7 +3902,6 @@ The Smoking Gun,www.thesmokinggun.com,7,HIGH
 The Smoking Gun,thesmokinggun.co.uk,7,HIGH
 The Sociable,www.sociable.co,-3,HIGH
 The Source Newspaper (La Source),www.thelasource.com,-24,HIGH
-The Source Newspaper (La Source),thelasource.com,-24,HIGH
 The Source Newspaper (La Source),thelasource.co.uk,-24,HIGH
 The Southern Illinoisan,www.thesouthern.com,2,HIGH
 The Southern Illinoisan,thesouthern.co.uk,2,HIGH
@@ -3968,11 +3915,11 @@ The State,thestate.co.uk,-12,HIGH
 The Stern Facts,www.thesternfacts.com,-27,MIXED
 The Stern Facts,thesternfacts.co.uk,-27,MIXED
 The Straits Times,www.straitstimes.com,10,HIGH
-The Straits Times,straitstimes.com,10,HIGH
 The Straits Times,straitstimes.co.uk,10,HIGH
 The Stranger,www.thestranger.com,-17,HIGH
 The Stranger,thestranger.co.uk,-17,HIGH
 The Strategy Bridge,www.thestrategybridge.org,2,HIGH
+The Sun Magazine,www.thesunmagazine.org,-15,HIGH
 The Sun Magazine,www.thesunmagazine.org,-15,HIGH
 The Sun,www.thesun.co.uk,26,MIXED
 The Swedish Wire,www.swedishwire.com,-4,HIGH
@@ -3993,7 +3940,6 @@ The Times Herald (Port Huron),www.thetimesherald.com,9,HIGH
 The Times Herald (Port Huron),thetimesherald.co.uk,9,HIGH
 The Times of London,www.thetimes.co.uk,11,HIGH
 The Times-Picayune,www.nola.com,-14,HIGH
-The Times-Picayune,nola.com,-14,HIGH
 The Times-Picayune,nola.co.uk,-14,HIGH
 The Trace,www.thetrace.org,-11,HIGH
 The Truth About Guns,www.thetruthaboutguns.com,22,HIGH
@@ -4080,7 +4026,6 @@ Transpartisan Review,www.transpartisanreview.com,-3,HIGH
 Transpartisan Review,transpartisanreview.co.uk,-3,HIGH
 Tribune Magazine UK,www.tribunemagazine.org,-22,HIGH
 Tribune News Service,www.tribunecontentagency.com,-3,HIGH
-Tribune News Service,tribunecontentagency.com,-3,HIGH
 Tribune News Service,tribunecontentagency.co.uk,-3,HIGH
 Tribunist,www.tribunist.com,29,MIXED
 Tribunist,tribunist.co.uk,29,MIXED
@@ -4192,6 +4137,7 @@ Washington Free Beacon,www.freebeacon.com,28,MIXED
 Washington Free Beacon,freebeacon.co.uk,28,MIXED
 Washington Journal (Not C-Span),www.washingtonjournal.com,-27,HIGH
 Washington Journal (Not C-Span),washingtonjournal.co.uk,-27,HIGH
+Washington Journal,www.c-span.org,-3,HIGH
 Washington Monthly,www.washingtonmonthly.com,-18,HIGH
 Washington Monthly,washingtonmonthly.co.uk,-18,HIGH
 Washington Post,www.washingtonpost.com,-15,HIGH
@@ -4228,7 +4174,6 @@ Wichita Eagle,www.kansas.com,6,HIGH
 Wichita Eagle,kansas.co.uk,6,HIGH
 WikiLeaks,www.wikileaks.org,13,MIXED
 WikiNews,www.en.wikinews.org,-2,HIGH
-WikiNews,en.wikinews.org,-2,HIGH
 Wikipedia,www.wikipedia.org,-1,HIGH
 WikiTribune,www.wikitribune.com,-2,HIGH
 WikiTribune,wikitribune.co.uk,-2,HIGH
@@ -4247,7 +4192,6 @@ WION (World is One News),wionews.co.uk,-3,MIXED
 Wired Magazine,www.wired.com,-13,HIGH
 Wired Magazine,wired.co.uk,-13,HIGH
 Wisconsin State Journal,www.host.madison.com,-2,HIGH
-Wisconsin State Journal,host.madison.com,-2,HIGH
 Wisconsin State Journal,host.madison.co.uk,-2,HIGH
 WNYC,www.wnyc.org,-11,HIGH
 Wonkette,www.wonkette.com,-26,MIXED
@@ -4274,10 +4218,8 @@ WorldCrunch,worldcrunch.co.uk,-11,HIGH
 WRAL,www.wral.com,-3,HIGH
 WRAL,wral.co.uk,-3,HIGH
 Xinhua News Agency,www.xinhuanet.com,-13,MIXED
-Xinhua News Agency,xinhuanet.com,-13,MIXED
 Xinhua News Agency,xinhuanet.co.uk,-13,MIXED
 Yahoo News,www.yahoo.com,-14,MIXED
-Yahoo News,yahoo.com,-14,MIXED
 Yahoo News,yahoo.co.uk,-14,MIXED
 YellowHammer News,www.yellowhammernews.com,20,HIGH
 YellowHammer News,yellowhammernews.co.uk,20,HIGH
@@ -4292,5 +4234,4 @@ Young Conservatives,youngcons.co.uk,30,MIXED
 Your Black World,www.yourblackworld.net,-22,MIXED
 Youth Radio,www.youthradio.org,-10,HIGH
 Z Magazine,www.zcomm.org,-22,HIGH
-Z Magazine,zcomm.org,-22,HIGH
 ZDF (Zweites Deutsches Fernsehen),www.zdf.de,-5,HIGH
