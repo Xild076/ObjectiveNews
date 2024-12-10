@@ -14,6 +14,7 @@ from grouping import cluster_text
 from objectify_text import objectify_text
 from summarizer import summarize_text
 from text_fixer import clean_text
+from textblob import TextBlob
 
 import numpy as np
 import nltk
@@ -69,7 +70,10 @@ def is_cluster_valid(cluster, min_avg_sentence_length=50, alpha_ratio_threshold=
         'log out',
         'sign in',
         'log in',
-        'sign out'
+        'sign out',
+        'coverage',
+        'reporting',
+        'news anchor'
     ]
     representative_lower = representative.lower()
     for phrase in non_content_phrases:
@@ -111,13 +115,14 @@ def cluster_articles(link, type: Literal['news', 'data']='news', link_num: int=1
     for article in articles:
         text = article['text']
         sentences = nltk.sent_tokenize(text)
+        max_clusters = max(round(len(sentences) / 6), 10)
         clusters_article = cluster_text(sentences, context=True, context_weights={'single': 0.4, 'context': 0.6}, 
                                         score_weights={'sil': 0.45, 'db': 0.55, 'ch': 0.1}, 
-                                        clustering_method=AgglomerativeClustering)
+                                        clustering_method=AgglomerativeClustering, max_clusters=max_clusters)
         if clusters_article:
             for cluster in clusters_article['clusters']:
                 rep_sentences.append({'text': cluster['representative_with_context'], 'source': article['source']})
-    max_clusters = max(round(len(rep_sentences) / 6), 15)
+    max_clusters = max(round(len(rep_sentences) / 8), 15)
     if debug_print:
         print(Fore.GREEN + f"Representative Sentences: {len(rep_sentences)}, Max Clusters: {max_clusters}" + Fore.RESET)
     clusters = cluster_text(rep_sentences, score_weights={'sil': 0.5, 'db': 0.3, 'ch': 0.2}, 
@@ -156,7 +161,13 @@ def calculate_reliability_and_summary(cluster):
     for source in cluster['sources']:
         reliability.append(find_bias_rating(source))
     reliability_score = float(max(reliability) * 5 + sum(reliability)) / (len(reliability) + 5)
-    cluster['reliability'] = reliability_score
+    objectivity = 0
+    for sentence in cluster['sentences']:
+        textblob = TextBlob(sentence)
+        objectivity += textblob.subjectivity
+    objectivity /= len(cluster['sentences'])
+    objectivity = (objectivity / 2 + 0.75)
+    cluster['reliability'] = reliability_score * objectivity
     summary = objectify_and_summarize(cluster['sentences'])
     cluster['summary'] = summary
     return cluster
@@ -171,20 +182,20 @@ def provide_metrics(result_dict: dict) -> dict:
                     cluster.update(completed_cluster)
     return result_dict
 
-result = cluster_articles('https://apnews.com/article/unitedhealthcare-suspect-ceo-assassin-shooter-eaee0b7d31b319f42e0cf7f2f7badfb1', link_num=5, debug_print=True)
+def organize_clusters(clusters:dict):
+    clusters_organized = []
+    for cluster in clusters['clusters']:
+        sentences = []
+        for sentence in cluster['sentences']:
+            sentences.append(clean_text(sentence).strip())
+        clusters_organized.append({'sentences': cluster['sentences'], 
+                                   'representative': cluster['representative'].strip(), 
+                                   'representative_with_context': clean_text(cluster['representative_with_context']).strip(),
+                                   'sentences': sentences, 
+                                   'summary': cluster.get('summary', None), 
+                                   'reliability': cluster.get('reliability', None), 
+                                   'sources': cluster['sources']})
+    clusters_organized.sort(key=lambda x: len(x['summary']) if 'summary' in x and x['summary'] else 0)
+    clusters_organized.reverse()
+    return clusters_organized
 
-print(provide_metrics(result))
-
-"""
-for cluster in result['clusters']:
-    print(Fore.YELLOW + Style.BRIGHT + f"Cluster {cluster['cluster_id']}" + Style.RESET_ALL)
-    print(Fore.GREEN + f"Representative Sentence:", Fore.RESET + str(cluster['representative']))
-    print(Fore.GREEN + f"Sentences:", Fore.RESET + clean_text(objectify_and_summarize(cluster['sentences'])))
-    print(Fore.BLUE + f"Sources:", Fore.RESET + str(cluster['sources']))
-    reliability = []
-    for source in cluster['sources']:
-        reliability.append(find_bias_rating(source))
-    reliability_score = float(max(reliability) * 5 + sum(reliability)) / (len(reliability) + 5)
-    print(Fore.BLUE + f"Reliability:", Fore.RESET + str(reliability_score))
-    print("-" * 80)
-print("Scores:", result['metrics'])"""

@@ -7,7 +7,7 @@ from typing import Union, Type, List, Dict, Any
 from nltk.stem import WordNetLemmatizer
 from colorama import Fore, Style
 from grouping import cluster_text
-from article_analysis import cluster_articles
+from article_analysis import cluster_articles, organize_clusters, provide_metrics
 
 
 text_1 = """
@@ -152,6 +152,16 @@ Israel will now be trying to calculate what comes next in Syria. Like everyone, 
 
 """
 
+clusters = organize_clusters(provide_metrics(cluster_articles('https://www.bbc.com/news/articles/cp9nxee2r0do')))
+
+for i, cluster in enumerate(clusters):
+    print(Fore.YELLOW + Style.BRIGHT + f"Group {i}" + Style.RESET_ALL)
+    print(Fore.GREEN + f"Representative Sentence:", Fore.RESET + str(cluster['representative']))
+    print(Fore.GREEN + f"Summary:", Fore.RESET + str(cluster['summary']))
+    print(Fore.BLUE + f"Sources:", Fore.RESET + str(cluster['sources']))
+    print(Fore.BLUE + f"Reliability:", Fore.RESET + str(cluster['reliability']))
+    print("-" * 80)
+
 """sentences = nltk.sent_tokenize(text_3)
 print(Fore.RED + Style.BRIGHT + f"Number of sentences: {len(sentences)}" + Style.RESET_ALL)
 result = cluster_text(sentences, context_weights={'single':0.25, 'context': 0.75}, score_weights={'sil': 0.45, 'db': 0.55, 'ch': 0.1}, clustering_method=AgglomerativeClustering, context=True, lemmatize=True, representative_context_len=1)
@@ -182,7 +192,7 @@ print(f"Text 2: {len(sentences_2)} sentences, {len(result_2['clusters'])} cluste
 print(f"Text 3: {len(sentences_3)} sentences, {len(result_3['clusters'])} clusters")
 """
 
-result = cluster_articles('https://www.bbc.com/news/articles/cy8y7ggm89lo', link_num=10, debug_print=True)
+"""result = cluster_articles('https://www.bbc.com/news/articles/cy8y7ggm89lo', link_num=10, debug_print=True)
 
 for cluster in result['clusters']:
     print(Fore.YELLOW + Style.BRIGHT + f"Cluster {cluster['cluster_id']}" + Style.RESET_ALL)
@@ -190,4 +200,4 @@ for cluster in result['clusters']:
     print(Fore.GREEN + f"Sentences:", Fore.RESET + str(cluster['sentences']))
     print(Fore.BLUE + f"Sources:", Fore.RESET + str(cluster['sources']))
     print("-" * 80)
-print("Scores:", result['metrics'])
+print("Scores:", result['metrics'])"""
