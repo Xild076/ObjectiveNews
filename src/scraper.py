@@ -184,7 +184,8 @@ class FetchArticle:
             "text": text,
             "title": metadata.title if metadata.title else '',
             "author": metadata.author if metadata.author else '',
-            "date": metadata.date if metadata.date else ''
+            "date": metadata.date if metadata.date else '',
+            "link": url
         }
     
     @staticmethod
