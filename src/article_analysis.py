@@ -106,16 +106,8 @@ def cluster_articles(link, type: Literal['news', 'data']='news', link_num: int=1
     if debug_print:
         print(Fore.GREEN + f"Start Date: {start_date}, End Date: {end_date}" + Fore.RESET)
     links = FetchArticle.retrieve_links(keywords, start_date, end_date, link_num)
-    with ThreadPoolExecutor() as executor:
-        future_to_link = {executor.submit(FetchArticle.extract_article_details, link): link for link in links}
-        articles = []
-        for future in as_completed(future_to_link):
-            try:
-                article_detail = future.result()
-                articles.append(article_detail)
-            except Exception as e:
-                if debug_print:
-                    print(Fore.RED + f"Failed to fetch article: {future_to_link[future]} with error {e}" + Fore.RESET)
+    print(links)
+    articles = FetchArticle.extract_many_article_details(links)
     articles.append(article)
     if debug_print:
         print(Fore.GREEN + "Links: " + Fore.RESET + str(links))
@@ -137,6 +129,7 @@ def cluster_articles(link, type: Literal['news', 'data']='news', link_num: int=1
             if debug_print:
                 print(Fore.RED + f"Removed Cluster {cluster['cluster_id']} due to invalid content." + Fore.RESET)
     clusters['clusters'] = valid_clusters
+    clusters['keywords'] = keywords
     return clusters
 
 def process_article_clusters(article):
@@ -144,8 +137,8 @@ def process_article_clusters(article):
     text = article['text']
     sentences = nltk.sent_tokenize(text)
     max_clusters = max(round(len(sentences) / 6), 10)
-    clusters_article = cluster_text(sentences, context=True, context_weights={'single': 0.4, 'context': 0.6}, 
-                                    score_weights={'sil': 0.45, 'db': 0.55, 'ch': 0.1}, 
+    clusters_article = cluster_text(sentences, context=True, context_weights={'single': 0.5, 'context': 0.5}, 
+                                    score_weights={'sil': 0.5, 'db': 0.3, 'ch': 0.2}, 
                                     clustering_method=AgglomerativeClustering, max_clusters=max_clusters)
     if clusters_article:
         for cluster in clusters_article['clusters']:
@@ -170,17 +163,17 @@ def objectify_and_summarize(text_list: List[str]) -> str:
     
     num_sentences = len(text_list)
     
-    if num_sentences <= 2:
+    if num_sentences <= 3:
         print(Fore.RED + "Warning: Few sentences in cluster. Using default summary lengths." + Fore.RESET)
-        summary_length_min = 50
-        summary_length_max = 200
+        summary_length_min = 100
+        summary_length_max = 175
     else:
-        summary_length_min = round(len(objectifed_text) / (num_sentences + 2) / 2.5)
-        summary_length_max = round(len(objectifed_text) / (num_sentences - 2) / 2.5)
+        summary_length_min = round(len(objectifed_text) / (num_sentences + 3) / 3)
+        summary_length_max = round(len(objectifed_text) / (num_sentences - 3) / 3)
     
     return summarize_text(objectifed_text, min_length=summary_length_min, max_length=summary_length_max)
 
-def calculate_reliability_and_summary(cluster):
+def calculate_reliability_and_summary(cluster: dict) -> dict:
     reliability = []
     for source in cluster['sources']:
         reliability.append(find_bias_rating(source))
@@ -196,7 +189,7 @@ def calculate_reliability_and_summary(cluster):
     cluster['summary'] = summary
     return cluster
 
-def organize_clusters(clusters:dict):
+def organize_clusters(clusters:dict) -> list:
     clusters_organized = []
     for cluster in clusters['clusters']:
         sentences = []

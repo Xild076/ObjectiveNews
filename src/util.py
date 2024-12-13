@@ -16,6 +16,8 @@ from nltk.corpus import sentiwordnet as swn
 import numpy as np
 import inflect
 from pyinflect import getInflection
+import validators
+from urllib.parse import urlparse, urlunparse
 
 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -31,6 +33,22 @@ nlp = spacy.load('en_core_web_sm')
 english_vocab = set(w.lower() for w in words.words())
 
 lemmatizer = WordNetLemmatizer()
+
+def validate_and_normalize_link(link: str) -> str:
+    if not link.startswith(('http://', 'https://')):
+        link = 'https://' + link
+
+    parsed = urlparse(link)
+
+    if not parsed.netloc.startswith('www.'):
+        parsed = parsed._replace(netloc='www.' + parsed.netloc)
+
+    normalized_url = urlunparse(parsed)
+
+    if validators.url(normalized_url):
+        return normalized_url
+    else:
+        raise ValueError(f"Invalid URL after normalization: {normalized_url}")
 
 def split_paragraph(text):
     """
