@@ -4,7 +4,7 @@ from streamlit_extras.stoggle import stoggle
 
 st.set_page_config(page_title="Article Analysis", layout="centered", initial_sidebar_state="auto")
 
-with st.spinner("Loading..."):
+with st.spinner("Loading article modules..."):
     import nltk
     from util import validate_and_normalize_link
     from article_analysis import cluster_articles, provide_metrics, organize_clusters
@@ -25,9 +25,9 @@ textarea {
 </style>
 """, unsafe_allow_html=True)
 
-colored_header(label="Article Analysis", description="Find the key points of the news and find how objective it is.", color_name="blue-70")
+colored_header(label="Article Analysis", description="Find the key points of the news and find how objective it is.", color_name="light-blue-70")
 
-link_input = st.text_area("Enter an article link to analyse...", height=10, placeholder="Enter a link...")
+link_input = st.text_area("Enter an article link to analyse...", placeholder="Enter a link...")
 date_option = st.radio("Select which type of link was uploaded:", ("News", "Data"))
 user_number = st.number_input("Enter the number of articles to fetch:", min_value=1, max_value=20, value=5, step=1)
 submit_button = st.button('Analyze')
@@ -38,6 +38,9 @@ if 'organized_clusters' not in st.session_state:
 if submit_button:
     try:
         link = validate_and_normalize_link(link_input)
+        if not validators.url(link):
+            st.error("Please enter a valid link.")
+            st.stop()
         progress_placeholder = st.empty()
         status_text = st.empty()
         with st.spinner("Processing..."):
@@ -55,7 +58,8 @@ if submit_button:
         status_text.empty()
         st.session_state['organized_clusters'] = organized_clusters
     except Exception as e:
-        st.error("Please enter a valid link.")
+        st.error(f"An error {e} occured.")
+        st.stop()
 
 if st.session_state['organized_clusters']:
     clusters = st.session_state['organized_clusters'].copy()
@@ -96,15 +100,16 @@ if st.session_state['organized_clusters']:
                 source_html += f"<span style='background:#f0f0f0; padding:5px 10px; border-radius:5px; font-size:13px;'>{source}</span>"
             source_html += "</div>"
             st.markdown(source_html, unsafe_allow_html=True)
-            st.markdown("### All Sentences")
+            st.subheader("All Sentences")
             sentence_html = "<ul>"
             for sentence in entry['sentences']:
                 sentence_html += f"<li>{sentence}</li>"
             sentence_html += "</ul>"
             stoggle("View Sentences", sentence_html)
 
+st.markdown("---")
 
-colored_header(label="Feedback", description="This article analyzer is still in its beta, being continuously updated to make it better.", color_name="blue-70")
+colored_header(label="Feedback", description="This article analyzer is still in its beta, being continuously updated to make it better.", color_name="light-blue-70")
 
 feedback_input = st.text_area("Your feedback:", height=100, placeholder="Type your feedback here...")
 feedback_button = st.button("Send Feedback")

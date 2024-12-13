@@ -3,7 +3,7 @@ from streamlit_extras.colored_header import colored_header
 
 st.set_page_config(page_title="Objective Text", layout="centered", initial_sidebar_state="auto")
 
-with st.spinner("Loading..."):
+with st.spinner("Loading objectify modules..."):
     import difflib
     from textblob import TextBlob
     import objectify_text
@@ -79,7 +79,7 @@ def generate_diff_html(original, modified, score_original, score_modified):
     """
     return html
 
-colored_header(label="Objective Text", description="Transform your text to be more objective.", color_name="blue-70")
+colored_header(label="Objective Text", description="Transform your text to be more objective.", color_name="light-blue-70")
 
 user_input = st.text_area("Enter the text you want to objectify here:", height=200, placeholder="Type your text here...")
 submit_button = st.button(label='Submit')
@@ -112,7 +112,9 @@ if submit_button:
 if "diff_html" in st.session_state:
     st.markdown(st.session_state["diff_html"], unsafe_allow_html=True)
 
-colored_header(label="Feedback", description="This objectifier is still in its beta, being continuously updated to make it better.", color_name="blue-70")
+st.markdown("---")
+
+colored_header(label="Feedback", description="This objectifier is still in its beta, being continuously updated to make it better.", color_name="light-blue-70")
 
 feedback_input = st.text_area("Your feedback:", height=100, placeholder="Type your feedback here...")
 feedback_button = st.button("Send Feedback")

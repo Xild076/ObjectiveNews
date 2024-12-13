@@ -119,7 +119,7 @@ def cluster_articles(link, type: Literal['news', 'data']='news', link_num: int=1
     max_clusters = min(round(len(rep_sentences) / 6), 20)
     if debug_print:
         print(Fore.GREEN + f"Representative Sentences: {len(rep_sentences)}, Max Clusters: {max_clusters}" + Fore.RESET)
-    clusters = cluster_text(rep_sentences, score_weights={'sil': 0.5, 'db': 0.3, 'ch': 0.2}, 
+    clusters = cluster_text(rep_sentences, score_weights={'sil': 0.6, 'db': 0.2, 'ch': 0.2}, 
                             clustering_method=AgglomerativeClustering, max_clusters=max_clusters)
     valid_clusters = []
     for cluster in clusters['clusters']:
@@ -138,7 +138,7 @@ def process_article_clusters(article):
     sentences = nltk.sent_tokenize(text)
     max_clusters = max(round(len(sentences) / 6), 10)
     clusters_article = cluster_text(sentences, context=True, context_weights={'single': 0.5, 'context': 0.5}, 
-                                    score_weights={'sil': 0.5, 'db': 0.3, 'ch': 0.2}, 
+                                    score_weights={'sil': 0.6, 'db': 0.2, 'ch': 0.2}, 
                                     clustering_method=AgglomerativeClustering, max_clusters=max_clusters)
     if clusters_article:
         for cluster in clusters_article['clusters']:

@@ -8,6 +8,20 @@ import trafilatura
 import urllib.request
 from tqdm import tqdm
 from newspaper import Article
+import threading
+
+class RateLimiter:
+    lock = threading.Lock()
+    last_request_time = 0
+    min_delay = 3
+
+    @staticmethod
+    def wait():
+        with RateLimiter.lock:
+            elapsed = time.time() - RateLimiter.last_request_time
+            if elapsed < RateLimiter.min_delay:
+                time.sleep(RateLimiter.min_delay - elapsed)
+            RateLimiter.last_request_time = time.time()
 
 class FetchArticle:
     @staticmethod
@@ -23,12 +37,13 @@ class FetchArticle:
         )
         session = requests.Session()
         max_retries = 8
-        for _ in range(max_retries):
+        for retry in range(max_retries):
             header = random.choice(headers_list)
-            time.sleep(random.uniform(2, 5))
+            RateLimiter.wait()
             try:
                 response = session.get(base_url, headers=header, timeout=10)
                 if response.status_code != 200 or "To continue, please type the characters" in response.text:
+                    time.sleep(random.uniform(5, 10))
                     continue
                 soup = BeautifulSoup(response.content, "html.parser")
                 news_results = []
@@ -43,6 +58,7 @@ class FetchArticle:
                                 if len(news_results) >= amount:
                                     return news_results
             except:
+                time.sleep(random.uniform(5, 10))
                 continue
         return []
 
@@ -50,6 +66,7 @@ class FetchArticle:
     def extract_article_details(url):
         if not url.startswith('http'):
             return None
+        RateLimiter.wait()
         downloaded = trafilatura.fetch_url(url)
         if downloaded is None:
             headers = {'User-Agent': 'Mozilla/5.0'}
