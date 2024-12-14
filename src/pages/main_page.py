@@ -38,4 +38,30 @@ colored_header(
     color_name="light-blue-70"
 )
 
-st.markdown("")
+tabs = st.tabs(["Article Analysis", "Objectify Text", "Grouping Text", "Misc Tools"])
+
+with tabs[0]:
+    st.subheader("Power Tool - Article Analysis")
+    st.image("images/ArticleGif.gif")
+    st.write("This tool allows you to input a link and retrieve information about the topic discussed in the article.")
+    st.write("The tool will organize all the information found across the articles located into groups, summarize and objectify the information, and detail the reliability of such information. The loading time of this tool is about 1-2 minutes per topic. Optimizations are currenlty being made to improve this tool.")
+
+with tabs[1]:
+    st.subheader("Power Tool - Objectify Text")
+    st.image("images/ObjectifyGif.gif")
+    st.write("This tool allows you to input text and get its objective version.")
+    st.write("The tool will remove strong words and, if necessary, replace them with their most objective synonyms in an attempt to create the most objective text. Currently, this is the least consistent tool with many issues due to grammar rules. Please leave feedback through the feedback function if there are any issues. The loading time of this tool is about 15-45 seconds per text. Optimizations are currently being made.")
+
+with tabs[2]:
+    st.subheader("Mini Tool - Grouping Text")
+    st.image("images/GroupingGif.gif")
+    st.write("This tool allows you to group text into main ideas.")
+    st.write("The tool will group text into main ideas based on general similarity of issues discussed. There are many configurations with the default ones provided. The loading time of the tool is about 1-5 seconds per text.")
+
+with tabs[3]:
+    st.subheader("Mini Tool - Misc")
+    st.write("There are two tools in this tab: The synonym finder tool and the summarizer tool.")
+    st.markdown("#### Synonym Finder")
+    st.write("This tool will provide you the synonyms of the given word organized based on their objectivity, their part of speech, or their text length. The loading time of the tool is about 1-5 seconds per text.")
+    st.markdown("#### Summarizer")
+    st.write("This tool will summarize given text using the facebook/bart-large model found on huggingface. There are three options for summarization: short, medium, and long summarizations. The loading time of the tool is about 10-15 seconds per text.")

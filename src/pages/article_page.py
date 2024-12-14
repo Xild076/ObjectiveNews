@@ -40,8 +40,10 @@ if submit_button:
     try:
         link = link_input.strip()
         if not validators.url(link):
-            st.error("Please enter a valid link.")
-            st.stop()
+            link = validate_and_normalize_link(link)
+            if not validators.url(link):
+                st.error("Please enter a valid link.")
+                st.stop()
         progress_placeholder = st.empty()
         status_text = st.empty()
         with st.spinner("Processing..."):
