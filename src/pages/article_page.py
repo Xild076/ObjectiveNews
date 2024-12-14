@@ -10,6 +10,7 @@ with st.spinner("Loading article modules..."):
     from article_analysis import cluster_articles, provide_metrics, organize_clusters
     import validators
     import requests
+    from text_fixer import clean_text
     nltk.download('wordnet')
     nltk.download('omw-1.4')
 
@@ -37,7 +38,7 @@ if 'organized_clusters' not in st.session_state:
 
 if submit_button:
     try:
-        link = validate_and_normalize_link(link_input)
+        link = link_input.strip()
         if not validators.url(link):
             st.error("Please enter a valid link.")
             st.stop()
@@ -77,7 +78,7 @@ if st.session_state['organized_clusters']:
     for entry in clusters:
         with st.expander(entry['summary'][:70] + "..." if len(entry['summary']) > 70 else entry['summary'], expanded=False):
             st.subheader("Summary")
-            st.write(entry['summary'])
+            st.write(clean_text(entry['summary']))
             reliability = round(entry['reliability'])
             reliability_text = get_reliability_text(reliability)
             bar_color = "linear-gradient(to right, #4CAF50, #FFEB3B, #F44336);"

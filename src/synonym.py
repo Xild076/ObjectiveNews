@@ -56,7 +56,6 @@ def get_gpt_synonyms(word, context, top_n=10):
         synonyms.update([syn.strip().lower() for syn in parts])
     return synonyms
 
-
 def get_word_tag(word, context):
     doc = nlp(context)
     for token in doc:
