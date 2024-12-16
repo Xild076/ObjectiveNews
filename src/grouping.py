@@ -1,15 +1,9 @@
 import numpy as np
-import nltk
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from sentence_transformers import SentenceTransformer
-from typing import Union, Type, List, Dict, Any, Literal
+from typing import Union, Type, List, Dict, Any
 from nltk.stem import WordNetLemmatizer
-from colorama import Fore, Style
-import validators
-from scraper import FetchArticle
-from datetime import datetime, timedelta
-from util import get_keywords
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 

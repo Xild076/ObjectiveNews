@@ -6,11 +6,8 @@ import nltk
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 import spacy
-import pyinflect
-import requests
 from datamuse import datamuse
 from sentence_transformers import SentenceTransformer, util
-import torch
 
 stanza_logger = logging.getLogger("stanza")
 stanza_logger.setLevel(logging.ERROR)

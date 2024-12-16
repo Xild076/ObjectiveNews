@@ -1,7 +1,7 @@
 from nltk.corpus import wordnet as wn, sentiwordnet as swn
 import nltk
 import numpy as np
-from transformers import pipeline, AutoTokenizer, logging as transformers_logging
+from transformers import logging as transformers_logging
 from nltk.stem import WordNetLemmatizer
 import warnings
 import stanza
@@ -10,7 +10,6 @@ import re
 from textblob import TextBlob
 import language_tool_python
 from synonym import get_contextual_synonyms
-from text_fixer import clean_text
 import ssl
 
 nltk.download('wordnet')

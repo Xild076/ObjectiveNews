@@ -54,13 +54,13 @@ with col1:
                                 part_of_speech = meaning.get('partOfSpeech', 'N/A')
                                 syns = meaning.get('synonyms', [])
                                 for syn in syns:
-                                    synonyms_list.append({'Synonym': syn, 'PartOfSpeech': part_of_speech})
+                                    synonyms_list.append({'Synonym': syn, 'Part Of Speech': part_of_speech})
                     if not synonyms_list:
                         st.info("No synonyms found.")
                         st.session_state['synonyms_df'] = None
                     else:
                         df = pd.DataFrame(synonyms_list)
-                        df = df.drop_duplicates(subset=['Synonym', 'PartOfSpeech'])
+                        df = df.drop_duplicates(subset=['Synonym', 'Part Of Speech'])
                         df['Objectivity'] = df['Synonym'].apply(calc_objectivity_word)
                         df = df.sort_values(by='Objectivity', ascending=False).reset_index(drop=True)
                         st.session_state['synonyms_df'] = df

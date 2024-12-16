@@ -1,11 +1,7 @@
-import numpy as np
 import nltk
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
-from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
-from sentence_transformers import SentenceTransformer
-from typing import Union, Type, List, Dict, Any, Literal
-from nltk.stem import WordNetLemmatizer
-from colorama import Fore, Style
+from sklearn.cluster import AgglomerativeClustering
+from typing import List, Literal
+from colorama import Fore
 import validators
 from scraper import FetchArticle
 from datetime import datetime, timedelta
@@ -15,22 +11,6 @@ from objectify_text import objectify_text
 from summarizer import summarize_text
 from text_fixer import clean_text
 from textblob import TextBlob
-
-import numpy as np
-import nltk
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
-from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
-from sentence_transformers import SentenceTransformer
-from typing import Union, Type, List, Dict, Any, Literal
-from nltk.stem import WordNetLemmatizer
-from colorama import Fore, Style
-import validators
-from scraper import FetchArticle
-from datetime import datetime, timedelta
-from util import get_keywords, find_bias_rating
-from grouping import cluster_text
-from objectify_text import objectify_text
-from summarizer import summarize_text
 import re
 import langdetect
 from concurrent.futures import ThreadPoolExecutor, as_completed

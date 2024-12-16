@@ -1,21 +1,16 @@
 import spacy
 import ssl
-import yake
 import re
 import nltk
 from nltk.corpus import stopwords, wordnet, words
 from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk import pos_tag
 from nltk.stem import WordNetLemmatizer
 import pandas as pd
 from keybert import KeyBERT
 import tqdm
 from functools import wraps
-from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.corpus import sentiwordnet as swn
 import numpy as np
-import inflect
-from pyinflect import getInflection
 import validators
 from urllib.parse import urlparse, urlunparse
 
