@@ -2,14 +2,15 @@
 By: Xild076 (Harry Yin)\
 harry.d.yin.gpc@gmail.com
 
-1, [Abstract](#1-abstract)
+### Table of Contents
+1. [Abstract](#1-abstract)
 2. [Introduction](#2-introduction)
 3. [Thought Process](#3-thought-process)
     1. [Grouping](#31-grouping)
     2. [Objectifying Text](#32-objectifying-text)
         1. [Synonyms](#321-synonyms)
     3. [Article Scraping](#33-article-scraping-and-relability)
-4 [Implementation](#4-implementation)
+4. [Implementation](#4-implementation)
     1. [Grouping](#41-grouping)
     2. [Objectifying Text](#42-objectifying-text)
     3. [Article Scraping](#43-article-scraping-and-relability)
