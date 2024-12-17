@@ -220,9 +220,16 @@ This project, as seen with the results, still has many things that need to be im
 3. For synonyms, use a more lightweight way to implement it and maybe use methods like 1 or 2-shot inferences or some other methods with a smaller model.
 4. Also for objectifying and summarizations, fine-tune a lightweight model instead of using rule-based objectivity.
 5. For article retrieval, fix issues with the scraper time-frame and the keyword selection.
+6. Create a better way to calculate relability from current methods
+    a. Author credentials
+    b. Domain Authority and SEO Metrics
+    c. Technical Indicators of Fake News Sites
+    d. ML-based fake news detection
+7. Temporal analysis to find the recency of the news?
 6. Fix the entire `text_fixer.py` file since 
 7. Just clean up the code overall and add proper documentation.
-8. Improve the Streamlit UI
+8. Improve the Streamlit UI with cooler/cleaner visuals
+9. Multilingual support
 ## 7. Conclusion
 Overall, the project is in its early stages. There are many issues, however, I believe that there is a solid foundation in place. As I learn more, I will continue to update and improve this project. I hope one day, this tool will serve as a method to help people avoid falling into the trap of misinformation.
 ## 8. References
