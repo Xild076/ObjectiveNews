@@ -8,7 +8,6 @@ harry.d.yin.gpc@gmail.com
 3. [Thought Process](#3-thought-process)
     1. [Grouping](#31-grouping)
     2. [Objectifying Text](#32-objectifying-text)
-        1. [Synonyms](#321-synonyms)
     3. [Article Scraping](#33-article-scraping-and-relability)
 4. [Implementation](#4-implementation)
     1. [Grouping](#41-grouping)
@@ -23,7 +22,7 @@ harry.d.yin.gpc@gmail.com
 8. [References](#8-references)
 
 ## 1. Abstract
-
+In an age where misinformation and bias increasingly dominate media narratives, **ObjectiveNews** aims to provide a lightweight, scalable solution for delivering objective news. This project combines text clustering, sentiment analysis, and web scraping to locate, group, and objectify news articles. Using a hierarchical clustering approach enhanced with silhouette scores and double-level clustering, it identifies topics efficiently. Text objectification employs rule-based techniques to remove emotive language, while reliability is assessed using sentiment analysis and source credibility metrics. This paper outlines the methodology, challenges, and solutions in implementing **ObjectiveNews**, highlighting its potential to combat misinformation and provide impartial information to users.
 ## 2. Introduction
 Currently, misinformation is on the rise with the advent of new technology and algorithms, leading to less trust in news and less accurate news overall. I established the project **ObjectiveNews** in an attempt to combat this. As someone who does High School Policy Debate and as someone who is decently involved in politics, seeing misinformation in an increasingly polarized landscape is personally upsetting. Furthermore, studies have shown that misinformation can have real, negative effects on the human mentality[^1]. The ultimate  goal of the project is to be able to locate, group, and deliver news in the most objective way possible while staying lightweight enough as to be able to run on most devices independently. | *Currently, the locating, grouping, and delivering of the news objectively is in its beta while optimizations are being made to make it more lightweight. As of right now, the project can run on most devices, however, the time the processes take need to be improved.*
 ## 3. Thought Process
@@ -94,7 +93,21 @@ For objectifying texts, I had two primary ideas. The first idea was to fine-tune
 
 The next idea I had was to brute force the objectifying, as in, go through every word and find which words need to be removed/altered to make the text more objective. In the english language, there are three main things that strongly convey emotion: adjectives, adverbs, and verbs. Each of them can be extremely emotive, thus those are the targets in this code. In a nutshell, if an adjective is below a certain threshold of objectivity and if the adjective is not structurally important to the text, it is removed. However, if the word is structurally important to the sentence, then a more objective synonym will be found. Similar things are done to verbs and adverbs. Given that, the most fundemental idea for objectifying text was done.
 ### 3.3 Article Scraping and Relability
+The final biggest issues for me were webscraping and finding the reliability of information. First, webscraping was complicated. I had the limitation of being unable to use APIs due to their cost. I am attempting to keep the app entirely free and accessible, meaning anything that is priced is no good. Thus, I used a method I used in a previous project for retrieving website information: finding links using the Google search url an bs4 and using tralifatura and newspaper3k for text retrieval.
 
+For the Google search url, I used a method I found on DEV[^5]:
+```python
+base_url = (
+    f"https://www.google.com/search?q={search_query}"
+    f"&gl=us&tbm=nws&num={amount}"
+    f"&tbs=cdr:1,cd_min:{formatted_start},cd_max:{formatted_end}"
+)
+```
+This method allowed me to find links from a certain topic in a certain range *(supposedly, the date range currently isn't working, see [Future Plans](#6-future-plans))*. The `seach_query` is derived from gathering the keywords of the title of the inputted article or keywords of the text. Thus, I have a list of links.
+
+The next part is pretty simple, using tralifutura and then newspaper3k for backup for text retrieval and adding a rate limiter to comply with the usage policies of Google *(politely)* and to avoid being blocked *(truthfully)*.
+
+The next issue was to find reliability. For this, my initial idea was to find reliability determined off of the sources. After looking into it, I found a great resource from nsfyn55 with a fully scrubbed media bias chart[^6]. This solved the preliminary measure for reliability, but later on, I also decided to use Textblob's subjective sentiment analysis to determine whether or not the individual text seems to be emotive or not. More emotion and subjectivity within a text usually indicates less reliability, thus I used it as a multiplier to determine the final reliability. Thus, the basic methodology for article scraping and finding reliability was established.
 ## 4. Implementation
 ### 4.1 Grouping
 ### 4.2 Objectifying
@@ -115,12 +128,14 @@ The next idea I had was to brute force the objectifying, as in, go through every
 6. Improve the overall efficiency of the code, clean up unneccessary downloads
 7. Clean up the UI and make it prettier
 8. Fix text_fixer/remove it
-9. Find better way to web scrape
+9. Find better way to web scrape, https://dev.to/serpdogapi/web-scraping-google-news-using-python-5f86 (look into for more details)
 10. Find better way to get keywords
 ## 7. Conclusion
 
 ## 8. References
-[^1]: “Infodemics and Misinformation Negatively Affect People’s Health Behaviours, New Who Review Finds.” World Health Organization, World Health Organization, https://www.who.int/europe/news/item/01-09-2022-infodemics-and-misinformation-negatively-affect-people-s-health-behaviours--new-who-review-finds.
+[^1]: “Infodemics and Misinformation Negatively Affect People’s Health Behaviours, New Who Review Finds.” World Health Organization, World Health Organization, who.int/europe/news/item/01-09-2022-infodemics-and-misinformation-negatively-affect-people-s-health-behaviours--new-who-review-finds.
 [^2]: Koch, Korbinian. “A Friendly Introduction to Text Clustering.” Medium, Towards Data Science, 27 Oct. 2022, towardsdatascience.com/a-friendly-introduction-to-text-clustering-fa996bcefd04.
 [^3]: Koli, Shubham. “How to Evaluate the Performance of Clustering Algorithms Using Silhouette Coefficient.” Medium, Medium, 2 Mar. 2023, medium.com/@MrBam44/how-to-evaluate-the-performance-of-clustering-algorithms-3ba29cad8c03.
 [^4]: Lambert, Nathan et al, “Illustrating Reinforcement Learning From Human Feedback (RLHF).” HuggingFace, HuggingFace, 9 Dec. 2022, huggingface.co/blog/rlhf.
+[^5]: Serpdog. “Web Scraping Google News Using Python.” DEV Community, DEV, 18 Oct. 2024, dev.to/serpdogapi/web-scraping-google-news-using-python-5f86.
+[^6]: “A Fully Scrubbed CSV of All of Media Bias Fact Check’s Primary Categories(Note on Bias Negative(-) Connotes Liberal Bias, Positive(+) Connotes Conservative Bias).” Gist, gist.github.com/nsfyn55/605783ac8de36f361fb10ef187272113.
