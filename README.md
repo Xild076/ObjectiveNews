@@ -2,7 +2,7 @@
 By: Xild076 (Harry Yin)
 
 ## Project Description
-This project was created to help combat misinformation. The gathers news articles from across the web about a certain topic, divides the information into groups, objectifies and summarizes all the gathered information, and calculates the reliability of the information to help readers determine the truth of certain facts to a higher degree. Each of the tools: summarization, objectification, and grouping are all avaliable separately.
+This project was created to help combat misinformation in news. The code gathers news articles from across the web about a certain topic, divides the information into groups, objectifies and summarizes all the gathered information, and calculates the reliability of the information to help readers determine the truth of certain facts to a higher degree. Each of the tools: summarization, objectification, and grouping are all avaliable separately.
 
 ## Prerequisites
 - Install dependancies by running `pip install -r requirements.txt` or `pip3 install -r requirements.txt`
