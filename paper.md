@@ -1,7 +1,7 @@
 
 
 # Objective News - The Process
-By: Xild076 (Harry Yin)
+By: Xild076 (Harry Yin)\
 harry.d.yin.gpc@gmail.com
 
 ## 2. Introduction
@@ -86,7 +86,17 @@ Thus, I have the basic methodology for grouping done. *(Improvements are current
 ### 5.3 Overall
 
 ## 6. Future Plans
-https://medium.com/@danielafrimi/text-clustering-using-nlp-techniques-c2e6b08b6e95
+1. Use this: https://medium.com/@danielafrimi/text-clustering-using-nlp-techniques-c2e6b08b6e95
+    a. Maybe use attention?
+2. Clean up code overall
+3. Find better way to get synonyms, both in and out of context
+4. Fine tune using textblob objectivity for summarization
+5. Improve the rule-based objectivity
+6. Improve the overall efficiency of the code, clean up unneccessary downloads
+7. Clean up the UI and make it prettier
+8. Fix text_fixer/remove it
+9. Find better way to web scrape
+10. Find better way to get keywords
 ## 7. Conclusion
 
 ## 8. References
