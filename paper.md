@@ -88,11 +88,11 @@ for sentences in sentences_list:
 
 rep_cluster = cluster(representative_sentences)
 ```
-
-Thus, I have the basic methodology for grouping done. *(Improvements are currently being made. Please reference Future Plans to see.)*
+Thus, I have the basic methodology for grouping done. *(Improvements are currently being made. Please reference [Future Plans](#6-future-plans) to see.)*
 ### 3.2 Objectifying Text
+For objectifying texts, I had two primary ideas. The first idea was to fine-tune an existing model to make it produce objective texts. The plan was to have something like Textblob's textual objective scores to serve as the metric for the model, thus I began to implement. It did not go well. First, I wasn't sure how to fine-tune models. I looked for online resources, but the results were not what I needed. As a general beginner to LLMs and as someone who has only worked with the fundemental level of regression, supervised learning, and a bit of time-series models, I didn't have the knowledge necessary to implement anything. The closest I got was with a HuggingFace Blog on RLHF[^4] which gave me the theory behind it, but I was still stuck on implementation. Furthermore, while attempting another implementation of a similar fine-tuning method I found online, I realized that my device had many computational limitations. Thus, I dropped this method. *(For now. Recently, I Have delved into LLM and fine-tuning much more and believe that I will be able to implement this method soon.)*
 
-#### 3.2.1 Synonyms
+The next idea I had was to brute force the objectifying, as in, go through every word and find which words need to be removed/altered to make the text more objective. In the english language, there are three main things that strongly convey emotion: adjectives, adverbs, and verbs. Each of them can be extremely emotive, thus those are the targets in this code. In a nutshell, if an adjective is below a certain threshold of objectivity and if the adjective is not structurally important to the text, it is removed. However, if the word is structurally important to the sentence, then a more objective synonym will be found. Similar things are done to verbs and adverbs. Given that, the most fundemental idea for objectifying text was done.
 ### 3.3 Article Scraping and Relability
 
 ## 4. Implementation
@@ -122,4 +122,5 @@ Thus, I have the basic methodology for grouping done. *(Improvements are current
 ## 8. References
 [^1]: “Infodemics and Misinformation Negatively Affect People’s Health Behaviours, New Who Review Finds.” World Health Organization, World Health Organization, https://www.who.int/europe/news/item/01-09-2022-infodemics-and-misinformation-negatively-affect-people-s-health-behaviours--new-who-review-finds.
 [^2]: Koch, Korbinian. “A Friendly Introduction to Text Clustering.” Medium, Towards Data Science, 27 Oct. 2022, towardsdatascience.com/a-friendly-introduction-to-text-clustering-fa996bcefd04.
-[^3]: Koli, Shubham. “How to Evaluate the Performance of Clustering Algorithms Using Silhouette Coefficient.” Medium, 2 Mar. 2023, medium.com/@MrBam44/how-to-evaluate-the-performance-of-clustering-algorithms-3ba29cad8c03.
+[^3]: Koli, Shubham. “How to Evaluate the Performance of Clustering Algorithms Using Silhouette Coefficient.” Medium, Medium, 2 Mar. 2023, medium.com/@MrBam44/how-to-evaluate-the-performance-of-clustering-algorithms-3ba29cad8c03.
+[^4]: Lambert, Nathan et al, “Illustrating Reinforcement Learning From Human Feedback (RLHF).” HuggingFace, HuggingFace, 9 Dec. 2022, huggingface.co/blog/rlhf.
