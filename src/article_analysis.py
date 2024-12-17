@@ -157,7 +157,7 @@ def calculate_reliability_and_summary(cluster: dict) -> dict:
     reliability = []
     for source in cluster['sources']:
         reliability.append(find_bias_rating(source))
-    reliability_score = float(max(reliability) * 5 + sum(reliability)) / (len(reliability) + 5)
+    reliability_score = float(min(reliability) * 5 + sum(reliability)) / (len(reliability) + 5)
     objectivity = 0
     for sentence in cluster['sentences']:
         textblob = TextBlob(sentence)
