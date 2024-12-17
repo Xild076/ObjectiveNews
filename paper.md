@@ -1,5 +1,3 @@
-
-
 # Objective News - The Process
 By: Xild076 (Harry Yin)\
 harry.d.yin.gpc@gmail.com
