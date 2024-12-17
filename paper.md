@@ -2,6 +2,27 @@
 By: Xild076 (Harry Yin)\
 harry.d.yin.gpc@gmail.com
 
+1, [Abstract](#1-abstract)
+2. [Introduction](#2-introduction)
+3. [Thought Process](#3-thought-process)
+    1. [Grouping](#31-grouping)
+    2. [Objectifying Text](#32-objectifying-text)
+        1. [Synonyms](#321-synonyms)
+    3. [Article Scraping](#33-article-scraping-and-relability)
+4 [Implementation](#4-implementation)
+    1. [Grouping](#41-grouping)
+    2. [Objectifying Text](#42-objectifying-text)
+    3. [Article Scraping](#43-article-scraping-and-relability)
+5. [Result](#5-results)
+    1. [Grouping](#51-grouping)
+    2. [Objectifying Text](#52-objectifying-text)
+    3. [Article Scraping](#53-article-scraping-and-relability)
+6. [Future Plans](#6-future-plans)
+7. [Conclusion](#7-conclusion)
+8. [References](#8-references)
+
+## 1. Abstract
+
 ## 2. Introduction
 Currently, misinformation is on the rise with the advent of new technology and algorithms, leading to less trust in news and less accurate news overall. I established the project **ObjectiveNews** in an attempt to combat this. As someone who does High School Policy Debate and as someone who is decently involved in politics, seeing misinformation in an increasingly polarized landscape is personally upsetting. Furthermore, studies have shown that misinformation can have real, negative effects on the human mentality[^1]. The ultimate  goal of the project is to be able to locate, group, and deliver news in the most objective way possible while staying lightweight enough as to be able to run on most devices independently. | *Currently, the locating, grouping, and delivering of the news objectively is in its beta while optimizations are being made to make it more lightweight. As of right now, the project can run on most devices, however, the time the processes take need to be improved.*
 ## 3. Thought Process
