@@ -26,7 +26,6 @@ from keybert import KeyBERT
 import streamlit as st
 logger.info("Modules imported...")
 
-@st.cache_data
 def is_cluster_valid(cluster: Dict[str, any],
                     min_avg_sentence_length: int = 50,
                     alpha_ratio_threshold: float = 0.7,
@@ -192,7 +191,6 @@ def group_individual_article(article):
             rep_sentences.append(cluster['representative_with_context'])
     return rep_sentences
 
-@st.cache_data
 def group_representative_sentences(rep_sentences:List[SentenceHolder]):
     max_clusters = max(floor(len(rep_sentences) / 6), 10)
     cluster_articles = observe_best_cluster(rep_sentences, max_clusters=max_clusters, 
@@ -201,7 +199,6 @@ def group_representative_sentences(rep_sentences:List[SentenceHolder]):
                                             score_weights={'sil':0.9, 'db':0.05, 'ch':0.05})['clusters']
     return cluster_articles
 
-@st.cache_data
 def calculate_reliability(clusters:list):
     dates = {}
     for i, cluster in enumerate(clusters):
@@ -232,7 +229,6 @@ def calculate_reliability(clusters:list):
     
     return clusters
 
-@st.cache_data
 def objectify_and_summarize(cluster:dict):
     i = 1
     sentences = [sentence.text for sentence in cluster['sentences']]

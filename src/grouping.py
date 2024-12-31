@@ -129,7 +129,6 @@ def get_sentence_with_context(texts: List[str], idx: int, context_len: int) -> s
     context_sentences = texts[start:end]
     return " ".join(context_sentences)
 
-@st.cache_data
 def observe_best_cluster(sentences_holder: List[SentenceHolder],
                          max_clusters: int = 10,
                          weights: Dict[str, float] = {'single': 0.7, 'context': 0.3},
