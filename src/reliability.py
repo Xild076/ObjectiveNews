@@ -7,8 +7,10 @@ import numpy as np
 from typing import List, Dict, Union
 from dateutil import parser
 import numpy as np
+import streamlit as st
 logger.info("Modules imported...")
 
+@st.cache_data
 def calculate_general_reliability(scores, alpha=1.0, sigma=None):
     scores = np.array(scores)
     r_min = np.min(scores)
@@ -29,6 +31,7 @@ def calculate_general_reliability(scores, alpha=1.0, sigma=None):
     r_final = r_general * (1 + alpha * penalty_ratio)
     return r_final
 
+@st.cache_data
 def calculate_date_relevancy(dates_dict, coverage_weight=1.0, last_date_weight=1.0, bounded_range=False):
     parsed_data = {}
     all_min_dates = []

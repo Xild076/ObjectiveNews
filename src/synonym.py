@@ -7,6 +7,7 @@ from sentence_transformers import SentenceTransformer, util
 import logging
 import requests
 import nltk
+import streamlit as st
 logger.info("Modules imported...")
 
 logger.info("Downloading NLTK...")
@@ -18,9 +19,13 @@ logger.info("NLTK downloaded...")
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 logger.info("Establishing pipeline...")
-unmasker = pipeline("fill-mask", model="albert-base-v2", device=-1)
+@st.cache_resource
+def load_model():
+    return pipeline("fill-mask", model="albert-base-v2", device=-1)
+unmasker = load_model()
 logger.info("Pipeline established...")
 
+@st.cache_data
 def get_contextual_synonyms(original_word: str, original_sentence: str, top_n: int = 3, top_k: int = 50):
     if original_word.lower() not in original_sentence.lower():
         masked_sentence = original_sentence + " [MASK]"
@@ -37,6 +42,7 @@ def get_contextual_synonyms(original_word: str, original_sentence: str, top_n: i
     top_indices = similarities.argsort(descending=True)[:top_n]
     return [candidate_words[i] for i in top_indices]
 
+@st.cache_data
 def get_synonyms(word: str, pos: str = None, deep_search: bool = False):
     synonyms_set = set()
     synonyms_set.add((word, pos))

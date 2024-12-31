@@ -16,6 +16,7 @@ from colorama import Fore
 import warnings
 from typing import Literal
 from utility import get_pos_full_text, normalize_text
+import streamlit as st
 logger.info("Modules imported...")
 
 stanza_logger = logging.getLogger("stanza")
@@ -32,7 +33,13 @@ logger.info("NLTK downloaded...")
 
 logger.info("Establishing pipeline...")
 lemmatizer = WordNetLemmatizer()
-nlp = stanza.Pipeline('en')
+
+@st.cache_resource
+def load_nlp_pipeline():
+    nlp = stanza.Pipeline('en')
+    return nlp
+
+nlp = load_nlp_pipeline()
 logger.info("Pipeline established...")
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
@@ -44,11 +51,12 @@ def _debug_nlp(text):
     print(doc)
     return doc
 
+@st.cache_data
 def get_word_info(word, context):
     doc = nlp(context)
     for sent in doc.sentences:
         for _word in sent.words:
-            if _word.text == word:
+            if (_word.text == word):
                 return {
                     'word': _word.text,
                     'pos': _word.upos.lower()
@@ -58,6 +66,7 @@ def get_word_info(word, context):
         'pos': None
     }
 
+@st.cache_data
 def calc_objectivity_word(word, pos=None):
     end = False
     if pos==-1:
@@ -82,10 +91,12 @@ def calc_objectivity_word(word, pos=None):
             return 1.0
     return obj_swn
 
+@st.cache_data
 def calc_objectivity_sentence(sentence):
     blob = TextBlob(sentence)
     return 1 - blob.subjectivity
 
+@st.cache_data
 def get_pos_wn(pos):
     if pos == 'ADJ':
         return wn.ADJ
@@ -98,6 +109,7 @@ def get_pos_wn(pos):
     else:
         return None
 
+@st.cache_data
 def split_text_on_quotes(text):
     pattern = r'“(.*?)”|"(.*?)"'
     segments = []
@@ -115,6 +127,7 @@ def split_text_on_quotes(text):
         segments.append(('text', text[last_end:]))
     return segments
 
+@st.cache_data
 def get_objective_synonym(word, context, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
     pos = get_pos_full_text(get_word_info(word, context)['pos'])
     if synonym_search_methodology == "transformer":
@@ -126,6 +139,7 @@ def get_objective_synonym(word, context, synonym_search_methodology:Literal["tra
         objectivity.append(calc_objectivity_word(lemmatizer.lemmatize(synonym), pos))
     return synonyms[np.argmax(objectivity)]
 
+@st.cache_data
 def objectify_text(text: str, objectivity_threshold=0.75, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
     text = text.strip()
     segments = split_text_on_quotes(text)
@@ -212,6 +226,7 @@ def objectify_text(text: str, objectivity_threshold=0.75, synonym_search_methodo
             processed_segments.append(full_sentence_normalized)
     return " ".join(processed_segments).strip()
 
+@st.cache_data
 def visualize_objectivity(text, objectivity_threshold=0.75, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
     print(Fore.BLUE + "Text: " + Fore.RESET + text.strip())
     print(Fore.BLUE + "Objectivity: " + Fore.RESET + str(calc_objectivity_sentence(text)))

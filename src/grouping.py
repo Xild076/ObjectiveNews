@@ -1,4 +1,5 @@
 from utility import DLog
+import streamlit as st
 
 logger = DLog(name="Grouping", level="DEBUG", log_dir="logs")
 
@@ -68,10 +69,14 @@ class SelfAttention(nn.Module):
         return src
 
 logger.info("Loading models...")
-sentence_embed_model = SentenceTransformer('all-MiniLM-L6-v2')
+@st.cache_resource
+def load_model():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+sentence_embed_model = load_model()
 attention_model = SelfAttention(embed_dim=384, num_heads=4)
 logger.info("Models loaded...")
 
+@st.cache_data
 def encode_text(sentences: List[str],
                 weights: Dict[str, float] = {'single': 0.7, 'context': 0.3},
                 context: bool = False,
@@ -104,6 +109,7 @@ def encode_text(sentences: List[str],
 
     return np.array(final_embeddings)
 
+@st.cache_data
 def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_label: int) -> int:
     from sklearn.metrics.pairwise import cosine_similarity
     cluster_indices = np.where(labels == cluster_label)[0]
@@ -116,12 +122,14 @@ def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_labe
     rep_idx = cluster_indices[rep_relative_idx]
     return rep_idx
 
+@st.cache_data
 def get_sentence_with_context(texts: List[str], idx: int, context_len: int) -> str:
     start = max(0, idx - context_len)
     end = min(len(texts), idx + context_len + 1)
     context_sentences = texts[start:end]
     return " ".join(context_sentences)
 
+@st.cache_data
 def observe_best_cluster(sentences_holder: List[SentenceHolder],
                          max_clusters: int = 10,
                          weights: Dict[str, float] = {'single': 0.7, 'context': 0.3},
@@ -214,6 +222,7 @@ def observe_best_cluster(sentences_holder: List[SentenceHolder],
         }
     }
 
+@st.cache_data
 def visualize_grouping(text):
     sentences = sent_tokenize(text)
     print("Sentence Length: " + str(len(sentences)))
@@ -233,4 +242,4 @@ def visualize_grouping(text):
         for sent in cluster['sentences']:
             print(fix_space_newline(sent.text))
         print("\n")
-    
+

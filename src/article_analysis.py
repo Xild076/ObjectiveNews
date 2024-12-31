@@ -23,8 +23,10 @@ import time
 from colorama import Fore, Style
 from datetime import datetime
 from keybert import KeyBERT
+import streamlit as st
 logger.info("Modules imported...")
 
+@st.cache_data
 def is_cluster_valid(cluster: Dict[str, any],
                     min_avg_sentence_length: int = 50,
                     alpha_ratio_threshold: float = 0.7,
@@ -107,6 +109,7 @@ def is_cluster_valid(cluster: Dict[str, any],
             return False
     return True
 
+@st.cache_data
 def process_text_input_for_keyword(text:str) -> str:
     COMMON_TLDS = [
         'com', 'org', 'net', 'edu', 'gov', 'mil', 'int',
@@ -140,6 +143,7 @@ def process_text_input_for_keyword(text:str) -> str:
         return None
     return {"method": methodology, "keywords": keywords, "extra_info": article}
 
+@st.cache_data
 def retrieve_information_online(keywords, link_num=10, extra_info=None):
     articles = []
     max_attempts = 5
@@ -154,6 +158,7 @@ def retrieve_information_online(keywords, link_num=10, extra_info=None):
         articles.append(extra_info)
     return articles, links
 
+@st.cache_data
 def group_individual_article(article):
     rep_sentences = []
 
@@ -187,6 +192,7 @@ def group_individual_article(article):
             rep_sentences.append(cluster['representative_with_context'])
     return rep_sentences
 
+@st.cache_data
 def group_representative_sentences(rep_sentences:List[SentenceHolder]):
     max_clusters = max(floor(len(rep_sentences) / 6), 10)
     cluster_articles = observe_best_cluster(rep_sentences, max_clusters=max_clusters, 
@@ -195,6 +201,7 @@ def group_representative_sentences(rep_sentences:List[SentenceHolder]):
                                             score_weights={'sil':0.9, 'db':0.05, 'ch':0.05})['clusters']
     return cluster_articles
 
+@st.cache_data
 def calculate_reliability(clusters:list):
     dates = {}
     for i, cluster in enumerate(clusters):
@@ -225,6 +232,7 @@ def calculate_reliability(clusters:list):
     
     return clusters
 
+@st.cache_data
 def objectify_and_summarize(cluster:dict):
     i = 1
     sentences = [sentence.text for sentence in cluster['sentences']]
@@ -256,6 +264,7 @@ def objectify_and_summarize(cluster:dict):
 
     return cluster
 
+@st.cache_data
 def article_analyse(text, link_num=10):
     processed_text = process_text_input_for_keyword(text)
     if not processed_text:
@@ -298,6 +307,7 @@ def article_analyse(text, link_num=10):
     valid_clusters = calculate_reliability(valid_clusters)
     return valid_clusters
 
+@st.cache_data
 def visualize_article_analysis(text, link_num=10):
     now = time.time()
     results = article_analyse(text, link_num)

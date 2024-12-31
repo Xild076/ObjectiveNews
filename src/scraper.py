@@ -14,6 +14,7 @@ import urllib.request
 from tqdm import tqdm
 from newspaper import Article
 import threading
+import streamlit as st
 logger.info("Modules imported...")
 
 class RateLimiter:
@@ -28,10 +29,14 @@ class RateLimiter:
                 time.sleep(RateLimiter.min_delay - elapsed)
             RateLimiter.last_request_time = time.time()
 
+@st.cache_data
+def get_headers():
+    return FetchArticle._get_headers()
+
 class FetchArticle:
     @staticmethod
     def retrieve_links(keywords, amount=10):
-        headers_list = FetchArticle._get_headers()
+        headers_list = get_headers()
         search_query = '+'.join([quote_plus(k) for k in keywords])
         base_url = f"https://www.google.com/search?q={search_query}&gl=us&tbm=nws&num={amount}"
         session = requests.Session()
