@@ -4,7 +4,7 @@ keybert
 langdetect
 newspaper3k
 nltk
-notifypy
+notify_py
 numpy
 pandas
 python-dateutil
