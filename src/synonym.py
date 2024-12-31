@@ -6,8 +6,14 @@ from transformers import pipeline
 from sentence_transformers import SentenceTransformer, util
 import logging
 import requests
-from nltk.corpus import wordnet as wn
+import nltk
 logger.info("Modules imported...")
+
+logger.info("Downloading NLTK...")
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+from nltk.corpus import wordnet as wn
+logger.info("NLTK downloaded...")
 
 logging.getLogger("transformers").setLevel(logging.ERROR)
 

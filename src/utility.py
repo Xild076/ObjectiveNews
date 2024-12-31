@@ -1,5 +1,3 @@
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
 import os
 from datetime import datetime
 import traceback
@@ -7,6 +5,14 @@ from colorama import Fore, Style, init
 from urllib.parse import urlparse, urlunparse
 from keybert import KeyBERT
 import pandas as pd
+import nltk
+
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+
 
 lemmatizer = WordNetLemmatizer()
 

@@ -6,6 +6,7 @@ logger.info("Importing modules...")
 from textblob import TextBlob
 import stanza
 import re
+import nltk
 from nltk.corpus import wordnet as wn, sentiwordnet as swn
 from nltk.stem import WordNetLemmatizer
 import logging
@@ -21,9 +22,17 @@ stanza_logger = logging.getLogger("stanza")
 stanza_logger.setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
+logger.info("Downloading NLTK...")
+nltk.download('wordnet')
+nltk.download('sentiwordnet')
+nltk.download('omw-1.4')
+from nltk.corpus import wordnet as wn, sentiwordnet as swn
+from nltk.stem import WordNetLemmatizer
+logger.info("NLTK downloaded...")
+
 logger.info("Establishing pipeline...")
 lemmatizer = WordNetLemmatizer()
-nlp = stanza.Pipeline('en', download_method=None)
+nlp = stanza.Pipeline('en')
 logger.info("Pipeline established...")
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'

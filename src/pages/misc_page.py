@@ -14,6 +14,8 @@ with st.spinner(f"Loading modules for ```misc_page.py``` | Approximate loading t
     from summarizer import summarize_text
     load_text.write("Loading ```synonym.py```")
     from synonym import get_synonyms
+    load_text.write("Loading ```utility.py```")
+    from utility import normalize_text, fix_space_newline
     load_text.empty()
 
 colored_header.colored_header("Misc Tools", "Advanced synonyms & summarization", st.session_state["header_color"] if "header_color" in st.session_state else "blue-70")
@@ -49,5 +51,5 @@ with col2:
                 elif len(text_input) > 4096:
                     st.error("Text exceeds 4096 character limit.")
                 else:
-                    summary = summarize_text(text_input)
+                    summary = normalize_text(fix_space_newline(summarize_text(text_input)))
                     st.write(summary)
