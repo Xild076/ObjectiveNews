@@ -16,6 +16,7 @@ with st.spinner(f"Loading modules for ```grouping_page.py``` | Approximate loadi
     from grouping import observe_best_cluster
     load_text.write("Loading ```nltk```")
     import nltk
+    nltk.download('punkt_tab')
     load_text.write("Loading ```sklearn.cluster```")
     from sklearn.cluster import AgglomerativeClustering, KMeans
     load_text.write("Loading ```keybert```")

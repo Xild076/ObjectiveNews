@@ -8,6 +8,7 @@ from utility import normalize_url, get_keywords, SentenceHolder, find_bias_ratin
 from scraper import FetchArticle
 from nltk.corpus import stopwords
 import nltk
+nltk.download('punkt_tab')
 from math import floor
 from grouping import observe_best_cluster
 from sklearn.cluster import AgglomerativeClustering, KMeans

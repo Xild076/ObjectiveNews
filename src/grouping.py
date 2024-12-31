@@ -12,7 +12,12 @@ from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
 from sentence_transformers import SentenceTransformer
+
+logger.info("Downloading NLTK...")
+import nltk
+nltk.download('punkt_tab')
 from nltk import sent_tokenize
+logger.info("NLTK downloaded...")
 
 from typing import List, Dict, Any, Union, Type
 import random
