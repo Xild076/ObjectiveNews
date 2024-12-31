@@ -1291,6 +1291,7 @@ The Fucking News,thefingnews.com,-23,HIGH
 The Gazette (Cedar Rapids),thegazette.com,11,HIGH
 The Globe and Mail,theglobeandmail.com,7,HIGH
 The Guardian,theguardian.com/us,-14,HIGH
+The Guardian,theguardian.com,-14,HIGH
 The Hartford Courant,courant.com,-12,HIGH
 The Hayride,thehayride.com,28,HIGH
 The Herald (Everett),heraldnet.com,-8,HIGH
@@ -4294,3 +4295,7 @@ Youth Radio,www.youthradio.org,-10,HIGH
 Z Magazine,www.zcomm.org,-22,HIGH
 Z Magazine,zcomm.org,-22,HIGH
 ZDF (Zweites Deutsches Fernsehen),www.zdf.de,-5,HIGH
+The World Health Organization, who.int, -1, VERY HIGH
+The World Health Organization, www.who.int, -1, VERY HIGH
+The World Health Organization, who.int/, -1, VERY HIGH
+The World Health Organization, www.who.int/, -1, VERY HIGH

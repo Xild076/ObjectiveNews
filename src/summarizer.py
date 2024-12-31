@@ -1,18 +1,22 @@
-from transformers import BartForConditionalGeneration, BartTokenizer
+from utility import DLog
 
-model_name = "facebook/bart-large-cnn"
-tokenizer = BartTokenizer.from_pretrained(model_name)
-model = BartForConditionalGeneration.from_pretrained(model_name)
+logger = DLog(name="Summarizer", level="DEBUG", log_dir="logs")
+
+logger.info("Importing modules...")
+import logging
+logging.getLogger('transformers').setLevel(logging.ERROR)
+from transformers import pipeline
+from utility import normalize_text
+logger.info("Modules imported...")
+
+logger.info("Establishing pipeline...")
+summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6", device=-1)
+logger.info("Pipeline established...")
 
 def summarize_text(text, max_length=200, min_length=100, num_beams=4):
-    inputs = tokenizer.encode("summarize: " + text, return_tensors="pt", max_length=1024, truncation=True)
-    summary_ids = model.generate(
-        inputs, 
-        max_length=max_length, 
-        min_length=min_length, 
-        num_beams=num_beams
-    )
-    text = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    output = summarizer("summarize: " + text, max_length=max_length, min_length=min_length, num_beams=num_beams)
+    text = output[0]['summary_text']
     text = text.replace("summarize:", "").strip()
+    text = normalize_text(text)
+    return text
 
-    return tokenizer.decode(summary_ids[0], skip_special_tokens=True)

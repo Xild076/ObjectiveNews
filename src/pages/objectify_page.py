@@ -1,137 +1,197 @@
 import streamlit as st
-from streamlit_extras.colored_header import colored_header
+from streamlit_extras import colored_header
+from pages.page_utility import calculate_module_import_time, estimate_time_taken_objectify, make_notification
+import sys
+import os
+from streamlit_extras.button_selector import button_selector
+from streamlit_extras.stoggle import stoggle
 
-st.set_page_config(page_title="Objective Text", layout="centered", initial_sidebar_state="auto")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-with st.spinner("Loading objectify modules..."):
-    import difflib
+with st.spinner(f"Loading modules for ```objectify_page.py``` | Approximate loading time: ```{round(calculate_module_import_time(['objectify', 'utility']), 4)}``` seconds"):
+    load_text = st.empty()
+    load_text.write("Loading ```utility.py```")
+    from utility import normalize_text
+    load_text.write("Loading ```objectify.py```")
+    import objectify
+    load_text.write("Loading ```textblob```")
     from textblob import TextBlob
-    import objectify_text
-    import text_fixer
-    import time
-    import requests
-    import nltk
-    nltk.download('wordnet')
-    nltk.download('omw-1.4')
+    load_text.write("Loading ```keybert```")
+    from keybert import KeyBERT
+    load_text.empty()
 
+colored_header.colored_header(
+    "Objectify Text",
+    "This tool makes text less subjective and more objective by removing or replacing subjective words.",
+    st.session_state["header_color"] if "header_color" in st.session_state else "blue-70"
+)
 
-def generate_diff_html(original, modified, score_original, score_modified):
-    diff = list(difflib.ndiff(original.split(), modified.split()))
-    original_html = []
-    modified_html = []
-    i = 0
-    while i < len(diff):
-        word = diff[i]
-        if word.startswith('  '):
-            original_html.append(word[2:])
-            modified_html.append(word[2:])
-            i += 1
-        elif word.startswith('- '):
-            if (i + 1) < len(diff) and diff[i + 1].startswith('+ '):
-                removed_word = word[2:]
-                added_word = diff[i + 1][2:]
-                original_html.append(f'<span style="color:#FF4B4B; text-decoration: line-through;">{removed_word}</span>')
-                modified_html.append(f'<span style="color:#4B79FF;">{added_word}</span>')
-                i += 2
-            else:
-                removed_word = word[2:]
-                original_html.append(f'<span style="color:#FF4B4B; text-decoration: line-through;">{removed_word}</span>')
-                i += 1
-        elif word.startswith('+ '):
-            added_word = word[2:]
-            modified_html.append(f'<span style="color:#4B79FF;">{added_word}</span>')
-            i += 1
-        else:
-            i += 1
-    original_text = ' '.join(original_html)
-    modified_text = ' '.join(modified_html)
-    objectivity_original = 100 - score_original * 100
-    objectivity_modified = 100 - score_modified * 100
-    delta = objectivity_modified - objectivity_original
-    if delta > 0:
-        improvement = f'Objectivity improved by <span style="color:#28a745;">{delta:.2f}%</span>'
-    elif delta < 0:
-        improvement = f'Objectivity decreased by <span style="color:#dc3545;">{abs(delta):.2f}%</span>'
-    else:
-        improvement = 'No change in objectivity.'
-    html = f"""
-    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-        <div style="width: 48%; padding: 20px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-            <h3 style="color:#333; text-align: center;">Original Text</h3>
-            <p style="font-size: 18px; color:#555;">{original_text}</p>
-            <h4 style="color:#333; text-align: center;">Objectivity Score:</h4>
-            <p style="font-size: 24px; font-weight: bold; text-align: center;">{objectivity_original:.2f}/100</p>
-        </div>
-        <div style="width: 48%; padding: 20px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-            <h3 style="color:#333; text-align: center;">Modified Text</h3>
-            <p style="font-size: 18px; color:#555;">{modified_text}</p>
-            <h4 style="color:#333; text-align: center;">Objectivity Score:</h4>
-            <p style="font-size: 24px; font-weight: bold; text-align: center;">{objectivity_modified:.2f}/100</p>
-        </div>
-    </div>
-    <div style="text-align: center; margin-top: 30px;">
-        <h3>{improvement}</h3>
-        <p style="font-size: 12px; color:#777;">
-            Objectivity score is derived from 
-            <a href="https://textblob.readthedocs.io/en/dev/quickstart.html#sentiment-analysis" style="color:#4B79FF; text-decoration: none;">TextBlob Sentiment Analysis</a>.
-        </p>
-    </div>
-    """
-    return html
+user_input = st.text_area(
+    "Enter the text to objectify here:",
+    height=300,
+    placeholder="Your text here..."
+)
 
-colored_header(label="Objective Text", description="Transform your text to be more objective.", color_name="light-blue-70")
+with st.expander("⚙️ - Settings - Set configurations for objectification"):
+    objectivity_threshold = st.slider(
+        "Objectivity Threshold",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.75,
+        step=0.01
+    )
+    stoggle(
+        "ⓘ What is Objectivity Threshold?",
+        "The objectivity threshold determines at what level will words be removed. The higher the threshold, the more words will be removed, with even objective descriptive words being removed/altered. The lower the threshold, the more the focus will be on more subjective words with mildly subjective words being ignored."
+    )
+    st.markdown("---")
+    synonym_search_methodology = button_selector(
+        label="Synonym Search Method",
+        options=["Transformer", "WordNet"],
+        index=0,
+    )
+    stoggle(
+        "ⓘ Synonym Search Methodology",
+        "Choose between 'Transformer' for advanced contextual synonyms or 'WordNet' for traditional synonym replacement. The 'Transformer' produces better contextual results but is unpredictable and sometimes produces non-synonyms. The 'WordNet' method is more reliable but may not always fit into the context as well as the 'Transformer' method."
+    )
 
-user_input = st.text_area("Enter the text you want to objectify here:", height=200, placeholder="Type your text here...")
-submit_button = st.button(label='Submit')
+submit_button = st.button("Objectify")
+
+def diff_text(old_text, new_text):
+    import difflib
+    old_tokens = old_text.split()
+    new_tokens = new_text.split()
+    diff = list(difflib.ndiff(old_tokens, new_tokens))
+    result = []
+    for token in diff:
+        if token.startswith('- '):
+            result.append(f"<span style='color:red;text-decoration:line-through'>{token[2:]}</span>")
+        elif token.startswith('+ '):
+            result.append(f"<span style='color:blue'>{token[2:]}</span>")
+        elif token.startswith('  '):
+            result.append(token[2:])
+    return " ".join(result)
+
+def escape_for_js(text):
+    return (
+        text.replace("\\", "\\\\")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace('"', '\\"')
+            .replace("'", "\\'")
+    )
 
 if submit_button:
-    progress_placeholder = st.empty()
-    status_text = st.empty()
-    with st.spinner("Processing..."):
-        progress_bar = progress_placeholder.progress(0)
-        status_text.markdown("Step 1: Cleaning text...")
-        clean_text = text_fixer.clean_text(user_input)
-        time.sleep(0.5)
-        progress_bar.progress(25)
-        status_text.markdown("Step 2: Objectifying the text...")
-        modified_text = objectify_text.objectify_text(clean_text)
-        progress_bar.progress(50)
-        status_text.markdown("Step 3: Preparing the display...")
-        time.sleep(0.5)
-        progress_bar.progress(75)
-        score_original = TextBlob(user_input).subjectivity
-        score_modified = TextBlob(modified_text).subjectivity
-        diff_html = generate_diff_html(user_input, modified_text, score_original, score_modified)
-        st.session_state["diff_html"] = diff_html
-        progress_bar.progress(100)
-        status_text.markdown("<p style='color:#333;'>Completed!</p>", unsafe_allow_html=True)
-    time.sleep(0.5)
-    progress_placeholder.empty()
-    status_text.empty()
-
-if "diff_html" in st.session_state:
-    st.markdown(st.session_state["diff_html"], unsafe_allow_html=True)
-
-st.markdown("---")
-
-colored_header(label="Feedback", description="This objectifier is still in its beta, being continuously updated to make it better.", color_name="light-blue-70")
-
-feedback_input = st.text_area("Your feedback:", height=100, placeholder="Type your feedback here...")
-feedback_button = st.button("Send Feedback")
-
-if feedback_button and feedback_input.strip():
-    owner = 'Xild076'
-    repo = 'ObjectiveNews'
-    with open('secrets/github_token.txt', 'r') as f:
-        token = f.read()
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues"
-    headers = {"Authorization": f"token {token}"}
-    data = {"title": "Feedback: objectify_page.py", "body": feedback_input}
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        if response.status_code == 201:
-            st.success("Thank you for your feedback! A new GitHub issue has been created.")
+    if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
+        notif_text = st.info("The process is underway! We will notify you once it is complete, so you can tab off and come back later. You can disable these notifications in the settings.")
+    progress_bar = st.progress(0)
+    load_time = st.empty()
+    load_time.write(f"Estimated time taken to objectify: ```{round(estimate_time_taken_objectify(user_input), 4)}``` seconds")
+    original_text = normalize_text(user_input)
+    progress_bar.progress(10)
+    if original_text.strip() == "":
+        st.error("Please enter some text to objectify.")
+        st.stop()
+    kw_model = KeyBERT()
+    keywords = kw_model.extract_keywords(
+        original_text,
+        keyphrase_ngram_range=(1,3),
+        stop_words='english',
+        top_n=1
+    )
+    keywords = keywords[0][0].title()
+    progress_bar.progress(20)
+    objectified_text = objectify.objectify_text(
+        original_text,
+        objectivity_threshold=objectivity_threshold,
+        synonym_search_methodology=['transformer', 'wordnet'][synonym_search_methodology]
+    )
+    progress_bar.progress(90)
+    blob_old = TextBlob(original_text)
+    blob_new = TextBlob(objectified_text)
+    old_obj = 1 - blob_old.sentiment.subjectivity
+    new_obj = 1 - blob_new.sentiment.subjectivity
+    progress_bar.progress(100)
+    with st.container():
+        st.write(f"#### Objectified text about {keywords}...")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"""
+            <div style="font-size: 18px; text-align: center;">
+                <b>Old Objectivity:</b> {round(old_obj * 100, 5)} → <br>
+                <b>New Objectivity:</b> {round(new_obj * 100, 5)}
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            change_percentage = ((new_obj - old_obj) / old_obj) * 100 if old_obj != 0 else 0
+            arrow = "↑" if change_percentage > 0 else "↓"
+            color = "green" if change_percentage > 0 else "red"
+            st.markdown(f"""
+            <div style="font-size: 18px; text-align: center;">
+                <b>Change:</b> <span style="color: {color};">
+                    {abs(change_percentage):.2f}% {arrow}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+        if old_obj < new_obj:
+            st.markdown(f"""
+            <div style="font-size: 18px; text-align: center;">
+                <br>Congratulations! Your text has been altered to be more objective!
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.error("There was an error creating an issue on GitHub. Please try again later.")
-    except Exception:
-        st.error("There was an error sending your feedback. Please try again later.")
+            st.markdown(f"""
+            <div style="font-size: 18px; text-align: center;">
+                <br>Your text is already quite objective. Good job and keep up the good work!
+            </div>
+            """, unsafe_allow_html=True)
+        st.markdown("---")
+        col3, col4 = st.columns(2)
+        with col3:
+            with st.container(border=1):
+                st.markdown("##### Original Text")
+                st.markdown(diff_text(original_text, objectified_text), unsafe_allow_html=True)
+        with col4:
+            with st.container(border=1):
+                escaped_objectified = escape_for_js(objectified_text)
+                copy_button_code = f"""
+                <style>
+                .copy-container {{
+                    position: relative;
+                    margin-bottom: 10px;
+                }}
+                .copy-btn {{
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #31333F;
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    font-size: 1rem;
+                }}
+                .copy-btn:hover {{
+                    color: #4C9EE3;
+                }}
+                </style>
+                <script>
+                function copyToClipboard() {{
+                    navigator.clipboard.writeText("{escaped_objectified}").then(
+                        () => console.log('Copied to clipboard.'),
+                        (err) => console.error('Failed to copy text: ', err)
+                    );
+                }}
+                </script>
+                <div class="copy-container">
+                    <h5 style="margin: 0;">Objectified Text</h5>
+                    <button class="copy-btn" onclick="copyToClipboard()">⎘ Copy</button>
+                </div>
+                """
+                st.markdown(copy_button_code, unsafe_allow_html=True)
+                st.markdown(objectified_text)
+    progress_bar.empty()
+    load_time.empty()
+
+    if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
+        make_notification("Text Objectification", "Your text has been successfully objectified!")
+        notif_text.empty()

@@ -1,82 +1,69 @@
-import logging
-import warnings
-import stanza
-from transformers import AutoTokenizer, pipeline
-import nltk
-from nltk.corpus import wordnet
-from nltk.stem import WordNetLemmatizer
-import spacy
-from datamuse import datamuse
+from utility import DLog, dictionary_pos_to_wordnet
+logger = DLog(name="Synonym", level="DEBUG", log_dir="logs")
+
+logger.info("Importing modules...")
+from transformers import pipeline
 from sentence_transformers import SentenceTransformer, util
+import logging
+import requests
+from nltk.corpus import wordnet as wn
+logger.info("Modules imported...")
 
-stanza_logger = logging.getLogger("stanza")
-stanza_logger.setLevel(logging.ERROR)
-warnings.filterwarnings("ignore", category=FutureWarning)
+logging.getLogger("transformers").setLevel(logging.ERROR)
 
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-lemmatizer = WordNetLemmatizer()
+logger.info("Establishing pipeline...")
+unmasker = pipeline("fill-mask", model="albert-base-v2", device=-1)
+logger.info("Pipeline established...")
 
-stanza.download('en')
-tokenizer = AutoTokenizer.from_pretrained("roberta-large")
-mask_synonym_generator = pipeline("fill-mask", model="roberta-large")
-text_synonym_generator = pipeline("text-generation", model="gpt2")
-nlp = spacy.load('en_core_web_sm')
-datamuse_client = datamuse.Datamuse()
-model = SentenceTransformer('all-MiniLM-L6-v2')
+def get_contextual_synonyms(original_word: str, original_sentence: str, top_n: int = 3, top_k: int = 50):
+    if original_word.lower() not in original_sentence.lower():
+        masked_sentence = original_sentence + " [MASK]"
+    else:
+        index = original_sentence.lower().index(original_word.lower())
+        masked_sentence = ("Find the most objective synonym: " + original_sentence[:index] + "[MASK]" + 
+                           original_sentence[index+len(original_word):])
+    predictions = unmasker(masked_sentence, top_k=top_k)
+    candidate_words = [p["token_str"].strip() for p in predictions if p["token_str"].strip().lower() != original_word.lower()]
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    embedding_original = model.encode(original_word, convert_to_tensor=True)
+    embeddings_candidates = model.encode(candidate_words, convert_to_tensor=True)
+    similarities = util.pytorch_cos_sim(embedding_original, embeddings_candidates)[0]
+    top_indices = similarities.argsort(descending=True)[:top_n]
+    return [candidate_words[i] for i in top_indices]
 
-alphabet = 'abcdefghijklmnopqrstuvwxyz'
-vowel = 'aeiou'
-consonant = ''.join([char for char in alphabet if char not in vowel])
+def get_synonyms(word: str, pos: str = None, deep_search: bool = False):
+    synonyms_set = set()
+    synonyms_set.add((word, pos))
+    try:
+        url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
+        response = requests.get(url)
+        data = response.json()
+        if isinstance(data, list):
+            for entry in data:
+                meanings = entry.get('meanings', [])
+                for meaning in meanings:
+                    part_of_speech = meaning.get('partOfSpeech', 'N/A')
+                    if pos and part_of_speech != pos:
+                        continue
+                    syns = meaning.get('synonyms', [])
+                    for syn in syns:
+                        if syn.lower() != word.lower():
+                            synonyms_set.add((syn, part_of_speech))
+        else:
+            raise ValueError("DictionaryAPI response not a list.")
+    except Exception as e:
+        logger.warning(f"DictionaryAPI failed for '{word}' due to exception {e}. Falling back to WordNet.")
+        wn_pos = dictionary_pos_to_wordnet(pos) if pos else None
+        for synset in wn.synsets(word, pos=wn_pos):
+            for lemma in synset.lemmas():
+                if lemma.name().lower() != word.lower():
+                    synonyms_set.add((lemma.name().replace('_', ' '), synset.pos()))
 
-def get_wordnet_synonyms(word):
-    synonyms = set()
-    for syn in wordnet.synsets(word):
-        for lemma in syn.lemmas():
-            synonym = lemma.name().replace('_', ' ').lower()
-            if synonym != word.lower():
-                synonyms.add(lemmatizer.lemmatize(synonym))
-    return synonyms
+    if deep_search:
+        for s, p in list(synonyms_set):
+            deeper = get_synonyms(s, p, False)
+            for d in deeper:
+                synonyms_set.add((d["word"], p))
 
-def get_datamuse_synonyms(word):
-    results = datamuse_client.words(rel_syn=word, max=10)
-    synonyms = set([res['word'].lower() for res in results])
-    return synonyms
+    return [{"word": w, "pos": p} for (w, p) in synonyms_set]
 
-def get_gpt_synonyms(word, context, top_n=10):
-    prompt = f"Find {top_n} synonyms for the word '{word}' in the context of the sentence: \"{context}\"."
-    response = text_synonym_generator(prompt, max_length=100, num_return_sequences=1)
-    synonyms = set()
-    for res in response:
-        text = res['generated_text']
-        parts = text.split(':')[-1].split(',')
-        synonyms.update([syn.strip().lower() for syn in parts])
-    return synonyms
-
-def get_word_tag(word, context):
-    doc = nlp(context)
-    for token in doc:
-        if token.text.lower() == word.lower():
-            return token.tag_
-    return 'VB'
-
-def get_contextual_synonyms(word, context):
-    masked_sentence = context.replace(word, tokenizer.mask_token, 1)
-    results = mask_synonym_generator(masked_sentence)
-    contextual_synonyms = set(res['token_str'].strip().lower() for res in results)
-    contextual_synonyms.add(word.lower())
-    wordnet_synonyms = get_wordnet_synonyms(word)
-    datamuse_synonyms = get_datamuse_synonyms(word)
-    gpt_synonyms = get_gpt_synonyms(word, context)
-    all_synonyms = contextual_synonyms.union(wordnet_synonyms, datamuse_synonyms, gpt_synonyms)
-    word_tag = get_word_tag(word, context)
-    inflected_synonyms = set()
-    for syn in all_synonyms:
-        doc_syn = nlp(syn)
-        if doc_syn:
-            syn_token = doc_syn[0]
-            inflected = syn_token._.inflect(word_tag)
-            if inflected:
-                inflected_synonyms.add(inflected.lower())
-    valid_synonyms = all_synonyms.union(inflected_synonyms)
-    return list(valid_synonyms) if valid_synonyms else [word.lower()]

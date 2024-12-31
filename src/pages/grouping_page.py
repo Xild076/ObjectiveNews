@@ -1,180 +1,139 @@
 import streamlit as st
-from streamlit_extras.colored_header import colored_header
+from streamlit_extras import colored_header
+from pages.page_utility import calculate_module_import_time, make_notification
+import sys
+import os
+from streamlit_extras.button_selector import button_selector
 from streamlit_extras.stoggle import stoggle
 
-st.set_page_config(
-    page_title="Grouping Text",
-    layout="centered",
-    initial_sidebar_state="auto"
-)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-with st.spinner("Loading clustering module..."):
-    from grouping import cluster_text
-    import numpy as np
-    from typing import List, Dict, Any, Union, Type
+with st.spinner(f"Loading modules for ```grouping_page.py``` | Approximate loading time: ```{round(calculate_module_import_time(['grouping', 'utility']), 4)}``` seconds"):
+    load_text = st.empty()
+    load_text.write("Loading ```utility.py```")
+    from utility import normalize_text, fix_space_newline, SentenceHolder
+    load_text.write("Loading ```grouping.py```")
+    from grouping import observe_best_cluster
+    load_text.write("Loading ```nltk```")
+    import nltk
+    load_text.write("Loading ```sklearn.cluster```")
     from sklearn.cluster import AgglomerativeClustering, KMeans
-    import pandas as pd
-    from nltk import sent_tokenize
-    import requests
+    load_text.write("Loading ```keybert```")
+    from keybert import KeyBERT
+    load_text.write("Loading ```collections```")
+    from collections import Counter
+    load_text.empty()
 
-colored_header(
-    label="Grouping Text",
-    description="Getting the main points of the text.",
-    color_name="light-blue-70"
+colored_header.colored_header(
+    "Grouping Text",
+    "Group sentences by similarity of topic and relevancy.",
+    st.session_state["header_color"] if "header_color" in st.session_state else "blue-70"
 )
+user_input = st.text_area("Enter text to group", height=400)
 
-if 'clusters' not in st.session_state:
-    st.session_state.clusters = None
+with st.expander("⚙️ - Settings - Set configurations for grouping"):
+    max_clusters = st.slider("Maximum number of clusters", min_value=2, max_value=40, value=8)
+    context = st.checkbox("Include context", True)
+    context_len = st.slider("Context length", min_value=1, max_value=5, value=1)
+    context_weight = st.slider("Context weight", min_value=0.0, max_value=1.0, value=0.3, step=0.01)
+    preprocess = st.checkbox("Preprocess", True)
+    attention = st.checkbox("Use attention", True)
+    clustering_method = button_selector(label="Clustering method", options=["KMeans", "Agglomerative"], index=0)
+    sil_weight = st.slider("Silhouette weight", min_value=0.0, max_value=1.0, value=0.8, step=0.01)
+    db_weight = st.slider("Davies Bouldin weight", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+    ch_weight = st.slider("Calinski Harabasz weight", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
 
-text_input = st.text_area(
-    "Enter the text to group here...",
-    placeholder="Enter text...",
-    height=200
-)
+submit_button = st.button("Group Text")
+if submit_button:
+    if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
+        notif_text = st.info("The process is underway! We will notify you once it is complete, so you can tab off and come back later. You can disable these notifications in the settings.")
+    progress_bar = st.progress(0)
+    load_text = st.empty()
 
-st.sidebar.header("Grouping Options")
-
-clustering_method = st.sidebar.selectbox(
-    "Grouping Method",
-    options=["AgglomerativeClustering", "KMeans"],
-    help="Choose the grouping algorithm to use."
-)
-
-st.sidebar.subheader("Score Weights")
-silhouette_weight = st.sidebar.slider(
-    "Silhouette Score Weight",
-    min_value=0.0,
-    max_value=1.0,
-    value=0.55,
-    step=0.05,
-    help="Weight for the Silhouette score."
-)
-dbscan_weight = st.sidebar.slider(
-    "DB Score Weight",
-    min_value=0.0,
-    max_value=1.0,
-    value=0.45,
-    step=0.05,
-    help="Weight for the DB score."
-)
-calinski_weight = st.sidebar.slider(
-    "Calinski-Harabasz Score Weight",
-    min_value=0.0,
-    max_value=1.0,
-    value=0.1,
-    step=0.05,
-    help="Weight for the Calinski-Harabasz score."
-)
-score_weights = {
-    'sil': silhouette_weight,
-    'db': dbscan_weight,
-    'ch': calinski_weight
-}
-
-lemmatize = st.sidebar.checkbox(
-    "Lemmatize Text",
-    value=True,
-    help="Enable lemmatization of the text."
-)
-
-context = st.sidebar.checkbox(
-    "Use Context",
-    value=False,
-    help="Enable contextual information in clustering."
-)
-
-if context:
-    st.sidebar.subheader("Context Weights")
-    single_weight = st.sidebar.slider(
-        "Weight",
-        min_value=0.0,
-        max_value=1.0,
-        value=0.5,
-        step=0.05,
-        help="Weight for the individual sentence."
+    if user_input.strip() == "":
+        st.error("Please enter some text.")
+        st.stop()
+    
+    load_text.write("Normalizing text...")
+    original_text = normalize_text(user_input)
+    progress_bar.progress(5)
+    
+    load_text.write("Extracting title keywords...")
+    kw_model = KeyBERT()
+    keywords = kw_model.extract_keywords(
+        original_text,
+        keyphrase_ngram_range=(1,3),
+        stop_words='english',
+        top_n=1
     )
-    context_weights = {
-        'single': single_weight,
-        'context':  1 - single_weight
-    }
-else:
-    context_weights = {'single': 0.5, 'context': 0.5} 
+    keywords = keywords[0][0].title()
+    progress_bar.progress(15)
 
-group_button = st.button("Group Text")
+    load_text.write("Tokenizing sentences...")
+    sentences = nltk.sent_tokenize(original_text)
+    sentences = [SentenceHolder(text=sent) for sent in sentences]
+    progress_bar.progress(20)
 
-if group_button:
-    if not text_input.strip():
-        st.warning("Please enter some text to group.")
-    else:
-        with st.spinner("Clustering the text..."):
-            sentences = sent_tokenize(text_input.strip())
-            
-            if clustering_method == "AgglomerativeClustering":
-                clustering_cls = AgglomerativeClustering
-            elif clustering_method == "KMeans":
-                clustering_cls = KMeans
-            else:
-                st.error("Unsupported clustering method selected.")
-                st.stop()
-            
-            try:
-                max_clusters = max(round(len(sentences) / 6), 15)
-                clusters_result = cluster_text(
-                    sentences=sentences,
-                    clustering_method=clustering_cls,
-                    context_weights=context_weights if context else {'single': 0.5, 'context': 0.5},
-                    score_weights=score_weights,
-                    context=context,
-                    lemmatize=lemmatize,
-                    max_clusters=max_clusters
-                )
-                
-                clusters = clusters_result['clusters']
-                st.session_state.clusters = clusters
-            except Exception as e:
-                st.error(f"An error occurred during clustering: {e}")
-                st.session_state.clusters = None
-
-if st.session_state.clusters:
-    for cluster in st.session_state.clusters:
-        with st.expander(cluster['representative'][:70] + "..." if len(cluster['representative']) > 70 else cluster['representative'], expanded=False):
-            st.subheader("Representative Sentence")
-            st.write(cluster['representative'])
-            st.markdown("**With context:**")
-            st.write(cluster['representative_with_context'])
-            st.subheader("All Sentences")
-            sentence_html = "<ul>"
-            for sentence in cluster['sentences']:
-                sentence_html += f"<li>{sentence.strip()}</li>"
-            sentence_html += "</ul>"
-            stoggle("View Sentences", sentence_html)
-
-st.markdown("---")
-
-colored_header(label="Feedback", description="This article analyzer is still in its beta, being continuously updated to make it better.", color_name="light-blue-70")
-
-feedback_input = st.text_area("Your feedback:", height=100, placeholder="Type your feedback here...")
-feedback_button = st.button("Send Feedback")
-
-if feedback_button and feedback_input.strip():
-    owner = 'Xild076'
-    repo = 'ObjectiveNews'
+    load_text.write("Grouping sentences...")
+    clustering_method = [KMeans, AgglomerativeClustering][clustering_method]
     try:
-        with open('secrets/github_token.txt', 'r') as f:
-            token = f.read().strip()
-    except FileNotFoundError:
-        st.error("GitHub token not found. Please ensure the 'secrets/github_token.txt' file exists.")
-        token = None
+        full_clusters_data = observe_best_cluster(sentences, max_clusters=max_clusters, 
+                                        context=context, context_len=context_len,
+                                        weights={'single':1-context_weight, 'context':context_weight},
+                                        preprocess=preprocess, attention=attention, 
+                                        clustering_method=clustering_method,
+                                        score_weights={'sil':sil_weight, 'db':db_weight, 'ch':ch_weight})
+    except:
+        st.error("Please enter a longer text. There is not enough text to cluster!")
+        st.stop()
+    clusters = full_clusters_data['clusters']
+    metrics = full_clusters_data['metrics']
+    progress_bar.progress(60)
 
-    if token:
-        url = f"https://api.github.com/repos/{owner}/{repo}/issues"
-        headers = {"Authorization": f"token {token}"}
-        data = {"title": "Feedback: grouping_page.py", "body": feedback_input}
-        try:
-            response = requests.post(url, headers=headers, json=data)
-            if response.status_code == 201:
-                st.success("Thank you for your feedback! A new GitHub issue has been created.")
-            else:
-                st.error(f"There was an error creating an issue on GitHub. Status Code: {response.status_code}")
-        except Exception as e:
-            st.error(f"There was an error sending your feedback: {e}")
+    load_text.write("Extracting keywords for each cluster title...")
+    visual_keywords = []
+    for cluster in clusters:
+        kw_model = KeyBERT()
+        keywords_bert = kw_model.extract_keywords(
+            cluster["representative_with_context"].text, keyphrase_ngram_range=(1, 3), stop_words="english", top_n=15
+        )
+        visual_keywords.append([kw[0] for kw in keywords_bert])
+    all_keywords = [kw for cluster_kw in visual_keywords for kw in cluster_kw]
+    keyword_counts = Counter(all_keywords)
+    unique_cluster_keywords = []
+    for i, cluster_kw in enumerate(visual_keywords):
+        filtered_keywords = [kw for kw in cluster_kw if keyword_counts[kw] == 1]
+        if filtered_keywords:
+            unique_cluster_keywords.append(filtered_keywords[0])
+        else:
+            unique_cluster_keywords.append(visual_keywords[i][0])
+    progress_bar.progress(100)
+    load_text.empty()
+
+    with st.container():
+        st.write(f"#### Analysis Results about {keywords}...")
+        for i, cluster in enumerate(clusters):
+            with st.expander(f"Cluster regarding **{unique_cluster_keywords[i].title()}**...", i == 0):
+                st.write("##### Representative Sentence:")
+                st.write(fix_space_newline(cluster['representative'].text))
+                stoggle("Representative Sentence with Context", fix_space_newline(cluster['representative_with_context'].text))
+
+                stoggle_text = "<ul>"
+                for sentence in cluster["sentences"]:
+                    stoggle_text += (
+                        f"<li>{fix_space_newline(sentence.text)}</li>"
+                    )
+                stoggle_text += "</ul>"
+                stoggle("All Sentences (Click to Expand)", stoggle_text.strip())
+
+        st.write("##### Metrics:")
+        st.write(f"Silhouette Score: ```{round(metrics['silhouette'], 5)}```")
+        st.write(f"Davies Bouldin Score: ```{round(metrics['davies_bouldin'], 5)}```")
+        st.write(f"Calinski Harabasz Score: ```{round(metrics['calinski_harabasz'], 5)}```")
+        st.write(f"Overall Score: ```{round(metrics['score'], 5)}```")
+    
+    progress_bar.empty()
+
+    if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
+        make_notification(title="Text Grouping Complete", body="The text grouping process has been completed! You can now view the results.")
+        notif_text.empty()
