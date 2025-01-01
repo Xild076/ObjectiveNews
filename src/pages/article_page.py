@@ -101,7 +101,9 @@ if submit_button:
     load_text.write("Grouping individual articles...")
     rep_sentences = []
     for article in articles:
-        rep_sentences.extend(group_individual_article(article))
+        grouped = group_individual_article(article)
+        grouped_filtered = [item for item in grouped if item is not None]
+        rep_sentences.extend(grouped_filtered)
     progress_bar.progress(50)
 
     load_text.write("Grouping representative sentences...")
