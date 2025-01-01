@@ -148,6 +148,7 @@ if submit_button:
                 obj_val = round(new_obj, 3)
                 sources = sorted(list(set([s.source for s in cluster["sentences"] if hasattr(s, "source")])))
                 date_strings = [s.date for s in cluster["sentences"] if hasattr(s, "date")]
+                del cluster
                 parsed_dates = []
                 for d_str in date_strings:
                     try:
@@ -174,6 +175,7 @@ if submit_button:
                             scaled_offset = buffer + raw_offset * (100 - 2 * buffer)
                             label = d.strftime('%b %d, %Y')
                             offsets.append((scaled_offset, label))
+                        del parsed_dates
                         offsets.sort(key=lambda x: x[0])
                         first_label = min_date.strftime('%b %d, %Y')
                         last_label = max_date.strftime('%b %d, %Y')
