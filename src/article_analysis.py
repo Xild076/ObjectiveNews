@@ -257,7 +257,7 @@ def objectify_and_summarize(cluster:dict, light=True):
     summary_length_max = min(summary_length_max, 275)
 
     if light:
-        summ_text = " ".join(sentences[:2])
+        summ_text = sentences[0]
     else:
         summ_text = summarize_text(text, min_length=summary_length_min, max_length=summary_length_max)
     
