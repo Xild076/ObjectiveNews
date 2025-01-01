@@ -106,8 +106,6 @@ def normalize_text(text:str) -> str:
             if text[-2] not in {".", "!", "?"}:
                 text = text + "."
     
-    text = text[0].upper() + text[1:]
-
     return text
 
 def fix_space_newline(text:str):

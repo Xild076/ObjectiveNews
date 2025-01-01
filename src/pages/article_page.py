@@ -57,8 +57,8 @@ with col1:
     link_number = st.slider(
         "Search Depth Limit",
         min_value=1,
-        max_value=5,
-        value=3,
+        max_value=15,
+        value=5,
         step=1,
         key="link_number",
         on_change=update_estimate

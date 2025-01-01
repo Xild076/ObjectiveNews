@@ -51,7 +51,6 @@ def _debug_nlp(text):
     print(doc)
     return doc
 
-
 def get_word_info(word, context):
     doc = nlp(context)
     for sent in doc.sentences:
@@ -65,7 +64,6 @@ def get_word_info(word, context):
         'word': word,
         'pos': None
     }
-
 
 def calc_objectivity_word(word, pos=None):
     end = False
@@ -91,11 +89,9 @@ def calc_objectivity_word(word, pos=None):
             return 1.0
     return obj_swn
 
-
 def calc_objectivity_sentence(sentence):
     blob = TextBlob(sentence)
     return 1 - blob.subjectivity
-
 
 def get_pos_wn(pos):
     if pos == 'ADJ':
@@ -108,7 +104,6 @@ def get_pos_wn(pos):
         return wn.VERB
     else:
         return None
-
 
 def split_text_on_quotes(text):
     pattern = r'“(.*?)”|"(.*?)"'
@@ -127,7 +122,6 @@ def split_text_on_quotes(text):
         segments.append(('text', text[last_end:]))
     return segments
 
-
 def get_objective_synonym(word, context, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
     pos = get_pos_full_text(get_word_info(word, context)['pos'])
     if synonym_search_methodology == "transformer":
@@ -138,7 +132,6 @@ def get_objective_synonym(word, context, synonym_search_methodology:Literal["tra
     for synonym in synonyms:
         objectivity.append(calc_objectivity_word(lemmatizer.lemmatize(synonym), pos))
     return synonyms[np.argmax(objectivity)]
-
 
 def objectify_text(text: str, objectivity_threshold=0.75, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
     text = text.strip()
@@ -174,8 +167,10 @@ def objectify_text(text: str, objectivity_threshold=0.75, synonym_search_methodo
                                     word_managed[i]['synonym'] = True
                                     word_managed[i]['removed'] = False
                     elif word['pos'] == "ADV":
-                        if word['objectivity'] < objectivity_threshold:
-                            word_managed[i]['removed'] = True
+                        if i + 1 < len(word_managed) - 1:
+                            if word['text'].lower() not in {"not", "never", "no", "who", "what", "where", "when", "why", "how"}:
+                                if word['objectivity'] < objectivity_threshold:
+                                    word_managed[i]['removed'] = True
                 for i, word in enumerate(word_managed):
                     if word['pos'] == "ADV":
                         if i + 1 < len(word_managed) - 1:
@@ -205,27 +200,28 @@ def objectify_text(text: str, objectivity_threshold=0.75, synonym_search_methodo
                 post_processed_sentences = []
                 for i, word in enumerate(processed_sentences):
                     new_word = word
-                    if i < len(processed_sentences) - 1:
-                        if new_word.lower() == 'a' and processed_sentences[i+1][0] in vowel:
-                            new_word = 'an'
-                        elif new_word.lower() == 'an' and processed_sentences[i+1][0] in consonant:
-                            new_word = 'a'
-                    if 0 < i < len(processed_sentences):
-                        if processed_sentences[i-1] == '.':
-                            new_word = new_word.capitalize()
                     if i == 0:
                         if seg_idx >= 1 and segments[seg_idx-1][0] == 'quote':
                             prior_quote = segments[seg_idx-1][1].strip()
                             if len(prior_quote) > 1 and prior_quote[-2] in {'.', '!', '?'}:
                                 new_word = new_word.capitalize()
+                            else:
+                                new_word = new_word.lower()
                         else:
                             new_word = new_word.capitalize()
+                    elif 0 < i < len(processed_sentences):
+                        if processed_sentences[i-1] in {'.', '!', '?'}:
+                            new_word = new_word.capitalize()
+                    if i < len(processed_sentences) - 1:
+                        if new_word.lower() == 'a' and processed_sentences[i+1][0] in vowel:
+                            new_word = 'an'
+                        elif new_word.lower() == 'an' and processed_sentences[i+1][0] in consonant:
+                            new_word = 'a'
                     post_processed_sentences.append(new_word)
             full_sentence = " ".join(post_processed_sentences)
             full_sentence_normalized = normalize_text(full_sentence)
             processed_segments.append(full_sentence_normalized)
     return " ".join(processed_segments).strip()
-
 
 def visualize_objectivity(text, objectivity_threshold=0.75, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
     print(Fore.BLUE + "Text: " + Fore.RESET + text.strip())
@@ -233,4 +229,3 @@ def visualize_objectivity(text, objectivity_threshold=0.75, synonym_search_metho
     objectified_text = objectify_text(text, objectivity_threshold, synonym_search_methodology)
     print(Fore.GREEN + "Objectified Text: " + Fore.RESET + objectified_text.strip())
     print(Fore.GREEN + "Objectivity: " + Fore.RESET + str(calc_objectivity_sentence(objectified_text)))
-
