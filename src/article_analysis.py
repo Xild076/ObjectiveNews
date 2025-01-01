@@ -360,4 +360,3 @@ def visualize_article_analysis(text, link_num=10):
     print(f"{Fore.YELLOW}Current memory usage: {mem_end / (1024 ** 2):.2f} MB")
     print(f"{Fore.YELLOW}Peak memory usage: {peak / (1024 ** 2):.2f} MB")
 
-visualize_article_analysis("New York", 5)
