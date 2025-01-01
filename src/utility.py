@@ -20,7 +20,6 @@ def get_stopwords():
 
 lemmatizer = WordNetLemmatizer()
 
-@st.cache_data
 def preprocess_text(text: str, language='english') -> str:
     from nltk.tokenize import word_tokenize
     stop_words = get_stopwords()
@@ -29,7 +28,6 @@ def preprocess_text(text: str, language='english') -> str:
     tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
     return ' '.join(tokens)
 
-@st.cache_data
 def normalize_values_minmax(values, reverse=False):
     mn = min(values)
     mx = max(values)
@@ -41,7 +39,6 @@ def normalize_values_minmax(values, reverse=False):
     else:
         return [(mx - v) / rng for v in values]
 
-@st.cache_data
 def dictionary_pos_to_wordnet(pos_str: str) -> str:
     pos_str = pos_str.lower()
     if pos_str == "noun":
@@ -56,7 +53,6 @@ def dictionary_pos_to_wordnet(pos_str: str) -> str:
         return "s"
     return None
 
-@st.cache_data
 def get_pos_full_text(pos_str: str) -> str:
     if pos_str == "VERB":
         return "verb"
@@ -67,7 +63,6 @@ def get_pos_full_text(pos_str: str) -> str:
     else:
         return None
 
-@st.cache_data
 def normalize_text(text:str) -> str:
     text = text.strip()
 
@@ -112,14 +107,12 @@ def normalize_text(text:str) -> str:
 
     return text
 
-@st.cache_data
 def fix_space_newline(text:str):
     text = text.replace("\n", " ")
     text = text.replace("  ", " ")
     text = text.replace("   ", " ")
     return text.strip()
 
-@st.cache_data
 def normalize_url(url:str, default_scheme='https', add_www=True):
     url = url.strip()
     
@@ -139,7 +132,6 @@ def normalize_url(url:str, default_scheme='https', add_www=True):
     
     return normalized_url
 
-@st.cache_data
 def get_keywords(text):
     kw_model = KeyBERT()
     keywords = kw_model.extract_keywords(
@@ -159,7 +151,6 @@ def get_keywords(text):
                 seen.add(word)
     return unique_words
 
-@st.cache_data
 def find_bias_rating(url):
     df = pd.read_csv('data/bias.csv')
     result = df[df['url'].str.contains(url, na=False)]

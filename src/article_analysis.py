@@ -108,7 +108,7 @@ def is_cluster_valid(cluster: Dict[str, any],
             return False
     return True
 
-@st.cache_data
+
 def process_text_input_for_keyword(text:str) -> str:
     COMMON_TLDS = [
         'com', 'org', 'net', 'edu', 'gov', 'mil', 'int',
@@ -142,7 +142,7 @@ def process_text_input_for_keyword(text:str) -> str:
         return None
     return {"method": methodology, "keywords": keywords, "extra_info": article}
 
-@st.cache_data
+
 def retrieve_information_online(keywords, link_num=10, extra_info=None):
     articles = []
     max_attempts = 5
@@ -157,7 +157,7 @@ def retrieve_information_online(keywords, link_num=10, extra_info=None):
         articles.append(extra_info)
     return articles, links
 
-@st.cache_data
+
 def group_individual_article(article):
     rep_sentences = []
 
@@ -260,7 +260,7 @@ def objectify_and_summarize(cluster:dict):
 
     return cluster
 
-@st.cache_data
+
 def article_analyse(text, link_num=10):
     processed_text = process_text_input_for_keyword(text)
     if not processed_text:
@@ -303,7 +303,7 @@ def article_analyse(text, link_num=10):
     valid_clusters = calculate_reliability(valid_clusters)
     return valid_clusters
 
-@st.cache_data
+
 def visualize_article_analysis(text, link_num=10):
     now = time.time()
     results = article_analyse(text, link_num)
