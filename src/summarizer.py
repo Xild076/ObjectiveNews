@@ -14,9 +14,13 @@ logger.info("Modules imported...")
 logger.info("Establishing pipeline...")
 @st.cache_resource
 def load_model():
-    if torch.cuda.is_available():
-        return pipeline("summarization", model="sshleifer/distilbart-cnn-12-6", device=0)
-    return pipeline("summarization", model="sshleifer/distilbart-cnn-12-6", device=-1)
+    device = 0 if torch.cuda.is_available() else -1
+    return pipeline(
+        "summarization",
+        model="sshleifer/distilbart-cnn-12-6",
+        device=device,
+        torch_dtype=torch.bfloat16
+    )
 summarizer = load_model()
 logger.info("Pipeline established...")
 
