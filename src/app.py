@@ -11,8 +11,6 @@ components.html("""
 </head>
 """, height=0)
 
-st.set_page_config(page_title="Objective News by Harry Yin", page_icon="data/images/Objective News.ico")
-
 @st.cache_resource
 def load_pages():
     main_page = st.Page("pages/main_page.py", title="Main Page", default=True)
