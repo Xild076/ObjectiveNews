@@ -20,3 +20,4 @@ tqdm
 trafilatura
 transformers
 validators
+psutil
