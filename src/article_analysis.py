@@ -249,6 +249,7 @@ def article_analyse(text, link_num=10):
         print(f"Grouped individual article: {grouped}")
         r.extend(grouped)
     print(f"Grouped sentences: {r}")
+    del arts
     if len(r) <= 2:
         c = [
             {
@@ -263,6 +264,7 @@ def article_analyse(text, link_num=10):
     else:
         c = group_representative_sentences(r)
         print(f"Clustered representative sentences: {c}")
+    del r
     v = []
     for cc in c:
         if is_cluster_valid(cc, keywords=kb, debug=True):
@@ -272,8 +274,10 @@ def article_analyse(text, link_num=10):
             v.append(cc)
         else:
             print(f"Invalid cluster")
+    del c
     result = calculate_reliability(v)
     print(f"Calculated reliability: {result}")
+    del v
     return result
 
 def visualize_article_analysis(text, link_num=10):

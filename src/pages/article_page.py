@@ -18,7 +18,8 @@ with st.spinner(f"Loading modules for ```article_page.py``` | Approximate loadin
         group_individual_article,
         group_representative_sentences,
         calculate_reliability,
-        objectify_and_summarize
+        objectify_and_summarize,
+        article_analyse
     )
     load_text.write("Loading ```keybert```")
     from keybert import KeyBERT
@@ -61,84 +62,24 @@ submit_button = st.button("Analyze")
 if submit_button:
     if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
         notif_text = st.info("The process is underway! We will notify you once it is complete, so you can tab off and come back later. You can disable these notifications in the settings.")
-    progress_bar = st.progress(0)
-    load_text = st.empty()
-    if user_input.strip() == "":
-        st.error("Please enter some information to search.")
-        st.stop()
-    load_text.write("Processing user input...")
-    processed_text = process_text_input_for_keyword(user_input)
-    keywords = processed_text["keywords"]
-    extra_info = processed_text["extra_info"]
-    progress_bar.progress(10)
-    load_text.write("Fetching online information...")
-    articles, _ = retrieve_information_online(keywords, link_num=link_number, extra_info=extra_info)
-    progress_bar.progress(40)
-    if extra_info:
-        load_text.write("Extracting keywords from the initial article...")
-        kw_model = KeyBERT()
-        keywords_bert = kw_model.extract_keywords(
-            extra_info["text"], keyphrase_ngram_range=(1, 1), stop_words="english", top_n=10
-        )
-        keywords_bert = [kw[0] for kw in keywords_bert]
-        progress_bar.progress(45)
-    else:
-        keywords_bert = None
-    load_text.write("Grouping individual articles...")
-    rep_sentences = []
-    for article in articles:
-        rep_sentences.extend(group_individual_article(article))
-    del articles
-    import gc
-    gc.collect()
-    progress_bar.progress(50)
-    load_text.write("Grouping representative sentences...")
-    if len(rep_sentences) <= 2:
-        cluster_articles = [
-            {
-                "cluster_id": idx,
-                "sentences": [rep_sentences[idx]],
-                "representative": rep_sentences[idx],
-                "representative_with_context": rep_sentences[idx]
-            }
-            for idx in range(len(rep_sentences))
-        ]
-    else:
-        cluster_articles = group_representative_sentences(rep_sentences)
-    del rep_sentences
-    gc.collect()
-    progress_bar.progress(55)
-    load_text.write("Determining cluster validity and summarizing...")
-    valid_clusters = []
-    for i, cluster in enumerate(cluster_articles):
-        if is_cluster_valid(cluster, keywords=keywords_bert, debug=True):
-            cluster = objectify_and_summarize(cluster, light=False)
-            valid_clusters.append(cluster)
-    del cluster_articles
-    gc.collect()
-    progress_bar.progress(75)
-    load_text.write("Calculating reliability of valid clusters...")
-    valid_clusters = calculate_reliability(valid_clusters)
-    progress_bar.progress(85)
-    load_text.write("Determining cluster keywords...")
-    visual_keywords = []
-    for cluster in valid_clusters:
-        kw_model = KeyBERT()
-        keywords_bert = kw_model.extract_keywords(
-            cluster["summary"], keyphrase_ngram_range=(1, 3), stop_words="english", top_n=15
-        )
-        visual_keywords.append([kw[0] for kw in keywords_bert])
-    all_keywords = [kw for cluster_kw in visual_keywords for kw in cluster_kw]
-    keyword_counts = Counter(all_keywords)
-    unique_cluster_keywords = []
-    for i, cluster_kw in enumerate(visual_keywords):
-        filtered_keywords = [kw for kw in cluster_kw if keyword_counts[kw] == 1]
-        if filtered_keywords:
-            unique_cluster_keywords.append(filtered_keywords[0])
-        else:
-            unique_cluster_keywords.append(visual_keywords[i][0])
-    progress_bar.progress(100)
-    load_text.empty()
+    with st.spinner("Analyzing the articles..."):
+        valid_clusters = article_analyse(user_input, link_number)
+        visual_keywords = []
+        for cluster in valid_clusters:
+            kw_model = KeyBERT()
+            keywords_bert = kw_model.extract_keywords(
+                cluster["summary"], keyphrase_ngram_range=(1, 3), stop_words="english", top_n=15
+            )
+            visual_keywords.append([kw[0] for kw in keywords_bert])
+        all_keywords = [kw for cluster_kw in visual_keywords for kw in cluster_kw]
+        keyword_counts = Counter(all_keywords)
+        unique_cluster_keywords = []
+        for i, cluster_kw in enumerate(visual_keywords):
+            filtered_keywords = [kw for kw in cluster_kw if keyword_counts[kw] == 1]
+            if filtered_keywords:
+                unique_cluster_keywords.append(filtered_keywords[0])
+            else:
+                unique_cluster_keywords.append(visual_keywords[i][0])
     all_dates = []
     for cluster in valid_clusters:
         for sentence in cluster["sentences"]:
@@ -156,7 +97,7 @@ if submit_button:
         global_min_date = None
         global_max_date = None
     with st.container():
-        st.write(f"#### Analysis Results about {keywords[0].title()}...")
+        st.write(f"#### Analysis Results...")
         for i, cluster in enumerate(valid_clusters):
             with st.expander(f"Cluster regarding **{unique_cluster_keywords[i].title()}**...", i == 0):
                 st.write("##### Situation Rundown:")
@@ -258,7 +199,6 @@ if submit_button:
                     src_list_html += f"{s.title()}, "
                 src_list_html = src_list_html.strip(", ")
                 stoggle("Reliability Stats (Click to Expand)", f"<b>Objectivity Score:</b> {round(obj_val*100, 2)}/100<br><b>Sources:</b> {src_list_html}<br><b>Timeline:</b><br>{timeline_div}")
-    progress_bar.empty()
     if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
         make_notification("Article Analysis", "The analysis of the article is complete!")
         notif_text.empty()
