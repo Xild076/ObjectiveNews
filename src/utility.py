@@ -7,6 +7,9 @@ from keybert import KeyBERT
 import pandas as pd
 import nltk
 import streamlit as st
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 nltk.download('wordnet')
 nltk.download('omw-1.4')
@@ -14,7 +17,7 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
-@st.cache_resource
+# @st.cache_resource
 def get_stopwords():
     return set(stopwords.words("english"))
 
@@ -246,3 +249,4 @@ class SentenceHolder(object):
     
     def __repr__(self):
         return f"SentH[text={self.text}]"
+

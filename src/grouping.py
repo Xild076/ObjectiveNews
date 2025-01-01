@@ -69,7 +69,7 @@ class SelfAttention(nn.Module):
         return src
 
 logger.info("Loading models...")
-@st.cache_resource
+# @st.cache_resource
 def load_model():
     return SentenceTransformer('all-MiniLM-L6-v2')
 sentence_embed_model = load_model()

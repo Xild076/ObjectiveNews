@@ -24,6 +24,7 @@ from colorama import Fore, Style
 from datetime import datetime
 from keybert import KeyBERT
 import streamlit as st
+import tracemalloc, psutil
 logger.info("Modules imported...")
 
 def is_cluster_valid(cluster: Dict[str, any],
@@ -108,7 +109,6 @@ def is_cluster_valid(cluster: Dict[str, any],
             return False
     return True
 
-
 def process_text_input_for_keyword(text:str) -> str:
     COMMON_TLDS = [
         'com', 'org', 'net', 'edu', 'gov', 'mil', 'int',
@@ -142,7 +142,6 @@ def process_text_input_for_keyword(text:str) -> str:
         return None
     return {"method": methodology, "keywords": keywords, "extra_info": article}
 
-
 def retrieve_information_online(keywords, link_num=10, extra_info=None):
     articles = []
     max_attempts = 5
@@ -156,7 +155,6 @@ def retrieve_information_online(keywords, link_num=10, extra_info=None):
     if extra_info:
         articles.append(extra_info)
     return articles, links
-
 
 def group_individual_article(article):
     rep_sentences = []
@@ -265,7 +263,6 @@ def objectify_and_summarize(cluster:dict, light=True):
 
     return cluster
 
-
 def article_analyse(text, link_num=10):
     processed_text = process_text_input_for_keyword(text)
 
@@ -319,13 +316,18 @@ def article_analyse(text, link_num=10):
     valid_clusters = calculate_reliability(valid_clusters)
     return valid_clusters
 
-
 def visualize_article_analysis(text, link_num=10):
+    tracemalloc.start()
+    process = psutil.Process()
+    cpu_start = time.process_time()
+    mem_start = process.memory_info().rss
     now = time.time()
     results = article_analyse(text, link_num)
-
+    cpu_end = time.process_time()
+    mem_end = process.memory_info().rss
+    current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
     print(f"{Fore.YELLOW}{Style.BRIGHT}\n=== Article Analysis Results ===")
-
     for i, cluster in enumerate(results, 1):
         sources = set(sentence.source for sentence in cluster['sentences'] if sentence.source)
         dates = [sentence.date for sentence in cluster['sentences'] if sentence.date]
@@ -339,7 +341,6 @@ def visualize_article_analysis(text, link_num=10):
             date_range = f"{min(parsed_dates).strftime('%Y-%m-%d')} to {max(parsed_dates).strftime('%Y-%m-%d')}"
         else:
             date_range = parsed_dates[0].strftime('%Y-%m-%d') if parsed_dates else 'N/A'
-
         print(f"\n{Fore.CYAN}{Style.BRIGHT}Cluster {i}:{Style.RESET_ALL}")
         print(f"{Fore.GREEN}Reliability Score:{Style.RESET_ALL} {cluster['reliability']:.2f}")
         print(f"{Fore.MAGENTA}Summary:{Style.RESET_ALL} {cluster['summary']}")
@@ -347,7 +348,12 @@ def visualize_article_analysis(text, link_num=10):
         print(f"{Fore.GREEN}Sources:{Style.RESET_ALL} {', '.join(sources) if sources else 'N/A'}")
         print(f"{Fore.RED}Date Range:{Style.RESET_ALL} {date_range}")
         print(f"{Fore.YELLOW}{'-' * 80}")
-
-    print(f"\n{Fore.YELLOW}Analysis completed in {time.time() - now:.2f} seconds")
-
+    total_time = time.time() - now
+    cpu_time = cpu_end - cpu_start
+    mem_usage = (mem_end - mem_start) / (1024 ** 2)
+    print(f"\n{Fore.YELLOW}Analysis completed in {total_time:.2f} seconds")
+    print(f"{Fore.YELLOW}CPU time used: {cpu_time:.2f} seconds")
+    print(f"{Fore.YELLOW}Memory usage increased by: {mem_usage:.2f} MB")
+    print(f"{Fore.YELLOW}Current memory usage: {mem_end / (1024 ** 2):.2f} MB")
+    print(f"{Fore.YELLOW}Peak memory usage: {peak / (1024 ** 2):.2f} MB")
 

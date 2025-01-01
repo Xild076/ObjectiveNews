@@ -34,7 +34,7 @@ logger.info("NLTK downloaded...")
 logger.info("Establishing pipeline...")
 lemmatizer = WordNetLemmatizer()
 
-@st.cache_resource
+# @st.cache_resource
 def load_nlp_pipeline():
     nlp = stanza.Pipeline('en')
     return nlp

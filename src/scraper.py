@@ -29,7 +29,7 @@ class RateLimiter:
                 time.sleep(RateLimiter.min_delay - elapsed)
             RateLimiter.last_request_time = time.time()
 
-@st.cache_data
+# @st.cache_data
 def get_headers():
     return FetchArticle._get_headers()
 

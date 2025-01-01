@@ -12,7 +12,8 @@ import torch
 logger.info("Modules imported...")
 
 logger.info("Establishing pipeline...")
-@st.cache_resource
+torch.set_num_threads(1)
+# @st.cache_resource
 def load_model():
     device = 0 if torch.cuda.is_available() else -1
     return pipeline(
