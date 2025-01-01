@@ -229,7 +229,7 @@ def calculate_reliability(clusters:list):
     
     return clusters
 
-def objectify_and_summarize(cluster:dict):
+def objectify_and_summarize(cluster:dict, light=True):
     i = 1
     sentences = [sentence.text for sentence in cluster['sentences']]
     max_input_length = 2**12
@@ -255,8 +255,13 @@ def objectify_and_summarize(cluster:dict):
     
     summary_length_max = min(summary_length_max, 325)
     summary_length_max = min(summary_length_max, 275)
+
+    if light:
+        summ_text = " ".join(sentences[:2])
+    else:
+        summ_text = summarize_text(text, min_length=summary_length_min, max_length=summary_length_max)
     
-    cluster['summary'] = normalize_text(objectify_text(summarize_text(text, min_length=summary_length_min, max_length=summary_length_max)))
+    cluster['summary'] = normalize_text(objectify_text(summ_text))
 
     return cluster
 
