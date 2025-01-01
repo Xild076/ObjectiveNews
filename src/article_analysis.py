@@ -1,10 +1,17 @@
+from utility import DLog
+
+logger = DLog(name="ArticleAnalysis", level="DEBUG", log_dir="logs")
+
+logger.info("Importing modules...")
 import validators
 from utility import normalize_url, get_keywords, SentenceHolder, find_bias_rating, normalize_text
 from scraper import FetchArticle
 from nltk.corpus import stopwords
+import nltk
+nltk.download('punkt_tab')
 from math import floor
 from grouping import observe_best_cluster
-from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from langdetect import detect, LangDetectException
 from typing import Dict, List
 from textblob import TextBlob
@@ -16,17 +23,8 @@ import time
 from colorama import Fore, Style
 from datetime import datetime
 from keybert import KeyBERT
-import nltk
-nltk.download('punkt', quiet=True)
-
-STOPWORDS = set(stopwords.words("english"))
-ALPHA_RATIO_REGEX = re.compile(r'[A-Za-z]')
-COMMON_TLDS = {
-    'com','org','net','edu','gov','mil','int','io','co','us','uk','de','jp',
-    'fr','au','ca','cn','ru','ch','it','nl','se','no','es','biz','info','mobi',
-    'name','ly','xyz','online','site','tech','store','blog'
-}
-kw_model = KeyBERT()
+import streamlit as st
+logger.info("Modules imported...")
 
 def is_cluster_valid(cluster: Dict[str, any],
                     min_avg_sentence_length: int = 50,
@@ -55,207 +53,301 @@ def is_cluster_valid(cluster: Dict[str, any],
         'coverage',
         'news anchor'
     }
+    ALPHA_REGEX = re.compile(r'[A-Za-z]')
     representative = cluster.get('representative', '').text
     sentences = cluster.get('sentences', [])
 
     if not representative or not isinstance(representative, str):
         if debug:
-            print("Cluster removed: Representative is missing or not a string.")
+            logger.warning("Cluster removed: Representative is missing or not a string.")
         return False
     if not isinstance(sentences, list) or not all(isinstance(s.text, str) for s in sentences):
         if debug:
-            print("Cluster removed: Sentences are missing or not all strings.")
+            logger.warning("Cluster removed: Sentences are missing or not all strings.")
         return False
     try:
         lang = detect(representative)
         if lang != 'en':
             if debug:
-                print("Cluster removed: Non-English representative sentence.")
+                logger.warning("Cluster removed: Non-English representative sentence.")
             return False
     except LangDetectException:
         if debug:
-            print("Cluster removed: Language detection failed.")
+            logger.warning("Cluster removed: Language detection failed.")
         return False
-    alpha_ratio = sum(c.isalpha() for c in representative) / (len(representative) + 1)
+    alpha_ratio = len(ALPHA_REGEX.findall(representative)) / (len(representative) + 1)
     if alpha_ratio < alpha_ratio_threshold:
         if debug:
-            print(f"Cluster removed: Low alpha ratio ({alpha_ratio:.2f}).")
+            logger.warning(f"Cluster removed: Low alpha ratio ({alpha_ratio:.2f}).")
         return False
-    rep_lower = representative.lower()
-    if any(phrase in rep_lower for phrase in NON_CONTENT_PHRASES):
+    representative_lower = representative.lower()
+    if any(phrase in representative_lower for phrase in NON_CONTENT_PHRASES):
         if debug:
-            print("Cluster removed: Contains non-content phrase.")
+            logger.warning("Cluster removed: Contains non-content phrase.")
         return False
     if len(sentences) < min_sentences:
         if debug:
-            print("Cluster removed: Insufficient number of sentences.")
+            logger.warning("Cluster removed: Insufficient number of sentences.")
         return False
-    avg_length = sum(len(s.text) for s in sentences) / len(sentences) if sentences else 0.0
+    total_length = sum(len(sentence.text) for sentence in sentences)
+    avg_length = total_length / len(sentences) if sentences else 0.0
     if avg_length < min_avg_sentence_length:
         if debug:
-            print(f"Cluster removed: Average sentence length too short ({avg_length:.2f}).")
+            logger.warning(f"Cluster removed: Average sentence length too short ({avg_length:.2f}).")
         return False
     if keywords:
         keyword_set = set(word.lower() for word in keywords)
-        sentences_with_keywords = sum(1 for s in sentences if set(re.findall(r'\b\w+\b', s.text.lower())) & keyword_set)
+        sentences_with_keywords = 0
+        for sentence in sentences:
+            sentence_words = set(word.lower() for word in re.findall(r'\b\w+\b', sentence.text))
+            if sentence_words & keyword_set:
+                sentences_with_keywords += 1
         if sentences_with_keywords < len(sentences) / 2:
             if debug:
-                print("Cluster removed: Majority of sentences do not contain the specified keywords.")
+                logger.warning("Cluster removed: Majority of sentences do not contain the specified keywords.")
             return False
     return True
 
-def process_text_input_for_keyword(text):
-    t = text.strip()
-    if any(f".{td}" in t for td in COMMON_TLDS):
-        if len(t.split()) == 1:
-            if not validators.url(t):
-                t = normalize_url(t)
-            if validators.url(t):
-                a = FetchArticle.extract_article_details(t)
-                kw = [w for w in a['title'].split() if w.lower() not in STOPWORDS]
-                return {"method":0,"keywords":kw,"extra_info":a}
-    if len(t.split()) <= 10:
-        kw = [w for w in t.split() if w.lower() not in STOPWORDS]
-    else:
-        kw = get_keywords(t)
-    if not kw:
+
+def process_text_input_for_keyword(text:str) -> str:
+    COMMON_TLDS = [
+        'com', 'org', 'net', 'edu', 'gov', 'mil', 'int',
+        'io', 'co', 'us', 'uk', 'de', 'jp', 'fr', 'au',
+        'ca', 'cn', 'ru', 'ch', 'it', 'nl', 'se', 'no',
+        'es', 'mil', 'biz', 'info', 'mobi', 'name', 'ly',
+        'xyz', 'online', 'site', 'tech', 'store', 'blog'
+    ]
+    methodology = -1
+    keywords = None
+    article = None
+    text = text.strip()
+    for tld in COMMON_TLDS:
+        if "."+tld in text:
+            if len(" ".split(text)) == 1:
+                if not validators.url(text):
+                    text = normalize_url(text)
+                if not validators.url(text):
+                    return get_keywords(text)
+                article = FetchArticle.extract_article_details(text)
+                keywords = [word for word in article['title'].split() if word not in stopwords.words("english")]
+                methodology = 0
+            break
+    if keywords == None:
+        methodology = 1
+        if len(" ".split(text)) <= 10:
+            keywords = [word for word in text.split() if word not in stopwords.words("english")]
+        else:
+            keywords = get_keywords(text)
+    if not keywords:
         return None
-    return {"method":1,"keywords":kw,"extra_info":None}
+    return {"method": methodology, "keywords": keywords, "extra_info": article}
+
 
 def retrieve_information_online(keywords, link_num=10, extra_info=None):
-    arts = []
-    for _ in range(5):
+    articles = []
+    max_attempts = 5
+    attempts = 0
+    while not articles and attempts < max_attempts:
         links = FetchArticle.retrieve_links(keywords, link_num)
-        fetched = FetchArticle.extract_many_article_details(links)
-        if fetched:
-            arts.extend(fetched)
-            break
+        fetched_articles = FetchArticle.extract_many_article_details(links)
+        articles.extend(fetched_articles)
         link_num += 1
+        attempts += 1
     if extra_info:
-        arts.append(extra_info)
-    return arts, links
+        articles.append(extra_info)
+    return articles, links
+
 
 def group_individual_article(article):
-    txt = article['text']
-    sentences = [SentenceHolder(x, article['source'], article['author'], article['date']) for x in nltk.sent_tokenize(txt)]
+    rep_sentences = []
+
+    text = article['text']
+    sentences = nltk.sent_tokenize(text)
+    sentences = [SentenceHolder(text=sent, source=article['source'], author=article['author'], date=article['date']) for sent in sentences]
     if len(sentences) <= 2:
-        return [
+        cluster_articles = [
             {
-                "cluster_id":i,
-                "sentences":[s],
-                "representative":s,
-                "representative_with_context":s
+                "cluster_id": 0,
+                "sentences": [sentences[0]] if sentences else [],
+                "representative": sentences[0] if sentences else None,
+                "representative_with_context": sentences[0] if sentences else None
+            },
+            {
+                "cluster_id": 1,
+                "sentences": [sentences[1]] if len(sentences) == 2 else [],
+                "representative": sentences[1] if len(sentences) == 2 else None,
+                "representative_with_context": sentences[1] if len(sentences) == 2 else None
             }
-            for i, s in enumerate(sentences)
         ]
-    mx = max(floor(len(sentences)/6), 8)
-    clusters = observe_best_cluster(
-        sentences, mx, {'single':0.7,'context':0.3}, True, 1, True, True, KMeans, {'sil':0.9,'db':0.05,'ch':0.05}
-    )['clusters']
-    return [cc['representative_with_context'] for cc in clusters] if clusters else []
+    else:
+        max_clusters = max(floor(len(sentences) / 6), 8)
+        cluster_articles = observe_best_cluster(
+            sentences, max_clusters=max_clusters, context=True, context_len=1,
+            weights={'single':0.7, 'context':0.3}, preprocess=True, attention=True,
+            clustering_method=KMeans, score_weights={'sil':0.9, 'db':0.05, 'ch':0.05}
+        )['clusters']
+    if cluster_articles:
+        for cluster in cluster_articles:
+            rep_sentences.append(cluster['representative_with_context'])
+    return rep_sentences
 
-def group_representative_sentences(rep_sentences):
-    mx = max(floor(len(rep_sentences)/6), 10)
-    return observe_best_cluster(
-        rep_sentences, mx, {'single':0.7,'context':0.3}, False, 1, True, True, KMeans, {'sil':0.9,'db':0.05,'ch':0.05}
-    )['clusters']
+def group_representative_sentences(rep_sentences:List[SentenceHolder]):
+    max_clusters = max(floor(len(rep_sentences) / 6), 10)
+    cluster_articles = observe_best_cluster(rep_sentences, max_clusters=max_clusters, 
+                                            context=False, context_len=1, weights={'single':0.7, 'context':0.3}, 
+                                            preprocess=True, attention=True, clustering_method=KMeans, 
+                                            score_weights={'sil':0.9, 'db':0.05, 'ch':0.05})['clusters']
+    return cluster_articles
 
-def calculate_reliability(clusters):
-    date_dict = {i: [x.date for x in c['sentences'] if x.date] for i, c in enumerate(clusters)}
-    date_relevancy = calculate_date_relevancy(date_dict, True)
-    for i, c in enumerate(clusters):
-        s_texts = [x.text for x in c['sentences']]
-        oscores = [TextBlob(x).subjectivity / 2 + 0.75 for x in s_texts]
-        sources = [x.source for x in c['sentences'] if x.source]
-        srs = [find_bias_rating(src) for src in sources]
-        rs = [srs[j] * oscores[j] for j in range(len(srs))]
-        gr = calculate_general_reliability(rs)
-        c['reliability'] = gr * (date_relevancy[i]['relevancy'] - 0.1)
-        c['sources'] = sources
-        c['reliability_stats'] = {
-            'objectivity': sum(oscores) / len(oscores) if oscores else 0,
-            'source_reliability': sum(srs) / len(srs) if srs else 0,
-            'date_relevancy': date_relevancy[i]['relevancy']
+def calculate_reliability(clusters:list):
+    dates = {}
+    for i, cluster in enumerate(clusters):
+        dates[i] = [sentence.date for sentence in cluster['sentences'] if sentence.date]
+    date_relevancy = calculate_date_relevancy(dates, bounded_range=True)
+
+    for i, cluster in enumerate(clusters):
+        reliability_scores = []
+
+        sentences = [sentence.text for sentence in cluster['sentences']]
+        objectivity_scores = [(TextBlob(sentence).subjectivity / 2 + 0.75) for sentence in sentences]
+
+        sources = [sentence.source for sentence in cluster['sentences'] if sentence.source]
+        source_reliability_scores = [find_bias_rating(source) for source in sources]
+
+        for j in range(len(sentences)):
+            reliability_scores.append(source_reliability_scores[j] * objectivity_scores[j])
+        
+        general_reliability = calculate_general_reliability(reliability_scores)
+
+        cluster['reliability'] = general_reliability * (date_relevancy[i]['relevancy'] - 0.1)
+        cluster['sources'] = sources
+        cluster['reliability_stats'] = {
+            'objectivity': sum(objectivity_scores) / len(objectivity_scores),
+            'source_reliability': sum(source_reliability_scores) / len(source_reliability_scores),
+            'date_relevancy': date_relevancy[i]['relevancy'],
         }
+    
     return clusters
 
-def objectify_and_summarize(cluster, light=True):
-    s = [x.text for x in cluster['sentences']]
-    t = ' '.join(s[:min(len(s), 2**12 // max(len(se) + 1 for se in s))])
-    t = t.strip().replace("'", "'")
-    if len(s) <= 2:
-        slmn, slmx = 50, 100
+def objectify_and_summarize(cluster:dict, light=True):
+    i = 1
+    sentences = [sentence.text for sentence in cluster['sentences']]
+    max_input_length = 2**12
+    text = ""
+    current_length = 0
+
+    for sentence in sentences:
+        if current_length + len(sentence) > max_input_length:
+            break
+        text += sentence + " "
+        current_length += len(sentence) + 1
+        i += 1
+
+    text = text.strip().replace("\'", "'")
+
+    if i <= 3:
+        logger.warning("Warning: Few sentences in cluster. Using default summary lengths.")
+        summary_length_min = 50
+        summary_length_max = 100
     else:
-        slmn = min(round(len(t)/(len(s)+3)/3), 275)
-        slmx = min(round(len(t)/(len(s)-3)/3), 325)
-    sm = s[0] if light else summarize_text(t, slmx, slmn)
-    cluster['summary'] = normalize_text(objectify_text(sm))
+        summary_length_min = round(len(text) / (i + 3) / 3)
+        summary_length_max = round(len(text) / (i - 3) / 3)
+    
+    summary_length_max = min(summary_length_max, 325)
+    summary_length_min = min(summary_length_min, 275)
+
+    if light:
+        summ_text = sentences[0]
+    else:
+        summ_text = summarize_text(text, min_length=summary_length_min, max_length=summary_length_max)
+    
+    cluster['summary'] = normalize_text(objectify_text(summ_text))
+
     return cluster
 
+
 def article_analyse(text, link_num=10):
-    p = process_text_input_for_keyword(text)
-    
-    print("Processing text input...")
+    processed_text = process_text_input_for_keyword(text)
 
-    if not p:
+    logger.info("Processing text determined...")
+
+    if not processed_text:
         return None
-    kw, extra_info = p['keywords'], p['extra_info']
-    arts, _ = retrieve_information_online(kw, link_num, extra_info)
+    
 
-    print("Retrieved articles...")
+    keywords = processed_text['keywords']
+    extra_info = processed_text['extra_info']
+    articles, _ = retrieve_information_online(keywords, link_num=link_num, extra_info=extra_info)
 
-    kb = list(kw_model.extract_keywords(extra_info['text'], keyphrase_ngram_range=(1, 1), stop_words='english', top_n=10)) if extra_info else None
-    grouped = [grouped for a in arts for grouped in group_individual_article(a)]
+    logger.info("Articles retrieved...")
 
-    print("Grouped articles...")
+    if extra_info: 
+        kw_model = KeyBERT()
+        keywords_bert = kw_model.extract_keywords(extra_info['text'], keyphrase_ngram_range=(1, 1), stop_words='english', top_n=10)
+        keywords_bert = [kw[0] for kw in keywords_bert]
+    else:
+        keywords_bert = None
 
-    if len(grouped) <= 2:
-        clusters = [
+    rep_sentences = []
+    for article in articles:
+        rep_sentences.extend(group_individual_article(article))
+    
+    logger.info("Representative sentences found...")
+        
+    if len(rep_sentences) <= 2:
+        cluster_articles = [
             {
-                "cluster_id":i,
-                "sentences":[s],
-                "representative":s,
-                "representative_with_context":s
+                "cluster_id": idx,
+                "sentences": [rep_sentences[idx]],
+                "representative": rep_sentences[idx],
+                "representative_with_context": rep_sentences[idx]
             }
-            for i, s in enumerate(grouped)
+            for idx in range(len(rep_sentences))
         ]
     else:
-        clusters = group_representative_sentences(grouped)
-
-    print("Grouped representative sentences...")
-
-    valid_clusters = [objectify_and_summarize(cc, False) for cc in clusters if is_cluster_valid(cc, keywords=kb, debug=False)]
-
-    print("Objectified and summarized clusters...")
+        cluster_articles = group_representative_sentences(rep_sentences)
     
-    return calculate_reliability(valid_clusters) if valid_clusters else []
+    logger.info("Representative sentences grouped...")
+
+    valid_clusters = []
+    for cluster in cluster_articles:
+        if is_cluster_valid(cluster, keywords=keywords_bert, debug=True):
+            logger.info(f"Cluster {cluster['cluster_id']} is valid...")
+            cluster = objectify_and_summarize(cluster)
+            logger.info(f"Cluster {cluster['cluster_id']} objectified and summarized...")
+            valid_clusters.append(cluster)
+    valid_clusters = calculate_reliability(valid_clusters)
+    return valid_clusters
+
 
 def visualize_article_analysis(text, link_num=10):
-    start = time.time()
-    res = article_analyse(text, link_num)
-    if not res:
-        print(f"{Fore.YELLOW}{Style.BRIGHT}\n=== No Valid Clusters Found ===")
-        print(f"\n{Fore.YELLOW}Analysis completed in {time.time()-start:.2f} seconds")
-        return
+    now = time.time()
+    results = article_analyse(text, link_num)
+
     print(f"{Fore.YELLOW}{Style.BRIGHT}\n=== Article Analysis Results ===")
-    for i, c in enumerate(res, 1):
-        so = set(x.source for x in c['sentences'] if x.source)
-        ds = [x.date for x in c['sentences'] if x.date]
-        pdz = []
-        for d in ds:
-            if isinstance(d, str):
-                try:
-                    pdz.append(datetime.strptime(d, '%Y-%m-%d'))
-                except:
-                    pass
-            elif isinstance(d, datetime):
-                pdz.append(d)
-        dr = f"{min(pdz).strftime('%Y-%m-%d')} to {max(pdz).strftime('%Y-%m-%d')}" if len(pdz) > 1 else (pdz[0].strftime('%Y-%m-%d') if pdz else 'N/A')
+
+    for i, cluster in enumerate(results, 1):
+        sources = set(sentence.source for sentence in cluster['sentences'] if sentence.source)
+        dates = [sentence.date for sentence in cluster['sentences'] if sentence.date]
+        parsed_dates = []
+        for date_str in dates:
+            try:
+                parsed_dates.append(datetime.strptime(date_str, '%Y-%m-%d') if isinstance(date_str, str) else date_str)
+            except ValueError:
+                pass
+        if len(parsed_dates) > 1:
+            date_range = f"{min(parsed_dates).strftime('%Y-%m-%d')} to {max(parsed_dates).strftime('%Y-%m-%d')}"
+        else:
+            date_range = parsed_dates[0].strftime('%Y-%m-%d') if parsed_dates else 'N/A'
+
         print(f"\n{Fore.CYAN}{Style.BRIGHT}Cluster {i}:{Style.RESET_ALL}")
-        print(f"{Fore.GREEN}Reliability Score:{Style.RESET_ALL} {c['reliability']:.2f}")
-        print(f"{Fore.MAGENTA}Summary:{Style.RESET_ALL} {c['summary']}")
-        print(f"{Fore.BLUE}Representative Sentence:{Style.RESET_ALL} {c['representative'].text}")
-        print(f"{Fore.GREEN}Sources:{Style.RESET_ALL} {', '.join(so) if so else 'N/A'}")
-        print(f"{Fore.RED}Date Range:{Style.RESET_ALL} {dr}")
-        print(f"{Fore.YELLOW}{'-'*80}")
-    print(f"\n{Fore.YELLOW}Analysis completed in {time.time()-start:.2f} seconds")
+        print(f"{Fore.GREEN}Reliability Score:{Style.RESET_ALL} {cluster['reliability']:.2f}")
+        print(f"{Fore.MAGENTA}Summary:{Style.RESET_ALL} {cluster['summary']}")
+        print(f"{Fore.BLUE}Representative Sentence:{Style.RESET_ALL} {cluster['representative'].text}")
+        print(f"{Fore.GREEN}Sources:{Style.RESET_ALL} {', '.join(sources) if sources else 'N/A'}")
+        print(f"{Fore.RED}Date Range:{Style.RESET_ALL} {date_range}")
+        print(f"{Fore.YELLOW}{'-' * 80}")
+
+    print(f"\n{Fore.YELLOW}Analysis completed in {time.time() - now:.2f} seconds")
+
+
