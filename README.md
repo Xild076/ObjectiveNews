@@ -12,7 +12,8 @@ This project was created to help combat misinformation in news. The code gathers
 - Run `streamlit run src/app.py` or `python3 -m streamlit run src/app.py`
 - Import from article_analysis.py, grouping.py, objectify_text.py, summarizer.py, synonym.py, scraper.py, or util.py for any of the tools
 ### Website
-- Currently, not using the website due to Mem constraints for streamlit cloud hosting.
+- See [ObjectiveNews](objectivenews.streamlit.app) for the applications run on streamlit.
+    - Just as a heads up, due to memory contraints, the app will be very prone to crashes! I am currently working to improve the situation.
 ### Necessary Specs:
 - At least 2 core CPU
 - No GPU needed
@@ -20,7 +21,6 @@ This project was created to help combat misinformation in news. The code gathers
 
 ## Contributing
 - Issue Tracker: [Issues - Xild/ObjectifyNews](https://github.com/Xild076/ObjectiveNews/issues)
-- Add issues through the feedback option on the website
 
 ## Directories:
 - `data/`: Stores data about bias
