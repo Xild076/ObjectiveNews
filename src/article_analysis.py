@@ -346,4 +346,3 @@ def visualize_article_analysis(text, link_num=10):
     print(f"\n{Fore.YELLOW}Analysis completed in {time.time() - now:.2f} seconds")
 
 
-visualize_article_analysis("George Santos", 3)
