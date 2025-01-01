@@ -287,9 +287,12 @@ def article_analyse(text, link_num=10):
 
     rep_sentences = []
     for article in articles:
-        rep_sentences.extend(group_individual_article(article))
+        grouped = group_individual_article(article)
+        grouped_filtered = [item for item in grouped if item is not None]
+        rep_sentences.extend(grouped_filtered)
     
     logger.info("Representative sentences found...")
+    print(rep_sentences)
         
     if len(rep_sentences) <= 2:
         cluster_articles = [
@@ -304,7 +307,7 @@ def article_analyse(text, link_num=10):
     else:
         cluster_articles = group_representative_sentences(rep_sentences)
     
-    logger.info("Representative sentences grouped...")
+    logger.info("Clusters grouped...")
 
     valid_clusters = []
     for cluster in cluster_articles:
@@ -357,3 +360,4 @@ def visualize_article_analysis(text, link_num=10):
     print(f"{Fore.YELLOW}Current memory usage: {mem_end / (1024 ** 2):.2f} MB")
     print(f"{Fore.YELLOW}Peak memory usage: {peak / (1024 ** 2):.2f} MB")
 
+visualize_article_analysis("New York", 5)
