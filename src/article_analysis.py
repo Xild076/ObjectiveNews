@@ -264,7 +264,7 @@ def objectify_and_summarize(cluster:dict):
 def article_analyse(text, link_num=10):
     processed_text = process_text_input_for_keyword(text)
 
-    logger.debug("Processing text determined...")
+    logger.info("Processing text determined...")
 
     if not processed_text:
         return None
@@ -274,7 +274,7 @@ def article_analyse(text, link_num=10):
     extra_info = processed_text['extra_info']
     articles, _ = retrieve_information_online(keywords, link_num=link_num, extra_info=extra_info)
 
-    logger.debug("Articles retrieved...")
+    logger.info("Articles retrieved...")
 
     if extra_info: 
         kw_model = KeyBERT()
@@ -287,7 +287,7 @@ def article_analyse(text, link_num=10):
     for article in articles:
         rep_sentences.extend(group_individual_article(article))
     
-    logger.debug("Representative sentences found...")
+    logger.info("Representative sentences found...")
         
     if len(rep_sentences) <= 2:
         cluster_articles = [
@@ -302,14 +302,14 @@ def article_analyse(text, link_num=10):
     else:
         cluster_articles = group_representative_sentences(rep_sentences)
     
-    logger.debug("Representative sentences grouped...")
+    logger.info("Representative sentences grouped...")
 
     valid_clusters = []
     for cluster in cluster_articles:
         if is_cluster_valid(cluster, keywords=keywords_bert, debug=True):
-            logger.debug(f"Cluster {cluster['cluster_id']} is valid...")
+            logger.info(f"Cluster {cluster['cluster_id']} is valid...")
             cluster = objectify_and_summarize(cluster)
-            logger.debug(f"Cluster {cluster['cluster_id']} objectified and summarized...")
+            logger.info(f"Cluster {cluster['cluster_id']} objectified and summarized...")
             valid_clusters.append(cluster)
     valid_clusters = calculate_reliability(valid_clusters)
     return valid_clusters
