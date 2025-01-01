@@ -1,5 +1,18 @@
 import streamlit as st
 
+import streamlit.components.v1 as components
+
+components.html("""
+<head>
+    <title>Objective New</title>
+    <meta name="description" content="Aiming towards finding and creating the most objective news, texts, and information possible in a growing world of misinformation.">
+    <meta name="keywords" content="Streamlit, Objective New, Summarize, Objectify, Group, Text, News, Article, Information, Misinformation, Disinformation, Fake News">
+    <meta name="author" content="Xild076 (Harry Yin)">
+</head>
+""", height=0)
+
+st.set_page_config(page_title="Objective News by Harry Yin", page_icon="data/images/Objective News.ico")
+
 @st.cache_resource
 def load_pages():
     main_page = st.Page("pages/main_page.py", title="Main Page", default=True)
