@@ -23,8 +23,8 @@ logger.info("Establishing pipeline...")
 @st.cache_resource
 def load_model():
     if torch.cuda.is_available():
-        return pipeline("fill-mask", model="albert-base-v2", device=0, torch_dtype=torch.float8_e4m3fn)
-    return pipeline("fill-mask", model="albert-base-v2", device=-1, torch_dtype=torch.float8_e4m3fn)
+        return pipeline("fill-mask", model="albert-base-v2", device=0, torch_dtype=torch.bfloat16)
+    return pipeline("fill-mask", model="albert-base-v2", device=-1, torch_dtype=torch.bfloat16)
 unmasker = load_model()
 logger.info("Pipeline established...")
 
