@@ -15,25 +15,27 @@ class RateLimiter:
     lock = threading.Lock()
     last_request_time = 0
     min_delay = 3
+
     @staticmethod
     def wait():
-        with RateLimiter.lock:
-            elapsed = time.time() - RateLimiter.last_request_time
-            if elapsed < RateLimiter.min_delay:
-                time.sleep(RateLimiter.min_delay - elapsed)
-            RateLimiter.last_request_time = time.time()
+        elapsed = time.time() - RateLimiter.last_request_time
+        if elapsed < RateLimiter.min_delay:
+            time.sleep(RateLimiter.min_delay - elapsed)
+        RateLimiter.last_request_time = time.time()
 
 @st.cache_data
 def get_headers():
     return FetchArticle._get_headers()
 
 class FetchArticle:
+    session = requests.Session()
+
     @staticmethod
     def retrieve_links(keywords, amount=10):
+        session = FetchArticle.session
         headers_list = get_headers()
         search_query = '+'.join([quote_plus(k) for k in keywords])
         base_url = f"https://www.google.com/search?q={search_query}&gl=us&tbm=nws&num={amount}"
-        session = requests.Session()
         max_retries = 8
         for _ in range(max_retries):
             header = random.choice(headers_list)
@@ -111,12 +113,7 @@ class FetchArticle:
 
     @staticmethod
     def extract_many_article_details(urls):
-        data = []
-        for url in tqdm(urls, desc="Extracting Articles"):
-            d = FetchArticle.extract_article_details(url)
-            if d:
-                data.append(d)
-        return data
+        return [d for d in (FetchArticle.extract_article_details(url) for url in tqdm(urls, desc="Extracting Articles")) if d]
 
     @staticmethod
     def _get_headers():

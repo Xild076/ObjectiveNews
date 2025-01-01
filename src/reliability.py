@@ -1,17 +1,12 @@
 import numpy as np
 from dateutil import parser
-import numpy as np
 
 def calculate_general_reliability(scores, alpha=1.0, sigma=None):
     scores = np.array(scores)
     r_min = np.min(scores)
     n = len(scores)
     
-    if sigma is None:
-        sigma = np.std(scores)
-    
-    if sigma == 0:
-        sigma = 1e-6
+    sigma = np.std(scores) if sigma is None else max(sigma, 1e-6)
     
     weights = np.exp(-((scores - r_min) ** 2) / (2 * sigma ** 2))
     r_general = np.sum(weights * scores) / np.sum(weights)
@@ -36,28 +31,18 @@ def calculate_date_relevancy(dates_dict, coverage_weight=1.0, last_date_weight=1
             }
             continue
         dt_list = [parser.parse(d) if isinstance(d, str) else d for d in str_dates]
-        dt_min = min(dt_list)
-        dt_max = max(dt_list)
         parsed_data[identifier] = {
             "dates": dt_list,
-            "min_date": dt_min,
-            "max_date": dt_max
+            "min_date": min(dt_list),
+            "max_date": max(dt_list)
         }
-        all_min_dates.append(dt_min)
-        all_max_dates.append(dt_max)
+        all_min_dates.append(min(dt_list))
+        all_max_dates.append(max(dt_list))
 
     if not all_min_dates or not all_max_dates:
         return {}
 
-    coverage_values = []
-    for identifier, info in parsed_data.items():
-        dt_min, dt_max = info["min_date"], info["max_date"]
-        if dt_min is not None and dt_max is not None:
-            coverage_days = (dt_max - dt_min).days
-        else:
-            coverage_days = 0
-        parsed_data[identifier]["coverage_days"] = coverage_days
-        coverage_values.append(coverage_days)
+    coverage_values = np.array([(info["max_date"] - info["min_date"]).days for info in parsed_data.values()])
 
     coverage_min = min(coverage_values)
     coverage_max = max(coverage_values)
