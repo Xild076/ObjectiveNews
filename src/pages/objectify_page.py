@@ -1,10 +1,13 @@
 import streamlit as st
 from streamlit_extras import colored_header
 from pages.page_utility import calculate_module_import_time, estimate_time_taken_objectify, make_notification
+import pandas as pd
 import sys
 import os
 from streamlit_extras.button_selector import button_selector
 from streamlit_extras.stoggle import stoggle
+from textblob import TextBlob
+import difflib
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -55,10 +58,15 @@ with st.expander("⚙️ - Settings - Set configurations for objectification"):
         "Choose between 'Transformer' for advanced contextual synonyms or 'WordNet' for traditional synonym replacement. The 'Transformer' produces better contextual results but is unpredictable and sometimes produces non-synonyms. The 'WordNet' method is more reliable but may not always fit into the context as well as the 'Transformer' method."
     )
 
-submit_button = st.button("Objectify")
+def disable_objectify():
+    st.session_state["objectify_disabled"] = True
+
+if "objectify_disabled" not in st.session_state:
+    st.session_state["objectify_disabled"] = False
+
+submit_button = st.button("Objectify", disabled=st.session_state["objectify_disabled"], on_click=disable_objectify)
 
 def diff_text(old_text, new_text):
-    import difflib
     old_tokens = old_text.split()
     new_tokens = new_text.split()
     diff = list(difflib.ndiff(old_tokens, new_tokens))
@@ -91,6 +99,7 @@ if submit_button:
     progress_bar.progress(10)
     if original_text.strip() == "":
         st.error("Please enter some text to objectify.")
+        st.session_state["objectify_disabled"] = False
         st.stop()
     kw_model = KeyBERT()
     keywords = kw_model.extract_keywords(
@@ -101,10 +110,11 @@ if submit_button:
     )
     keywords = keywords[0][0].title()
     progress_bar.progress(20)
+    synonym_search_methodology_lower = ["transformer", "wordnet"][synonym_search_methodology]
     objectified_text = objectify.objectify_text(
         original_text,
         objectivity_threshold=objectivity_threshold,
-        synonym_search_methodology=['transformer', 'wordnet'][synonym_search_methodology]
+        synonym_search_methodology=synonym_search_methodology_lower
     )
     progress_bar.progress(90)
     blob_old = TextBlob(original_text)
@@ -148,11 +158,11 @@ if submit_button:
         st.markdown("---")
         col3, col4 = st.columns(2)
         with col3:
-            with st.container(border=1):
+            with st.container():
                 st.markdown("##### Original Text")
                 st.markdown(diff_text(original_text, objectified_text), unsafe_allow_html=True)
         with col4:
-            with st.container(border=1):
+            with st.container():
                 escaped_objectified = escape_for_js(objectified_text)
                 copy_button_code = f"""
                 <style>
@@ -191,7 +201,7 @@ if submit_button:
                 st.markdown(objectified_text)
     progress_bar.empty()
     load_time.empty()
-
     if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
         make_notification("Text Objectification", "Your text has been successfully objectified!")
         notif_text.empty()
+    st.session_state["objectify_disabled"] = False

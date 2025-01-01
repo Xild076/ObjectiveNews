@@ -50,7 +50,7 @@ def update_estimate():
     )
 
 if "estimated_time" not in st.session_state:
-    st.session_state["estimated_time"] = estimate_time_taken_article(10)
+    st.session_state["estimated_time"] = estimate_time_taken_article(5)
 
 col1, col2 = st.columns(2)
 with col1:
@@ -67,7 +67,13 @@ with col2:
     st.write("Estimated Time Taken:")
     st.write(f"```{st.session_state['estimated_time']}``` seconds")
 
-submit_button = st.button("Analyze")
+def disable_analyze():
+    st.session_state["article_disabled"] = True
+
+if "article_disabled" not in st.session_state:
+    st.session_state["article_disabled"] = False
+
+submit_button = st.button("Analyze", disabled=st.session_state["article_disabled"], on_click=disable_analyze)
 
 if submit_button:
     if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
@@ -76,6 +82,7 @@ if submit_button:
     load_text = st.empty()
     if user_input.strip() == "":
         st.error("Please enter some information to search.")
+        st.session_state["article_disabled"] = False
         st.stop()
     load_text.write("Processing user input...")
     processed_text = process_text_input_for_keyword(user_input)
@@ -87,9 +94,9 @@ if submit_button:
     articles, _ = retrieve_information_online(keywords, link_num=link_number, extra_info=extra_info)
     progress_bar.progress(40)
 
+    kw_model = KeyBERT()
     if extra_info:
         load_text.write("Extracting keywords from the initial article...")
-        kw_model = KeyBERT()
         keywords_bert = kw_model.extract_keywords(
             extra_info["text"], keyphrase_ngram_range=(1, 1), stop_words="english", top_n=10
         )
@@ -136,7 +143,6 @@ if submit_button:
     load_text.write("Determining cluster keywords...")
     visual_keywords = []
     for cluster in valid_clusters:
-        kw_model = KeyBERT()
         keywords_bert = kw_model.extract_keywords(
             cluster["summary"], keyphrase_ngram_range=(1, 3), stop_words="english", top_n=15
         )
@@ -313,3 +319,4 @@ if submit_button:
     if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
         make_notification("Article Analysis", "The analysis of the article is complete!")
         notif_text.empty()
+    st.session_state["article_disabled"] = False

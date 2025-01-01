@@ -54,7 +54,14 @@ with st.expander("⚙️ - Settings - Set configurations for grouping"):
     ch_weight = st.slider("Calinski Harabasz weight", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
     stoggle("ⓘ What is Calinski Harabasz Weight?", "Calinski Harabasz weight determines the importance of the Calinski Harabasz score in the clustering process. A higher weight means more importance goes to Calinski Harabasz score.")
 
-submit_button = st.button("Group Text")
+def disable_group_button():
+    st.session_state["grouping_disabled"] = True
+
+if "grouping_disabled" not in st.session_state:
+    st.session_state["grouping_disabled"] = False
+
+submit_button = st.button("Group Text", disabled=st.session_state["grouping_disabled"], on_click=disable_group_button)
+
 if submit_button:
     if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
         notif_text = st.info("The process is underway! We will notify you once it is complete, so you can tab off and come back later. You can disable these notifications in the settings.")
@@ -63,6 +70,7 @@ if submit_button:
 
     if user_input.strip() == "":
         st.error("Please enter some text.")
+        st.session_state["grouping_disabled"] = False
         st.stop()
     
     load_text.write("Normalizing text...")
@@ -86,16 +94,17 @@ if submit_button:
     progress_bar.progress(20)
 
     load_text.write("Grouping sentences...")
-    clustering_method = [KMeans, AgglomerativeClustering][clustering_method]
+    clustering_method_class = [KMeans, AgglomerativeClustering][clustering_method]
     try:
         full_clusters_data = observe_best_cluster(sentences, max_clusters=max_clusters, 
                                         context=context, context_len=context_len,
                                         weights={'single':1-context_weight, 'context':context_weight},
                                         preprocess=preprocess, attention=attention, 
-                                        clustering_method=clustering_method,
+                                        clustering_method=clustering_method_class,
                                         score_weights={'sil':sil_weight, 'db':db_weight, 'ch':ch_weight})
     except:
         st.error("Please enter a longer text. There is not enough text to cluster!")
+        st.session_state["grouping_disabled"] = False
         st.stop()
     clusters = full_clusters_data['clusters']
     metrics = full_clusters_data['metrics']
@@ -104,7 +113,6 @@ if submit_button:
     load_text.write("Extracting keywords for each cluster title...")
     visual_keywords = []
     for cluster in clusters:
-        kw_model = KeyBERT()
         keywords_bert = kw_model.extract_keywords(
             cluster["representative_with_context"].text, keyphrase_ngram_range=(1, 3), stop_words="english", top_n=15
         )
@@ -148,3 +156,4 @@ if submit_button:
     if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
         make_notification(title="Text Grouping Complete", body="The text grouping process has been completed! You can now view the results.")
         notif_text.empty()
+    st.session_state["grouping_disabled"] = False
