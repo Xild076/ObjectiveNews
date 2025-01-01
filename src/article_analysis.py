@@ -194,12 +194,21 @@ def objectify_and_summarize(cluster, light=True):
 
 def article_analyse(text, link_num=10):
     p = process_text_input_for_keyword(text)
+    
+    print("Processing text input...")
+
     if not p:
         return None
     kw, extra_info = p['keywords'], p['extra_info']
     arts, _ = retrieve_information_online(kw, link_num, extra_info)
+
+    print("Retrieved articles...")
+
     kb = list(kw_model.extract_keywords(extra_info['text'], keyphrase_ngram_range=(1, 1), stop_words='english', top_n=10)) if extra_info else None
     grouped = [grouped for a in arts for grouped in group_individual_article(a)]
+
+    print("Grouped articles...")
+
     if len(grouped) <= 2:
         clusters = [
             {
@@ -212,7 +221,13 @@ def article_analyse(text, link_num=10):
         ]
     else:
         clusters = group_representative_sentences(grouped)
+
+    print("Grouped representative sentences...")
+
     valid_clusters = [objectify_and_summarize(cc, False) for cc in clusters if is_cluster_valid(cc, keywords=kb, debug=False)]
+
+    print("Objectified and summarized clusters...")
+    
     return calculate_reliability(valid_clusters) if valid_clusters else []
 
 def visualize_article_analysis(text, link_num=10):
