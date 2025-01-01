@@ -3,7 +3,8 @@ import torch
 import torch.nn as nn
 from math import floor, log
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score, cosine_similarity
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 import nltk
 nltk.download("punkt", quiet=True)
