@@ -19,7 +19,7 @@ def load_model():
         "summarization",
         model="sshleifer/distilbart-cnn-12-6",
         device=device,
-        torch_dtype=torch.bfloat16
+        torch_dtype=torch.int8
     )
 summarizer = load_model()
 logger.info("Pipeline established...")
