@@ -17,7 +17,7 @@ def load_model():
     device = 0 if torch.cuda.is_available() else -1
     return pipeline(
         "summarization",
-        model="sshleifer/distilbart-cnn-12-6",
+        model="google/flan-t5-small",
         device=device,
         torch_dtype=torch.bfloat16
     )
