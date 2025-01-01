@@ -1,236 +1,195 @@
-from utility import DLog
-
-logger = DLog("Objectify", "DEBUG", "logs")
-
-logger.info("Importing modules...")
-from textblob import TextBlob
+import logging
+logging.getLogger("stanza").setLevel(logging.ERROR)
+import warnings
 import stanza
-import re
 import nltk
+nltk.download("wordnet")
+nltk.download("sentiwordnet")
+nltk.download("omw-1.4")
 from nltk.corpus import wordnet as wn, sentiwordnet as swn
 from nltk.stem import WordNetLemmatizer
-import logging
+import re
 import numpy as np
+from textblob import TextBlob
 from synonym import get_contextual_synonyms, get_synonyms
 from colorama import Fore
-import warnings
 from typing import Literal
 from utility import get_pos_full_text, normalize_text
 import streamlit as st
-logger.info("Modules imported...")
 
-stanza_logger = logging.getLogger("stanza")
-stanza_logger.setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", category=FutureWarning)
-
-logger.info("Downloading NLTK...")
-nltk.download('wordnet')
-nltk.download('sentiwordnet')
-nltk.download('omw-1.4')
-from nltk.corpus import wordnet as wn, sentiwordnet as swn
-from nltk.stem import WordNetLemmatizer
-logger.info("NLTK downloaded...")
-
-logger.info("Establishing pipeline...")
 lemmatizer = WordNetLemmatizer()
 
 @st.cache_resource
 def load_nlp_pipeline():
-    nlp = stanza.Pipeline('en')
-    return nlp
+    return stanza.Pipeline("en")
 
 nlp = load_nlp_pipeline()
-logger.info("Pipeline established...")
-
-alphabet = 'abcdefghijklmnopqrstuvwxyz'
-vowel = 'aeiou'
-consonant = ''.join([char for char in alphabet if char not in vowel])
+alphabet = "abcdefghijklmnopqrstuvwxyz"
+vowel = "aeiou"
+consonant = "".join([c for c in alphabet if c not in vowel])
 
 def _debug_nlp(text):
-    doc = nlp(text)
-    print(doc)
-    return doc
-
+    return nlp(text)
 
 def get_word_info(word, context):
     doc = nlp(context)
     for sent in doc.sentences:
-        for _word in sent.words:
-            if (_word.text == word):
-                return {
-                    'word': _word.text,
-                    'pos': _word.upos.lower()
-                }
-    return {
-        'word': word,
-        'pos': None
-    }
-
+        for w in sent.words:
+            if w.text == word:
+                return {"word": w.text, "pos": w.upos.lower()}
+    return {"word": word, "pos": None}
 
 def calc_objectivity_word(word, pos=None):
     end = False
-    if pos==-1:
+    if pos == -1:
         pos = None
         end = True
-    obj_scores = []
-    synsets = wn.synsets(word, pos=pos)
-    for syn in synsets:
+    scores = []
+    syns = wn.synsets(word, pos=pos)
+    for s in syns:
         try:
-            swn_syn = swn.senti_synset(syn.name())
-            obj_scores.append(swn_syn.obj_score())
-        except Exception as e:
+            swn_syn = swn.senti_synset(s.name())
+            scores.append(swn_syn.obj_score())
+        except:
             pass
-    if obj_scores:
-        obj_swn = sum(obj_scores)/len(obj_scores)
+    if scores:
+        o = sum(scores) / len(scores)
     else:
-        obj_swn = 0.5
-    if obj_swn == 0.0:
+        o = 0.5
+    if o == 0.0:
         if not end:
             return calc_objectivity_word(word, pos=-1)
         else:
             return 1.0
-    return obj_swn
-
+    return o
 
 def calc_objectivity_sentence(sentence):
-    blob = TextBlob(sentence)
-    return 1 - blob.subjectivity
-
+    b = TextBlob(sentence)
+    return 1 - b.subjectivity
 
 def get_pos_wn(pos):
-    if pos == 'ADJ':
-        return wn.ADJ
-    elif pos == 'ADV':
-        return wn.ADV
-    elif pos == 'NOUN':
-        return wn.NOUN
-    elif pos == 'VERB':
-        return wn.VERB
-    else:
-        return None
-
+    if pos == "ADJ": return wn.ADJ
+    elif pos == "ADV": return wn.ADV
+    elif pos == "NOUN": return wn.NOUN
+    elif pos == "VERB": return wn.VERB
 
 def split_text_on_quotes(text):
-    pattern = r'“(.*?)”|"(.*?)"'
-    segments = []
+    p = r'“(.*?)”|"(.*?)"'
+    segs = []
     last_end = 0
-    for m in re.finditer(pattern, text):
-        start, end = m.span()
-        if start > last_end:
-            segments.append(('text', text[last_end:start]))
+    for m in re.finditer(p, text):
+        s, e = m.span()
+        if s > last_end:
+            segs.append(("text", text[last_end:s]))
         if m.group(1) is not None:
-            segments.append(('quote', m.group()))
+            segs.append(("quote", m.group()))
         elif m.group(2) is not None:
-            segments.append(('quote', m.group()))
-        last_end = end
+            segs.append(("quote", m.group()))
+        last_end = e
     if last_end < len(text):
-        segments.append(('text', text[last_end:]))
-    return segments
+        segs.append(("text", text[last_end:]))
+    return segs
 
-
-def get_objective_synonym(word, context, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
-    pos = get_pos_full_text(get_word_info(word, context)['pos'])
+def get_objective_synonym(word, context, synonym_search_methodology="transformer"):
+    pos = get_pos_full_text(get_word_info(word, context)["pos"])
     if synonym_search_methodology == "transformer":
-        synonyms = get_contextual_synonyms(word, context)
+        syns = get_contextual_synonyms(word, context)
     else:
-        synonyms = [syn['word'] for syn in get_synonyms(word, pos)]
-    objectivity = []
-    for synonym in synonyms:
-        objectivity.append(calc_objectivity_word(lemmatizer.lemmatize(synonym), pos))
-    return synonyms[np.argmax(objectivity)]
+        syns = [s["word"] for s in get_synonyms(word, pos)]
+    scores = []
+    for s in syns:
+        scores.append(calc_objectivity_word(lemmatizer.lemmatize(s), pos))
+    return syns[np.argmax(scores)]
 
-
-def objectify_text(text: str, objectivity_threshold=0.75, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
+def objectify_text(text, objectivity_threshold=0.75, synonym_search_methodology="transformer"):
     text = text.strip()
-    segments = split_text_on_quotes(text)
-    processed_segments = []
-    for seg_idx, (seg_type, segment) in enumerate(segments):
-        if seg_type == 'quote':
-            processed_segments.append(segment)
+    segs = split_text_on_quotes(text)
+    out = []
+    for i, (tp, seg) in enumerate(segs):
+        if tp == "quote":
+            out.append(seg)
         else:
-            doc = nlp(segment)
-            processed_sentences = []
-            for sentence in doc.sentences:
-                word_managed = []
-                for word in sentence.words:
-                    word_text = word.text
-                    word_pos = word.upos
-                    word_xpos = word.xpos
-                    word_objectivity = calc_objectivity_word(word_text, get_pos_wn(word_pos))
-                    word_managed.append({'text': word_text, 'pos': word_pos, 'xpos': word_xpos, 'objectivity': word_objectivity, 'removed': False, 'synonym': False})
-                for i, word in enumerate(word_managed):
-                    if word['pos'] == "ADJ":
-                        if word['objectivity'] < objectivity_threshold:
-                            n = i + 1
-                            while n < len(word_managed):
-                                if word_managed[n]['pos'] in {"NOUN", "PROPN"}:
-                                    word_managed[i]['removed'] = True
+            d = nlp(seg)
+            ps = []
+            for sentence in d.sentences:
+                wm = []
+                for w in sentence.words:
+                    wt = w.text
+                    wp = w.upos
+                    wx = w.xpos
+                    wo = calc_objectivity_word(wt, get_pos_wn(wp))
+                    wm.append({"text": wt, "pos": wp, "xpos": wx, "obj": wo, "r": False, "syn": False})
+                for idx, w in enumerate(wm):
+                    if w["pos"] == "ADJ":
+                        if w["obj"] < objectivity_threshold:
+                            n = idx + 1
+                            while n < len(wm):
+                                if wm[n]["pos"] in {"NOUN", "PROPN"}:
+                                    wm[idx]["r"] = True
                                     break
-                                if word_managed[n]['pos'] not in {"CCONJ", "CONJ", "PUNCT", "ADJ", "ADV"}:
+                                if wm[n]["pos"] not in {"CCONJ", "CONJ", "PUNCT", "ADJ", "ADV"}:
                                     break
                                 n += 1
-                            if i >= 1:
-                                if word_managed[i-1]['pos'] == "AUX":
-                                    word_managed[i]['synonym'] = True
-                                    word_managed[i]['removed'] = False
-                    elif word['pos'] == "ADV":
-                        if word['objectivity'] < objectivity_threshold:
-                            word_managed[i]['removed'] = True
-                for i, word in enumerate(word_managed):
-                    if word['pos'] == "ADV":
-                        if i + 1 < len(word_managed) - 1:
-                            if word_managed[i+1]['removed'] == True:
-                                word_managed[i]['removed'] = True
-                    elif word['pos'] == "PUNCT":
-                        if 1 <= i <= len(word_managed) - 2:
-                            if word['text'] not in {":", ";", "(", ")", "[", "]", "{", "}"}:
-                                if not word_managed[i-1]['pos'] in {"AUX", "NOUN", "PROPN"}:
-                                    if word_managed[i+1]['removed'] == True or word_managed[i-1]['removed'] == True:
-                                        word_managed[i]['removed'] = True
-                    elif word['pos'] in {"CCONJ", "CONJ"}:
-                        if 2 <= i <= len(word_managed) - 2:
-                            if word_managed[i+1]['removed'] == True and (word_managed[i-2]['removed'] == True or word_managed[i-1]['removed'] == True):
-                                word_managed[i]['removed'] = True
-                    elif word['pos'] in {"NOUN"}:
-                        if 2 <= i <= len(word_managed) - 1:
-                            if word_managed[i-1]['xpos'] == "HYPH" and word_managed[i-2]['removed'] == True:
-                                word_managed[i]['removed'] = True
-                for word in word_managed:
-                    if not word['removed']:
-                        if word['synonym']:
-                            synonym = get_objective_synonym(word['text'], sentence.text, synonym_search_methodology=synonym_search_methodology)
-                            processed_sentences.append(synonym)
+                            if idx >= 1 and wm[idx-1]["pos"] == "AUX":
+                                wm[idx]["syn"] = True
+                                wm[idx]["r"] = False
+                    elif w["pos"] == "ADV":
+                        if w["obj"] < objectivity_threshold:
+                            wm[idx]["r"] = True
+                for idx, w in enumerate(wm):
+                    if w["pos"] == "ADV":
+                        if idx + 1 < len(wm) - 1 and wm[idx+1]["r"] == True:
+                            wm[idx]["r"] = True
+                    elif w["pos"] == "PUNCT":
+                        if 1 <= idx <= len(wm) - 2:
+                            if w["text"] not in {":", ";", "(", ")", "[", "]", "{", "}"}:
+                                if wm[idx-1]["pos"] not in {"AUX", "NOUN", "PROPN"}:
+                                    if wm[idx+1]["r"] == True or wm[idx-1]["r"] == True:
+                                        wm[idx]["r"] = True
+                    elif w["pos"] in {"CCONJ", "CONJ"}:
+                        if 2 <= idx <= len(wm) - 2:
+                            if wm[idx+1]["r"] == True and (wm[idx-2]["r"] == True or wm[idx-1]["r"] == True):
+                                wm[idx]["r"] = True
+                    elif w["pos"] == "NOUN":
+                        if 2 <= idx <= len(wm) - 1:
+                            if wm[idx-1]["xpos"] == "HYPH" and wm[idx-2]["r"] == True:
+                                wm[idx]["r"] = True
+                final = []
+                for w in wm:
+                    if not w["r"]:
+                        if w["syn"]:
+                            syn = get_objective_synonym(w["text"], sentence.text, synonym_search_methodology)
+                            final.append(syn)
                         else:
-                            processed_sentences.append(word['text'])
-                post_processed_sentences = []
-                for i, word in enumerate(processed_sentences):
-                    new_word = word
-                    if i < len(processed_sentences) - 1:
-                        if new_word.lower() == 'a' and processed_sentences[i+1][0] in vowel:
-                            new_word = 'an'
-                        elif new_word.lower() == 'an' and processed_sentences[i+1][0] in consonant:
-                            new_word = 'a'
-                    if 0 < i < len(processed_sentences):
-                        if processed_sentences[i-1] == '.':
-                            new_word = new_word.capitalize()
-                    if i == 0:
-                        if seg_idx >= 1 and segments[seg_idx-1][0] == 'quote':
-                            prior_quote = segments[seg_idx-1][1].strip()
-                            if len(prior_quote) > 1 and prior_quote[-2] in {'.', '!', '?'}:
-                                new_word = new_word.capitalize()
+                            final.append(w["text"])
+                pps = []
+                for idx, w in enumerate(final):
+                    nw = w
+                    if idx < len(final) - 1:
+                        if nw.lower() == "a" and final[idx+1][0] in vowel:
+                            nw = "an"
+                        elif nw.lower() == "an" and final[idx+1][0] in consonant:
+                            nw = "a"
+                    if idx > 0:
+                        if final[idx-1] == ".":
+                            nw = nw.capitalize()
+                    if idx == 0:
+                        if i >= 1 and segs[i-1][0] == "quote":
+                            pq = segs[i-1][1].strip()
+                            if len(pq) > 1 and pq[-2] in {".", "!", "?"}:
+                                nw = nw.capitalize()
                         else:
-                            new_word = new_word.capitalize()
-                    post_processed_sentences.append(new_word)
-            full_sentence = " ".join(post_processed_sentences)
-            full_sentence_normalized = normalize_text(full_sentence)
-            processed_segments.append(full_sentence_normalized)
-    return " ".join(processed_segments).strip()
+                            nw = nw.capitalize()
+                    pps.append(nw)
+            fs = " ".join(pps)
+            fsn = normalize_text(fs)
+            out.append(fsn)
+    return " ".join(out).strip()
 
-
-def visualize_objectivity(text, objectivity_threshold=0.75, synonym_search_methodology:Literal["transformer", "wordnet"]="transformer"):
+def visualize_objectivity(text, objectivity_threshold=0.75, synonym_search_methodology="transformer"):
     print(Fore.BLUE + "Text: " + Fore.RESET + text.strip())
     print(Fore.BLUE + "Objectivity: " + Fore.RESET + str(calc_objectivity_sentence(text)))
-    objectified_text = objectify_text(text, objectivity_threshold, synonym_search_methodology)
-    print(Fore.GREEN + "Objectified Text: " + Fore.RESET + objectified_text.strip())
-    print(Fore.GREEN + "Objectivity: " + Fore.RESET + str(calc_objectivity_sentence(objectified_text)))
-
+    o = objectify_text(text, objectivity_threshold, synonym_search_methodology)
+    print(Fore.GREEN + "Objectified Text: " + Fore.RESET + o.strip())
+    print(Fore.GREEN + "Objectivity: " + Fore.RESET + str(calc_objectivity_sentence(o)))

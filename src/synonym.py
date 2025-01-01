@@ -1,7 +1,4 @@
-from utility import DLog, dictionary_pos_to_wordnet
-logger = DLog(name="Synonym", level="DEBUG", log_dir="logs")
-
-logger.info("Importing modules...")
+from utility import dictionary_pos_to_wordnet
 from transformers import pipeline
 from sentence_transformers import SentenceTransformer, util
 import logging
@@ -9,24 +6,25 @@ import requests
 import nltk
 import streamlit as st
 import torch
-logger.info("Modules imported...")
-
-logger.info("Downloading NLTK...")
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 from nltk.corpus import wordnet as wn
-logger.info("NLTK downloaded...")
 
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
-logger.info("Establishing pipeline...")
 @st.cache_resource
-def load_model():
+def load_sentence_transformer():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+
+model = load_sentence_transformer()
+
+@st.cache_resource
+def load_synonym_pipeline():
     if torch.cuda.is_available():
         return pipeline("fill-mask", model="albert-base-v2", device=0, torch_dtype=torch.bfloat16)
     return pipeline("fill-mask", model="albert-base-v2", device=-1, torch_dtype=torch.bfloat16)
-unmasker = load_model()
-logger.info("Pipeline established...")
+
+unmasker = load_synonym_pipeline()
 
 def get_contextual_synonyms(original_word: str, original_sentence: str, top_n: int = 3, top_k: int = 50):
     if original_word.lower() not in original_sentence.lower():
@@ -37,7 +35,6 @@ def get_contextual_synonyms(original_word: str, original_sentence: str, top_n: i
                            original_sentence[index+len(original_word):])
     predictions = unmasker(masked_sentence, top_k=top_k)
     candidate_words = [p["token_str"].strip() for p in predictions if p["token_str"].strip().lower() != original_word.lower()]
-    model = SentenceTransformer('all-MiniLM-L6-v2')
     embedding_original = model.encode(original_word, convert_to_tensor=True)
     embeddings_candidates = model.encode(candidate_words, convert_to_tensor=True)
     similarities = util.pytorch_cos_sim(embedding_original, embeddings_candidates)[0]
@@ -65,7 +62,6 @@ def get_synonyms(word: str, pos: str = None, deep_search: bool = False):
         else:
             raise ValueError("DictionaryAPI response not a list.")
     except Exception as e:
-        logger.warning(f"DictionaryAPI failed for '{word}' due to exception {e}. Falling back to WordNet.")
         wn_pos = dictionary_pos_to_wordnet(pos) if pos else None
         for synset in wn.synsets(word, pos=wn_pos):
             for lemma in synset.lemmas():

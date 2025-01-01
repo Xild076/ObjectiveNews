@@ -1,8 +1,3 @@
-from utility import DLog
-
-logger = DLog("Scraper", "DEBUG", "logs")
-
-logger.info("Importing modules...")
 import requests
 import random
 import time
@@ -15,7 +10,6 @@ from tqdm import tqdm
 from newspaper import Article
 import threading
 import streamlit as st
-logger.info("Modules imported...")
 
 class RateLimiter:
     lock = threading.Lock()
