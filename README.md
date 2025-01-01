@@ -12,7 +12,7 @@ This project was created to help combat misinformation in news. The code gathers
 - Run `streamlit run src/app.py` or `python3 -m streamlit run src/app.py`
 - Import from article_analysis.py, grouping.py, objectify_text.py, summarizer.py, synonym.py, scraper.py, or util.py for any of the tools
 ### Website
-- See [ObjectiveNews](objectivenews.streamlit.app) for the applications run on streamlit.
+- See [Objective News](https://objectivenews.streamlit.app/) for the applications run on streamlit.
     - Just as a heads up, due to memory contraints, the app will be very prone to crashes! I am currently working to improve the situation.
 ### Necessary Specs:
 - At least 2 core CPU
