@@ -21,7 +21,7 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 
 logger.info("Establishing pipeline...")
 torch.set_num_threads(1)
-# @st.cache_resource
+@st.cache_resource
 def load_model():
     if torch.cuda.is_available():
         return pipeline("fill-mask", model="albert-base-v2", device=0, torch_dtype=torch.bfloat16)

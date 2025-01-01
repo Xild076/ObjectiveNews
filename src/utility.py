@@ -17,7 +17,7 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
-# @st.cache_resource
+@st.cache_resource
 def get_stopwords():
     return set(stopwords.words("english"))
 

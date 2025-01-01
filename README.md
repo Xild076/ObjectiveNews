@@ -28,9 +28,10 @@ This project was created to help combat misinformation in news. The code gathers
 - `src/`: Source code
     - `pages`: Store website page information
 - `requirements.txt`: Stores requirements
+- `paper/`: Stores paper
 
 ## Paper (informal);
-[Read the paper](./paper.md)
+[Read the paper](./paper/paper.md)
 
 ## Contact
 - Email: harry.d.yin.gpc@gmail.com
