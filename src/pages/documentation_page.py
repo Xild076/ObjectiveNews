@@ -6,11 +6,16 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-tab1, tab2 = st.tabs(["README", "Paper"])
+tab1, tab2, tab3 = st.tabs(["README", "Paper", "License"])
 
 with tab1:
     with open("README.md", "r") as f:
         st.markdown(f.read())
 
 with tab2:
-    st.markdown("Paper is currently being updated!")
+    with open("paper/paper_v1-0.md", "r") as f:
+        st.markdown(f.read())
+
+with tab3:
+    with open("LICENSE", "r") as f:
+        st.markdown(f.read())

@@ -6,9 +6,6 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import streamlit as st
-from streamlit_extras.colored_header import colored_header
-
 st.markdown("""
     <h1 style='font-weight: normal; color: #2E86C1; text-align: center;'>
         Objective News
@@ -21,7 +18,7 @@ st.markdown("""
     </h4>
     """, unsafe_allow_html=True)
 
-colored_header(
+colored_header.colored_header(
     label="The Status Quo of Misinformation",
     description="A quick description of the current state of misinformation.",
     color_name=st.session_state["header_color"] if "header_color" in st.session_state else "blue-70"

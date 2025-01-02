@@ -1,5 +1,7 @@
 import streamlit as st
 
+st.set_page_config(page_title="Objective News", page_icon="data/images/objectivenews.ico")
+
 import streamlit.components.v1 as components
 
 components.html("""
