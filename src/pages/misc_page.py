@@ -1,5 +1,4 @@
 import streamlit as st
-st.set_page_config(page_title="Objective News", page_icon="data/images/objectivenews.ico")
 from streamlit_extras import colored_header
 from pages.page_utility import calculate_module_import_time, make_notification
 import pandas as pd

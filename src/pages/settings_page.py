@@ -1,5 +1,4 @@
 import streamlit as st
-st.set_page_config(page_title="Objective News", page_icon="data/images/objectivenews.ico")
 from streamlit_extras import colored_header
 from streamlit_extras.button_selector import button_selector
 

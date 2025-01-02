@@ -15,14 +15,14 @@ components.html("""
 
 @st.cache_resource
 def load_pages():
-    main_page = st.Page("pages/main_page.py", title="Main Page", default=True)
-    documentation_page = st.Page("pages/documentation_page.py", title="Documentation")
+    main_page = st.Page("pages/main_page.py", title="Objective News - Main Page - By Harry Yin", default=True, icon="data/images/objectivenews.ico")
+    documentation_page = st.Page("pages/documentation_page.py", title="Objective News - Documentation - By Harry Yin", icon="data/images/objectivenews.ico")
     
-    article_page = st.Page("pages/article_page.py", title="Article Analysis")
-    objectify_page = st.Page("pages/objectify_page.py", title="Objectify Text")
-    grouping_page = st.Page("pages/grouping_page.py", title="Grouping Text")
-    misc_page = st.Page("pages/misc_page.py", title="Misc Tools")
-    settings_page = st.Page("pages/settings_page.py", title="Settings")
+    article_page = st.Page("pages/article_page.py", title="Objective News - Article Analysis - By Harry Yin", icon="data/images/objectivenews.ico")
+    objectify_page = st.Page("pages/objectify_page.py", title="Objective News - Objectify Text - By Harry Yin", icon="data/images/objectivenews.ico")
+    grouping_page = st.Page("pages/grouping_page.py", title="Objective News - Grouping Text - By Harry Yin", icon="data/images/objectivenews.ico")
+    misc_page = st.Page("pages/misc_page.py", title="Objective News - Misc Tools - By Harry Yin", icon="data/images/objectivenews.ico")
+    settings_page = st.Page("pages/settings_page.py", title="Objective News - Settings", icon="data/images/objectivenews.ico")
     
     return {
         "Overview": [main_page, documentation_page],
