@@ -37,7 +37,7 @@ def make_notification(title:str, body:str):
     notif = Notify()
     notif.application_name = "Objective News"
     notif.title = title
-    notif.icon = "data/images/Objective News.png"
+    notif.icon = "data/images/objectivenews.png"
     notif.message = body
     notif.audio = "data/sound/notif_sound.wav"
     notif.send()

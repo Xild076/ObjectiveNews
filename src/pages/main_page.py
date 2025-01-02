@@ -6,11 +6,7 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-st.markdown("""
-    <h1 style='font-weight: normal; color: #2E86C1; text-align: center;'>
-        Objective News
-    </h1>
-    """, unsafe_allow_html=True)
+st.image("data/images/objnewslogo.png")
 
 st.markdown("""
     <h4 style='font-weight: normal; color: #5D6D7E; text-align: center;'>
