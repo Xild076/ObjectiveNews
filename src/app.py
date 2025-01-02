@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Objective News", page_icon="data/images/objectivenews.ico")
+st.set_page_config(page_title="Objective News - By Harry Yin", page_icon="data/images/objectivenews.ico")
 
 import streamlit.components.v1 as components
 
@@ -15,14 +15,14 @@ components.html("""
 
 @st.cache_resource
 def load_pages():
-    main_page = st.Page("pages/main_page.py", title="Objective News - Main Page - By Harry Yin", default=True)
-    documentation_page = st.Page("pages/documentation_page.py", title="Objective News - Documentation - By Harry Yin")
+    main_page = st.Page("pages/main_page.py", title="Main Page", default=True)
+    documentation_page = st.Page("pages/documentation_page.py", title="Documentation")
     
-    article_page = st.Page("pages/article_page.py", title="Objective News - Article Analysis - By Harry Yin")
-    objectify_page = st.Page("pages/objectify_page.py", title="Objective News - Objectify Text - By Harry Yin")
-    grouping_page = st.Page("pages/grouping_page.py", title="Objective News - Grouping Text - By Harry Yin")
-    misc_page = st.Page("pages/misc_page.py", title="Objective News - Misc Tools - By Harry Yin")
-    settings_page = st.Page("pages/settings_page.py", title="Objective News - Settings")
+    article_page = st.Page("pages/article_page.py", title="Article Analysis")
+    objectify_page = st.Page("pages/objectify_page.py", title="Objectify Text")
+    grouping_page = st.Page("pages/grouping_page.py", title="Grouping Text")
+    misc_page = st.Page("pages/misc_page.py", title="Misc Tools")
+    settings_page = st.Page("pages/settings_page.py", title="Settings")
     
     return {
         "Overview": [main_page, documentation_page],
