@@ -9,10 +9,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 theme = st.get_option("theme.base")
 
 if theme == "dark":
-    logo_path = "data/images/objnewslogodark.png"
+    logo_path = "data/images/objnewsicondark.png"
     stats_path = "data/images/misinformation_stats_dark.png"
 else:
-    logo_path = "data/images/objnewslogo.png"
+    logo_path = "data/images/objnewsicon.png"
     stats_path = "data/images/misinformation stats.png"
 
 st.image(logo_path)
