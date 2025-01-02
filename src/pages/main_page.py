@@ -6,7 +6,16 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-st.image("data/images/objnewslogo.png")
+theme = st.get_option("theme.base")
+
+if theme == "dark":
+    logo_path = "data/images/objnewslogodark.png"
+    stats_path = "data/images/misinformation_stats_dark.png"
+else:
+    logo_path = "data/images/objnewslogo.png"
+    stats_path = "data/images/misinformation stats.png"
+
+st.image(logo_path)
 
 st.markdown("""
     <h4 style='font-weight: normal; color: #5D6D7E; text-align: center;'>
@@ -20,7 +29,7 @@ colored_header.colored_header(
     color_name=st.session_state["header_color"] if "header_color" in st.session_state else "blue-70"
 )
 
-st.image("data/images/misinformation stats.png")
+st.image(stats_path)
 
 st.markdown("In recent years, misinformation has been on the rise. It comes in tandem with new technological innovations and growing polarization, and the dissemination of false, innacurate, and exaggerated informations has outstripped the ability to discern fact from fiction.")
 st.markdown("Echo chambers, greater access to news, algorithms, and much more all serve as catalysts to accelerate the spread of misinformation. According to a survey done by Citizen Data in 2024, at least 83% of the surveyed individuals have reported seeing misinformation.")
