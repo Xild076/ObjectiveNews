@@ -13,11 +13,11 @@ This project was created to help combat misinformation in news. The code gathers
 - Import from article_analysis.py, grouping.py, objectify_text.py, summarizer.py, synonym.py, scraper.py, or util.py for any of the tools
 ### Website
 - See [Objective News](https://objectivenews.streamlit.app/) for the applications run on streamlit.
-    - Just as a heads up, due to memory contraints, the app will be very prone to crashes! I am currently working to improve the situation.
+    - Just as a heads up, due to memory contraints, the app will be somewhat prone to crashes! I am currently working to improve the situation.
 ### Necessary Specs:
 - At least 2 core CPU
 - No GPU needed
-- 2.5 GB Memory minimum
+- 2.5 GB Memory
 
 ## Contributing
 - Issue Tracker: [Issues - Xild/ObjectifyNews](https://github.com/Xild076/ObjectiveNews/issues)
