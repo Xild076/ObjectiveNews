@@ -10,7 +10,7 @@ st.image("data/images/objnewsicon.png")
 
 st.markdown("""
     <h4 style='font-weight: normal; color: #5D6D7E; text-align: center;'>
-        Aiming towards finding and creating the most objective news, texts, and information possible in a growing world of misinformation.
+        Aiming towards finding and presenting the most objective news, texts, and information possible in a growing world of misinformation.
     </h4>
     """, unsafe_allow_html=True)
 

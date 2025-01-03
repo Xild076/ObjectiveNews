@@ -76,7 +76,6 @@ sentence_embed_model = load_model()
 attention_model = SelfAttention(embed_dim=384, num_heads=4)
 logger.info("Models loaded...")
 
-
 def encode_text(sentences: List[str],
                 weights: Dict[str, float] = {'single': 0.7, 'context': 0.3},
                 context: bool = False,
@@ -109,7 +108,6 @@ def encode_text(sentences: List[str],
 
     return np.array(final_embeddings)
 
-
 def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_label: int) -> int:
     from sklearn.metrics.pairwise import cosine_similarity
     cluster_indices = np.where(labels == cluster_label)[0]
@@ -121,7 +119,6 @@ def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_labe
     rep_relative_idx = np.argmax(similarities)
     rep_idx = cluster_indices[rep_relative_idx]
     return rep_idx
-
 
 def get_sentence_with_context(texts: List[str], idx: int, context_len: int) -> str:
     start = max(0, idx - context_len)
@@ -221,15 +218,14 @@ def observe_best_cluster(sentences_holder: List[SentenceHolder],
         }
     }
 
-
-def visualize_grouping(text):
+def visualize_grouping(text, preprocess=True, attention=True):
     sentences = sent_tokenize(text)
     print("Sentence Length: " + str(len(sentences)))
     sentences = [SentenceHolder(text=sent) for sent in sentences]
     clusters = observe_best_cluster(sentences, max_clusters=8, 
                                     context=True, context_len=1,
                                     weights={'single':0.7, 'context':0.3},
-                                    preprocess=True, attention=True, 
+                                    preprocess=preprocess, attention=attention, 
                                     clustering_method=KMeans,
                                     score_weights={'sil':0.4, 'db':0.2, 'ch':0.4})['clusters']
 
