@@ -227,7 +227,7 @@ def calculate_reliability(clusters:list):
     
     return clusters
 
-def objectify_and_summarize(cluster:dict, light=True):
+def objectify_and_summarize(cluster:dict, light=False):
     i = 1
     sentences = [sentence.text for sentence in cluster['sentences']]
     max_input_length = 2**12

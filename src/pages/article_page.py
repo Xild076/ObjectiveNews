@@ -132,7 +132,7 @@ if submit_button:
     valid_clusters = []
     for i, cluster in enumerate(cluster_articles):
         if is_cluster_valid(cluster, keywords=keywords_bert, debug=True):
-            cluster = objectify_and_summarize(cluster, light=True)
+            cluster = objectify_and_summarize(cluster)
             valid_clusters.append(cluster)
     progress_bar.progress(75)
 

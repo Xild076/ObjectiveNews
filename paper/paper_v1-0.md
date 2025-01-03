@@ -37,7 +37,7 @@ For grouping, the methodology is slightly more complicated.
 
 First comes the textual encoding. The text is first split into sentences and preprocessed. The preprocess method is standard: removing stopwards and lemmatizing the text. This removed the excess fluff to the text, making it easier to determing the core of the text.
 
-Next comes textual embedding. For textual embedding, I used a lightweight model from huggingface, the all-MiniLM-L6-v2 sentence transformer. While it isn't as detailed as models like all-mpnet-base-v2, it works well enough and the comprimise is acceptable given computational constraints. 
+In textual embedding, first comes textual embedding. For textual embedding, I used a lightweight model from huggingface, the all-MiniLM-L6-v2 sentence transformer. While it isn't as detailed as models like all-mpnet-base-v2, it works well enough and the comprimise is acceptable given computational constraints. 
 
 Next comes self-attention (Authors note: I thought this was innovative at first, but turns out there is already a paper on it, go figure)[^2]. Self-attention is a methodology used to determine the relevancy of information, and its usage would theoretically improve the clustering as the important information is singled out.
 
@@ -77,8 +77,8 @@ For summarization, huggingface summarization models are used. However, the issue
 ## 8. Conclusion
 
 ## 9. Sources
-[^1] https://www.who.int/europe/news/item/01-09-2022-infodemics-and-misinformation-negatively-affect-people-s-health-behaviours--new-who-review-finds
-[^2] https://arxiv.org/pdf/2201.02816
+[^1]: https://www.who.int/europe/news/item/01-09-2022-infodemics-and-misinformation-negatively-affect-people-s-health-behaviours--new-who-review-finds
+[^2]: https://arxiv.org/pdf/2201.02816
 https://arxiv.org/pdf/1706.03762
 https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html
 https://medium.com/@wangdk93/multihead-attention-from-scratch-6fd6f99b9651
