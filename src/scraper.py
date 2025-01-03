@@ -47,7 +47,7 @@ class FetchArticle:
             try:
                 r = session.get(base_url, headers=header, timeout=10)
                 if r.status_code != 200 or "To continue, please type the characters" in r.text:
-                    time.sleep(random.uniform(5, 10))
+                    time.sleep(random.uniform(1, 2))
                     continue
                 soup = BeautifulSoup(r.content, "html.parser")
                 results = []
@@ -62,7 +62,7 @@ class FetchArticle:
                                 if len(results) >= amount:
                                     return results
             except:
-                time.sleep(random.uniform(5, 10))
+                time.sleep(random.uniform(1, 2))
                 continue
         return []
 
