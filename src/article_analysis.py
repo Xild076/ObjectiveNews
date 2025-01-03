@@ -271,7 +271,6 @@ def article_analyse(text, link_num=10):
     if not processed_text:
         return None
     
-
     keywords = processed_text['keywords']
     extra_info = processed_text['extra_info']
     articles, _ = retrieve_information_online(keywords, link_num=link_num, extra_info=extra_info)
@@ -292,7 +291,6 @@ def article_analyse(text, link_num=10):
         rep_sentences.extend(grouped_filtered)
     
     logger.info("Representative sentences found...")
-    print(rep_sentences)
         
     if len(rep_sentences) <= 2:
         cluster_articles = [
