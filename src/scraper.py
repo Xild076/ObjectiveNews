@@ -20,7 +20,7 @@ logger.info("Modules imported...")
 class RateLimiter:
     lock = threading.Lock()
     last_request_time = 0
-    min_delay = 3
+    min_delay = 2
     @staticmethod
     def wait():
         with RateLimiter.lock:
@@ -118,7 +118,8 @@ class FetchArticle:
     @staticmethod
     def extract_many_article_details(urls):
         data = []
-        for url in tqdm(urls, desc="Extracting Articles"):
+        for url in urls:
+            logger.info(f"Extracting article details from {url}")
             d = FetchArticle.extract_article_details(url)
             if d:
                 data.append(d)
