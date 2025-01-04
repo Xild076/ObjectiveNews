@@ -66,6 +66,8 @@ with col1:
 with col2:
     st.write("Estimated Time Taken:")
     st.write(f"```{st.session_state['estimated_time']}``` seconds")
+light_checkbox = st.checkbox("Run Light Version", True, key="Light Version")
+stoggle("ⓘ What is Light Version?", "Light Version means that instead of summarizing the topics, the tool will only provide the representative sentences in its objective form. This is much faster and less resource-intensive, however, it may not provide as much information.")
 
 def disable_analyze():
     st.session_state["article_disabled"] = True
@@ -132,7 +134,7 @@ if submit_button:
     valid_clusters = []
     for i, cluster in enumerate(cluster_articles):
         if is_cluster_valid(cluster, keywords=keywords_bert, debug=True):
-            cluster = objectify_and_summarize(cluster)
+            cluster = objectify_and_summarize(cluster, light_checkbox)
             valid_clusters.append(cluster)
     progress_bar.progress(75)
 
