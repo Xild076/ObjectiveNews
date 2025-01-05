@@ -42,8 +42,20 @@ In textual embedding, first comes textual embedding. For textual embedding, I us
 Next comes self-attention (Authors note: I thought this was innovative at first, but turns out there is already a paper on it, go figure)[^2]. Self-attention is a methodology used to determine the relevancy of information, and its usage would theoretically improve the clustering as the important information is singled out.
 
 Next comes context. This is new method used in clustering longer texts with more diverse writing. Often in text, there are short sentences or sentences that are nonsense without context. In these cases, if only one sentence is clustered, the output will sometimes be not according to what the text truly meant. Even with attention, context is necessary as attention only indicates the relevancy of the information, not the true context. Thus, context is retrieved by getting the n number of sentences around a sentence and averaging its processed embeddings with the embedding of the original sentence. That way, the algorithm has some understanding of what is happening around the sentence with extra weight given to the sentence.
+
+Now, the embeddings are obtained and the clustering begins.
 ### 3.3. Summarizing
-For summarization, huggingface summarization models are used. However, the issue came down to efficiency vs performance.
+For summarization, huggingface summarization models are used. However, the issue came down to efficiency vs performance. Due to working with computational constraints, I needed to use the most efficient model possible that still retains good performance. I tried a many different models, the performances listed below.
+
+|Model|Parameters|Performance|
+|---|---|---|
+|`facebook/bart-large-cnn`|406M|High accuracy w/ few mistakes
+|`sshleifer/distilbart-cnn-12-6`|306M|High accuracy w/ few mistakes and formatting issues|
+|`google/flan-t5-small`|77M|Medium-high accuracy w/ some acceptable mistakes|
+|`google-t5/t5-small`|60.5M|Poor accuracy w/ many mistakes|
+
+Ultimately, I chose to go with `google/flan-t5-small` which provided the best performance to efficiency ratio. 
+
 ### 3.4. Objectifying
 
 ### 3.5. Reliability
