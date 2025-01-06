@@ -43,7 +43,11 @@ Next comes self-attention (Authors note: I thought this was innovative at first,
 
 Next comes context. This is new method used in clustering longer texts with more diverse writing. Often in text, there are short sentences or sentences that are nonsense without context. In these cases, if only one sentence is clustered, the output will sometimes be not according to what the text truly meant. Even with attention, context is necessary as attention only indicates the relevancy of the information, not the true context. Thus, context is retrieved by getting the n number of sentences around a sentence and averaging its processed embeddings with the embedding of the original sentence. That way, the algorithm has some understanding of what is happening around the sentence with extra weight given to the sentence.
 
-Now, the embeddings are obtained and the clustering begins.
+Now, the embeddings are obtained and the clustering begins. The clustering algorithm is variable, it can be both `KMeans` and `AgglomerativeClustering`. The proceeding methodology uses the scoring method where clusters from 2 to max_clusters are tested and scored to determine which is the best cluster.
+
+For scoring, three different metrics are used: silhouette, davies bouldin, and calinski harabasz score, with each of the scores weighted and summed to form a final score. Silhouette score measure cohesion and separation, davies bouldin measures the similarity of clusters, and calinski harabasz measurres between-cluster dispersion and within-cluster dispersion. Due to to the variation within the ranges of the scores, min-max normalization was applied to establish some semblance of linearity within the weights.
+
+Finally, the representative sentences of each cluster is found depending on cosine similarity, all the sentences are sorted based on their likeness to the representative sentence, and the grouping is complete.
 ### 3.3. Summarizing
 For summarization, huggingface summarization models are used. However, the issue came down to efficiency vs performance. Due to working with computational constraints, I needed to use the most efficient model possible that still retains good performance. I tried a many different models, the performances listed below.
 
@@ -54,12 +58,21 @@ For summarization, huggingface summarization models are used. However, the issue
 |`google/flan-t5-small`|77M|Medium-high accuracy w/ some acceptable mistakes|
 |`google-t5/t5-small`|60.5M|Poor accuracy w/ many mistakes|
 
-Ultimately, I chose to go with `google/flan-t5-small` which provided the best performance to efficiency ratio. 
+Ultimately, I chose to go with `google/flan-t5-small` which provided the best performance to efficiency ratio. While there are issues such as the repeat of the same phrase with different meanings, they were few enough and minor enough to be considered an acceptable comprimise given the minimal number of parameters, especially when compared to `google-t5/t5-small`.
 
 ### 3.4. Objectifying
+The objectifying text is a barely explored sector in NLP, so most of the methodology next presented will be just a starting point. There were two main ideas I had for objectifying text. The first idea was to fine-tune a summarization model with the textblob subjectivity score as a metric, however due to various circumstances, I ultimately went with the second idea: a rule-based alteration of the text to remove/replace subjective words.
 
+First, a NLP model is used to determine the properties of the text. I decided to use stanza's NLP model since it had a better performance than NLTK. Following that, as a general rule, any descriptive language is first checked for its objectivity and removed/replaced if it crossed a certain objectivity threshold, with objectivity being found using NLTK's wordnet.
+
+While removing subjective words intuitive, some words need to be replaced if they serve a key role in a sentence's structure. Synonyms of the word are found and serve to replace the subjective word with its most objective synonym. 
+
+The location of synonyms can be done in two ways, both implemenented. First is the usage of an encoder-only model to find contextual synonyms of a word. This works well to find words that fit into the context of the sentence, however, often fail to represent the same meaning. The second method used is to use an online search to retrieve the most accurate synonyms given a part of speech with wordnet as a backup. This method is much more reliable in achieving the same meaning of the word but sometimes misses the context of the sentence, however, considering its greater accuracy, this method is used more often.
+
+After a word is removed, any auxiliary words, punctuations, or conjunctions that are grammatically out of place are also removed.
+
+Any text found in quotes is not changed and all the text is joined afterwards to return more objective text. There are issues like the removal of essential, non-objective descriptive words and the incorrect determination of a word's objectivity along with grammar issues, however, the current algorithm serves as a good baseline for future endeavors.
 ### 3.5. Reliability
-
 - Most reliable source sets baseline, the lower the more the score leans low
 - Less weight to unreliable sources, the higher the score the less it contributes
 - Reality check, if too many unreliable sources, it adds a penalty

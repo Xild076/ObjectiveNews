@@ -11,6 +11,7 @@ import torch.nn.functional as F
 
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+from sklearn.metrics.pairwise import cosine_similarity
 
 from sentence_transformers import SentenceTransformer
 
@@ -109,7 +110,6 @@ def encode_text(sentences: List[str],
     return np.array(final_embeddings)
 
 def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_label: int) -> int:
-    from sklearn.metrics.pairwise import cosine_similarity
     cluster_indices = np.where(labels == cluster_label)[0]
     cluster_points = X[cluster_indices]
     if len(cluster_points) == 0:
@@ -187,7 +187,6 @@ def observe_best_cluster(sentences_holder: List[SentenceHolder],
         rep_embedding = X[rep_index].reshape(1, -1)
         cluster_indices = [i for i, label in enumerate(lbls) if label == c]
         cluster_embeddings = X[cluster_indices]
-        from sklearn.metrics.pairwise import cosine_similarity
         similarities = cosine_similarity(cluster_embeddings, rep_embedding).flatten()
         sorted_indices = np.argsort(-similarities)
         sorted_cluster_sentences = [cluster_sentences[i] for i in sorted_indices]
