@@ -12,11 +12,11 @@ Date: 01/02/2025
     3. [Summarizing](#33-summarizing)
     4. [Objectifying](#34-objectifying)
     5. [Reliability](#35-reliability)
-5. [Results](#5-results)
-6. [Discussion](#6-discussion)
-7. [Future Plans](#7-future-plans)
-8. [Conclusion](#8-conclusion)
-9. [Sources](#9-sources)
+4. [Results](#5-results)
+5. [Discussion](#6-discussion)
+6. [Future Plans](#7-future-plans)
+7. [Conclusion](#8-conclusion)
+8. [Sources](#9-sources)
 
 ## 1. Abstract
 
@@ -73,37 +73,45 @@ After a word is removed, any auxiliary words, punctuations, or conjunctions that
 
 Any text found in quotes is not changed and all the text is joined afterwards to return more objective text. There are issues like the removal of essential, non-objective descriptive words and the incorrect determination of a word's objectivity along with grammar issues, however, the current algorithm serves as a good baseline for future endeavors.
 ### 3.5. Reliability
-- Most reliable source sets baseline, the lower the more the score leans low
-- Less weight to unreliable sources, the higher the score the less it contributes
-- Reality check, if too many unreliable sources, it adds a penalty
-- Balance between reliable and unreliable, strong reliable source pulls the final score towards reliability, multiple unreliable sources can still drag down the reliability if they outweigh the good ones
-- It balances optimism from the star player (reliable sources) with realism about the team’s overall strength (unreliable sources)
+Overall, the reliability check is divided into four portions to output a numerical value to represent the reliability of a source.
 
-## 5. Results
+The first portion is to determine the reliability of each sources of the texts clustered. This is done with a massive `.csv` file with a long list of sources and their reliability score based on bias and informational accuracy, the file courtesy of nsfyn55 on github[^3]. With that settled, the baseline reliability is retrieved.
 
-### 5.1. Grouping
+Next, objectivity scores are found using textblob. The idea is that the more objective a text, the more likely it is to be from a more neutral and reliable source. The objectivity scores is used as a multiplier on the baseline reliabilities.
 
-### 5.2. Objectifying
+After that, general reliability is calculated, finding the overall reliability of each cluster of information. The idea for finding general reliability is that if a reliable source cites the information, then the text is probably reliable, however if it is outnumbered severely by unreliable sources, then there is a possibility that the information was derived from primarily unreliable sources thus reducing the reliability of the information. 
 
-### 5.3. Summarizing
+To achieve this, weights are first calculated with a Gaussian weighting function with the most reliable source as a baseline. Then, the reliablility is calculated by applying the weights and averaging the scores. However, to apply the idea of an outnumbered reliable source, outliers are punished by how different they are from the general score, with a weight applied depending on the wished severity of the penalty. Applying the penalty gives the final reliability score.
 
-### 5.4. Overall (Article Analysis)
+Following that, the date relevancy of the information is checked. First, more recent information is the more reliable information. Information that is old and is no longer reported on may have been disproven of may be irrelevant. Information that is too recent relative to the other news, however, may be too new to confirm its legitimacy. The most relevant and reliable information is information that has been consistantly reported on for a long time.
 
-## 6. Discussion
+Thus, the date relevancy score is divided into two different scores: one for coverage and one for recency. Coverage score is calculated by taking the caculating the days covered by the given set of dates from a list of sets of dates, subtracting the smallest coverage dates from it, and averaging it over the total days all the information was covered for. 
 
-## 7. Future Plans
+$\text{coverage\_score} = \sqrt{\frac{\text{coverage\_days} - \text{coverage\_min}}{\text{coverage\_range}}}$ 
 
-## 8. Conclusion
+The square root is applied to decrease the reward given to increasing coverage. The last date score is calculated by determining the distance from the median of all the last dates and normalizing it. By applying weights to each of the scores, date relevancy is found and is used as a multiplier on the general reliability. 
 
-## 6. Discussion
+Thus, reliability is calculated, with [0, 5] being considered very reliable information, (5, 15] being considered reliable, (15, 25] being considered somewhat reliable, (25, 35] being considered somewhat unreliable, and (35, inf) being considered unreliable.
+## 4. Results
 
-## 7. Future Plans
+### 4.1. Grouping
 
-## 8. Conclusion
+### 4.2. Objectifying
 
-## 9. Sources
+### 4.3. Summarizing
+
+### 4.4. Overall (Article Analysis)
+
+## 5. Discussion
+
+## 6. Future Plans
+
+## 7. Conclusion
+
+## 8. Sources
 [^1]: https://www.who.int/europe/news/item/01-09-2022-infodemics-and-misinformation-negatively-affect-people-s-health-behaviours--new-who-review-finds
 [^2]: https://arxiv.org/pdf/2201.02816
+[^3]: https://gist.github.com/nsfyn55/605783ac8de36f361fb10ef187272113
 https://arxiv.org/pdf/1706.03762
 https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html
 https://medium.com/@wangdk93/multihead-attention-from-scratch-6fd6f99b9651
