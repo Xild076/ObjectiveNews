@@ -190,7 +190,7 @@ def group_individual_article(article):
     return rep_sentences
 
 def group_representative_sentences(rep_sentences:List[SentenceHolder]):
-    max_clusters = max(floor(len(rep_sentences) / 6), 10)
+    max_clusters = max(floor(len(rep_sentences) / 8), 8)
     cluster_articles = observe_best_cluster(rep_sentences, max_clusters=max_clusters, 
                                             context=False, context_len=1, weights={'single':0.7, 'context':0.3}, 
                                             preprocess=True, attention=True, clustering_method=KMeans, 

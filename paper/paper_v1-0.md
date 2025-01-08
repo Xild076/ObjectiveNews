@@ -4,19 +4,6 @@ harry.d.yin.gpc@gmail.com\
 Date: 01/02/2025
 
 ### Table of Contents
-1. [Abstract](#1-abstract)
-2. [Introduction](#2-introduction)
-3. [Methodology](#3-methodology)
-    1. [Web Scraping](#31-web-scraping)
-    2. [Grouping](#32-grouping)
-    3. [Summarizing](#33-summarizing)
-    4. [Objectifying](#34-objectifying)
-    5. [Reliability](#35-reliability)
-4. [Results](#5-results)
-5. [Discussion](#6-discussion)
-6. [Future Plans](#7-future-plans)
-7. [Conclusion](#8-conclusion)
-8. [Sources](#9-sources)
 
 ## 1. Abstract
 
@@ -93,14 +80,28 @@ The square root is applied to decrease the reward given to increasing coverage. 
 
 Thus, reliability is calculated, with [0, 5] being considered very reliable information, (5, 15] being considered reliable, (15, 25] being considered somewhat reliable, (25, 35] being considered somewhat unreliable, and (35, inf) being considered unreliable.
 ## 4. Results
-
+The results will be presented in a less numerical format for grouping and article analysis due to a lack of a proper evaluation metric for textual clustering. Objectifying will be evaluated based on the textblob subjectivity score.
 ### 4.1. Grouping
+Since there is no numerical evaluation for grouping, I will be subjectively evaluating the clustering based primarily on coherence and separation. 
 
+First, grouping with no preprocessing, no attention, and no context resulted in clusters with good coherence but bad separation. There were often two or more overlapping topics, resulting in less-than-ideal clustering. 
+
+Next, for grouping with preprocessing but no attention nor context, clusters with good coherence and passable separation were generated. There were often only two overlapping topics at max, resulting in decent clustering.
+
+Next, for grouping with preprocessing and attention but no context, clusters with good coherence and slightly better separation were generated. There was often only one overlapping topic with attention.
+
+Finally, with all three implemented, clusters with better coherence and similar separation were generated. There was often one overlapping topic, however, the coherence, meaning the sense of the text clustering, was much better.
+
+Overall, while it could be better, grouping was decent. It could be improved by fine-tuning the `max_cluster` calculation more as a smaller `max_cluster` often reslulted in better separation, which is the most important improvement needed as coherence is already very good.
 ### 4.2. Objectifying
+For objectifying, a series of subjective texts were used to find the average improvement in objectiveness. With about 300 texts, the average objectivity score was increased by 0.1389 from 0.4661 to 0.6050, being an average of a 29.80% increase in objectivity. 
 
-### 4.3. Summarizing
+An example of the objectification is: 
+Before Objectification: *"That politician took horribly ineffective action that ruined the amazing nation."* (Objectivity Score: 0.3)
+After Objectification: *"That politician took action that ruined the nation."* (Objectivity Score: 0.9)
 
-### 4.4. Overall (Article Analysis)
+Overall, the performance is good and there are few grammar mistakes. There are the occasional punctuation issue and in some cases, the text may even be scored as less objective due to the removal of key adjectives. However, in most cases, the text is further objectified.
+### 4.3. Overall (Article Analysis)
 
 ## 5. Discussion
 
