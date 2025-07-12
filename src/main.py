@@ -1,0 +1,35 @@
+from nltk import sent_tokenize
+
+def split_sentences(text: str) -> list:
+    sentences = sent_tokenize(text)
+    return [s.strip() for s in sentences if s.strip()]
+
+text = """
+Washington — The Secret Service suspended six personnel without pay as the agency faced intense scrutiny after the assassination attempt against President Trump in Butler, Pennsylvania, nearly a year ago. 
+
+Matt Quinn, Secret Service deputy director, told CBS News that their penalty ranged from 10 to 42 days of leave without pay or benefits. The personnel were placed into restricted duty or roles with less operational responsibility upon their return. 
+
+"We are laser-focused on fixing the root cause of the problem," said Quinn, who defended the agency's decision not to dismiss anyone after the security failure on July 13, 2024, in which a gunman opened fire during a campaign rally and a bullet grazed Mr. Trump's ear. One person was killed and two others were wounded while the alleged gunman, Thomas Crooks, was killed by a Secret Service sniper. 
+
+"We aren't going to fire our way out of this," Quinn said in an interview Wednesday. "We're going to focus on the root cause and fix the deficiencies that put us in that situation." 
+
+"Secret Service is totally accountable for Butler," he said. "Butler was an operational failure and we are focused today on ensuring that it never happens again." 
+
+symbol
+00:03
+
+02:00
+Read More
+Quinn said the personnel were disciplined according to a federally mandated process. Quinn told CBS News the agency has been focused on addressing the root causes of the operational failures that played out in Butler. To do that, the Secret Service introduced a new fleet of military grade drones and mobile command posts that allows agents to communicate over radio directly with local law enforcement — interoperability that didn't exist last year.
+
+The assassination attempt in Pennsylvania and a second, foiled attempt against Mr. Trump in West Palm Beach, Florida, a few weeks later, spurred the resignation of then-Secret Service Director Kimberly Cheatle and triggered several investigations and contentious congressional hearings. 
+
+A bruising 180-page report released by a bipartisan House task force in December found that the security lapses that led to the first incident were "not isolated to the campaign event itself." 
+
+The lawmakers noted that "preexisting issues in leadership and training created an environment" in which the failures could occur, like giving significant responsibilities to Secret Service personnel with little to no experience in advanced planning roles. Lawmakers also noted a lack of coordination and planning between the Secret Service and its law enforcement partners. 
+
+"""
+
+sentences = split_sentences(text)
+print(sentences)
+print("len " + str(len(sentences)))

@@ -48,6 +48,7 @@ For summarization, hugging face summarization models are used. However, the issu
 Ultimately, I chose to go with `google/flan-t5-small` which provided the best performance-to-efficiency ratio. While there are issues such as the repeat of the same phrase with different meanings, they were few enough and minor enough to be considered an acceptable compromise given the minimal number of parameters, especially when compared to `google-t5/t5-small`.
 
 ### 3.4. Objectifying
+
 The objectifying text is a barely explored sector in NLP, so most of the methodology next presented will be just a starting point. There were two main ideas I had for objectifying text. The first idea was to fine-tune a summarization model with the Textblob subjectivity score as a metric, however, due to various circumstances, I ultimately went with the second idea: a rule-based alteration of the text to remove/replace subjective words.
 
 First, a NLP model is used to determine the properties of the text. I decided to use Stanza's NLP model since it had a better performance than NLTK. Following that, as a general rule, any descriptive language is first checked for its objectivity and removed/replaced if it crosses a certain objectivity threshold, with objectivity being found using NLTK's wordnet.
@@ -102,7 +103,7 @@ After Objectification: *"That politician took action that ruined the nation."* (
 
 Overall, the performance is good and there are few grammar mistakes. There are the occasional punctuation issues and in some cases, the text may even be scored as less objective due to the removal of key adjectives. However, in most cases, the text is further objectified.
 ### 4.3. Overall (Article Analysis)
-
+Overall, article analysis was good. While there were inconsistances in some summarizations, the reliabliity scores were generally accurate and acceptable
 ## 5. Discussion
 
 ## 6. Future Plans
