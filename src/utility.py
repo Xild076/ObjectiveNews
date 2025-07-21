@@ -86,6 +86,17 @@ def split_sentences(text):
 
     return sentences
 
+def normalize_values_minmax(values, reverse=False):
+    mn = min(values)
+    mx = max(values)
+    if mn == mx:
+        return [0.5] * len(values)
+    rng = mx - mn
+    if not reverse:
+        return [(v - mn) / rng for v in values]
+    else:
+        return [(mx - v) / rng for v in values]
+
 class SentenceHolder(object):
     def __init__(self, text, source=None, author=None, date=None):
         self.text = clean_text(text)

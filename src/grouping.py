@@ -17,7 +17,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from utility import clean_text, SentenceHolder, split_sentences
+from utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax
+from sklearn.cluster import AgglomerativeClustering, KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+from typing import Union, Type
 
 warnings.filterwarnings("ignore", module="^sklearn")
 
@@ -273,6 +276,9 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
         **params
     )
 
+    if all(label == -1 for label in cluster_labels):
+        cluster_labels = [0] * len(sentences)
+
     cluster_dicts = []
     unique_labels = sorted(l for l in set(cluster_labels) if l != -1)
 
@@ -301,6 +307,104 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
         cluster_dicts.append({
             "label": c,
             "sentences": cluster_sents,
-            "representative": representative_sentence
+            "representative": representative_sentence,
+            "representative_with_context": (
+                representative_sentence,
+                SentenceHolder(
+                    " ".join([sents.text for sents in sentences[max(0, rep_idx - params.get("context_len", 1)):min(len(sentences), rep_idx + 1 + params.get("context_len", 1))]]),
+                    representative_sentence.source,
+                    representative_sentence.author,
+                    representative_sentence.date
+                )
+            )
         })
     return cluster_dicts
+
+def observe_best_cluster(sentences_holder: List[SentenceHolder],
+                         max_clusters: int = 10,
+                         weights: Dict[str, float] = {'single': 0.7, 'context': 0.3},
+                         context: bool = False,
+                         context_len: int = 1,
+                         preprocess=True,
+                         attention=True,
+                         clustering_method: Union[Type[AgglomerativeClustering], Type[KMeans]] = KMeans,
+                         score_weights = {'sil': 0.4, 'db': 0.2, 'ch': 0.4}) -> Dict[Any, Any]:
+    sentences = [sent.text for sent in sentences_holder]
+    X = encode_text(sentences, weights, context, context_len, preprocess, attention, attention_model)
+
+    max_clusters = min(max_clusters, len(X))
+
+    cluster_scores = []
+    for i in range(2, max_clusters):
+        clusterer = clustering_method(n_clusters=i)
+        labels = clusterer.fit_predict(X)
+        sil = silhouette_score(X, labels)
+        db = davies_bouldin_score(X, labels)
+        ch = calinski_harabasz_score(X, labels)
+        cluster_scores.append({
+            'n_clusters': i, 
+            'sil': sil, 
+            'db': db, 
+            'ch': ch, 
+            'labels': labels
+        })
+    
+    sil_values = [c['sil'] for c in cluster_scores]
+    db_values = [c['db'] for c in cluster_scores]
+    ch_values = [c['ch'] for c in cluster_scores]
+
+    norm_sil = normalize_values_minmax(sil_values, reverse=False)
+    norm_db = normalize_values_minmax(db_values, reverse=True)
+    norm_ch = normalize_values_minmax(ch_values, reverse=False)
+
+    best_score = float('-inf')
+    best_cluster = None
+    for i, c in enumerate(cluster_scores):
+        score = (norm_sil[i] * score_weights['sil']) + \
+                (norm_db[i] * score_weights['db']) + \
+                (norm_ch[i] * score_weights['ch'])
+        if score > best_score:
+            best_score = score
+            best_cluster = c
+
+    lbls = best_cluster['labels']
+    sil = best_cluster['sil']
+    db = best_cluster['db']
+    ch = best_cluster['ch']
+
+    cluster_dicts = []
+    unique_labels = sorted(set(lbls))
+    for c in unique_labels:
+        cluster_sentences = [sentences_holder[i] for i, label in enumerate(lbls) if label == c]
+        rep_index = find_representative_sentence(X, lbls, c)
+        rep_sentence = sentences_holder[rep_index]
+        rep_embedding = X[rep_index].reshape(1, -1)
+        cluster_indices = [i for i, label in enumerate(lbls) if label == c]
+        cluster_embeddings = X[cluster_indices]
+        similarities = cosine_similarity(cluster_embeddings, rep_embedding).flatten()
+        sorted_indices = np.argsort(-similarities)
+        sorted_cluster_sentences = [cluster_sentences[i] for i in sorted_indices]
+        if context:
+            rep_with_context = SentenceHolder(" ".join([sents.text for sents in sentences_holder[max(0, rep_index - context_len):min(len(sentences_holder), rep_index + 1 + context_len)]]),
+                                            source=rep_sentence.source, 
+                                            author=rep_sentence.author, 
+                                            date=rep_sentence.date)
+        else:
+            rep_with_context = rep_sentence
+
+        cluster_dicts.append({
+            'cluster_id': int(c),
+            'sentences': sorted_cluster_sentences,
+            'representative': rep_sentence,
+            'representative_with_context': rep_with_context
+        })
+    
+    return {
+        'clusters': cluster_dicts,
+        'metrics': {
+            'silhouette': float(sil), 
+            'davies_bouldin': float(db), 
+            'calinski_harabasz': float(ch), 
+            'score': float(best_score)
+        }
+    }
