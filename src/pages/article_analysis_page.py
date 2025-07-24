@@ -123,7 +123,7 @@ else:
                 )
             st.session_state.analysis_result = result
             progress_bar.empty()
-            st.experimental_rerun()
+            st.rerun()
         except Exception as e:
             progress_bar.empty()
             st.error(f"An error occurred during analysis: {e}")
