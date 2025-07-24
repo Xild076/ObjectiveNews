@@ -100,7 +100,7 @@ if st.session_state.analysis_result:
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Start New Analysis", use_container_width=True, type="primary"):
         st.session_state.analysis_result = None
-        st.experimental_rerun()
+        st.rerun()
 else:
     with st.form("analysis_form"):
         st.markdown("### Analyze a Topic or News URL")
