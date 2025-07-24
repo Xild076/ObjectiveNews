@@ -101,17 +101,14 @@ def preprocess_text(text):
     return ' '.join(tokens) if tokens else text
 
 @cache_data_decorator
-def encode_text_with_attention(embeddings, att_model):
+def encode_text_with_attention(embeddings, _att_model):
     logger.info("Encoding text with attention...")
-    if att_model is None:
+    if _att_model is None:
         raise ValueError("Attention model is not loaded or provided.")
-    
-    device = next(att_model.parameters()).device
+    device = next(_att_model.parameters()).device
     embeddings_tensor = torch.tensor(embeddings, dtype=torch.float32).to(device)
-    
     with torch.no_grad():
-        refined_embeddings = att_model(embeddings_tensor)
-        
+        refined_embeddings = _att_model(embeddings_tensor)
     return refined_embeddings.detach().cpu().numpy()
 
 @cache_data_decorator
