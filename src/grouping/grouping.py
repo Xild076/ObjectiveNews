@@ -9,7 +9,7 @@ from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import silhouette_samples
 from typing import Dict, List, Any
-import umap
+from umap import UMAP
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, homogeneity_score, completeness_score, v_measure_score
 import torch
 import torch.nn as nn
@@ -151,7 +151,7 @@ def dim_reduction(embeddings, n_neighbors=15, n_components=2, metric='cosine'):
     if safe_n_components < 1:
         safe_n_components = 1
     try:
-        reducer = umap.UMAP(n_neighbors=safe_n_neighbors, n_components=safe_n_components, metric=metric)
+        reducer = UMAP(n_neighbors=safe_n_neighbors, n_components=safe_n_components, metric=metric)
         reduced_embeddings = reducer.fit_transform(embeddings)
         return reduced_embeddings
     except Exception as e:
@@ -441,10 +441,10 @@ def group_representative_sentences(rep_sentences: List,
     if umap_components == 0:
         umap_components = 1
 
-    reducer = umap.UMAP(n_neighbors=umap_neighbors,
-                        n_components=umap_components,
-                        metric='cosine',
-                        random_state=42)
+    reducer = UMAP(n_neighbors=umap_neighbors,
+                   n_components=umap_components,
+                   metric='cosine',
+                   random_state=42)
     reduced = reducer.fit_transform(normed)
 
     clusterer = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size,
