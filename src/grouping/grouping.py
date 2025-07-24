@@ -115,7 +115,7 @@ def encode_text_with_attention(embeddings, att_model):
     return refined_embeddings.detach().cpu().numpy()
 
 @cache_data_decorator
-def encode_text(sentences, weights, context, context_len, preprocess, attention, att_model):
+def encode_text(sentences, weights, context, context_len, preprocess, attention, _att_model):
     logger.info("Encoding text...")
     model = load_sent_transformer()
     if not sentences or len(sentences) == 0:
@@ -126,8 +126,8 @@ def encode_text(sentences, weights, context, context_len, preprocess, attention,
         if not sentences:
             return np.array([])
     embeddings = model.encode(sentences, show_progress_bar=False)
-    if attention and att_model is not None:
-        embeddings = encode_text_with_attention(embeddings, att_model)
+    if attention and _att_model is not None:
+        embeddings = encode_text_with_attention(embeddings, _att_model)
     if not context:
         return embeddings
     final_embeddings = []
@@ -199,16 +199,16 @@ def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_labe
     rep_idx = cluster_indices[rep_relative_idx]
     return rep_idx
 
-def cluster_sentences(sentences, att_model=None, weights=0.1, context:bool = True, context_len:int = 5, preprocess:bool = True, attention:bool = False, norm:str = 'l2', n_neighbors:int = 15, n_components:int = 2, umap_metric:str = 'cosine', cluster_metric:str = 'cosine', algorithm:str = 'best', cluster_selection_method:str = 'eom', min_cluster_size:int = 2, min_samples:int = 1):
+def cluster_sentences(sentences, _att_model=None, weights=0.1, context:bool = True, context_len:int = 5, preprocess:bool = True, attention:bool = False, norm:str = 'l2', n_neighbors:int = 15, n_components:int = 2, umap_metric:str = 'cosine', cluster_metric:str = 'cosine', algorithm:str = 'best', cluster_selection_method:str = 'eom', min_cluster_size:int = 2, min_samples:int = 1):
     logger.info("Clustering sentences...")
     if not sentences or len(sentences) == 0:
         return [0]
     if len(sentences) == 1:
         return [0]
     weights_new = {"single": weights, "context": 1 - weights}
-    if attention and att_model is None:
-        att_model = load_attention_model()
-    embeddings = encode_text(sentences, weights_new, context, context_len, preprocess, attention, att_model)
+    if attention and _att_model is None:
+        _att_model = load_attention_model()
+    embeddings = encode_text(sentences, weights_new, context, context_len, preprocess, attention, _att_model)
     if embeddings is None or len(embeddings) == 0:
         return [0]
     if len(embeddings) == 1:
@@ -267,7 +267,7 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
     sentences_text = [sentence.text for sentence in sentences]
     cluster_labels = cluster_sentences(
         sentences_text,
-        att_model=attention_model,
+        _att_model=attention_model,
         **params
     )
     if all(label == -1 for label in cluster_labels):
