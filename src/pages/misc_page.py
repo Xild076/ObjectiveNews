@@ -1,93 +1,76 @@
 import streamlit as st
-from streamlit_extras import colored_header
-from pages.page_utility import calculate_module_import_time, make_notification
-import pandas as pd
-import sys
-import os
+from objectify.synonym import get_synonyms
+from objectify.objectify import calculate_objectivity
+from reliability import get_source_label, normalize_domain, _load_source_df
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+st.set_page_config(page_title="Utilities Explorer", layout="wide")
 
-with st.spinner(f"Loading modules for ```misc_page.py``` | Approximate loading time: ```{round(calculate_module_import_time(['summarizer', 'synonym']), 4)}``` seconds"):
-    load_text = st.empty()
-    load_text.write("Loading ```summarizer.py```")
-    from summarizer import summarize_text
-    load_text.write("Loading ```synonym.py```")
-    from synonym import get_synonyms
-    load_text.write("Loading ```utility.py```")
-    from utility import normalize_text, fix_space_newline
-    load_text.empty()
+st.title("Utilities Explorer")
+st.markdown("Explore some of the underlying components of the analysis engine.")
 
-colored_header.colored_header("Misc Tools", "Advanced synonyms & summarization", st.session_state["header_color"] if "header_color" in st.session_state else "blue-70")
+tab1, tab2 = st.tabs(["Synonym Objectivity Ranker", "Domain Reliability Checker"])
 
-def disable_synonyms():
-    st.session_state["synonyms_disabled"] = True
+with tab1:
+    st.header("Synonym Objectivity Ranker")
+    st.markdown("Find synonyms for a word, automatically ranked by their calculated objectivity score. A higher score (closer to 1.0) means more neutral language.")
+    st.caption("Try adjectives, loaded terms, or even names.")
 
-def disable_summarize():
-    st.session_state["summarize_disabled"] = True
-
-if "synonyms_disabled" not in st.session_state:
-    st.session_state["synonyms_disabled"] = False
-
-if "summarize_disabled" not in st.session_state:
-    st.session_state["summarize_disabled"] = False
-
-col1, col2 = st.columns(2)
-
-with col1:
-    with st.container():
-        st.subheader("Find Synonyms")
-        word_input = st.text_input("Enter a word")
-        pos_filter = st.selectbox("Filter by Part of Speech", ["N/A", "noun", "verb", "adjective"])
-        deep_search = st.checkbox("Deep Search")
-        synonyms_button = st.button("Get Synonyms", disabled=st.session_state["synonyms_disabled"], on_click=disable_synonyms)
-        if synonyms_button:
-            if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
-                notif_text = st.info("The process is underway! We will notify you once it is complete, so you can tab off and come back later. You can disable these notifications in the settings.")
-            progress_bar = st.progress(0)
-            load_text = st.empty()
-            load_text.write("Searching for synonyms...")
-            if word_input.strip():
-                synonyms_list = get_synonyms(word_input, pos_filter if pos_filter != "N/A" else None, deep_search)
-                if synonyms_list:
-                    df = pd.DataFrame(synonyms_list).drop_duplicates().sort_values("word").reset_index(drop=True)
-                    st.data_editor(df, use_container_width=True)
-                else:
-                    st.info("No synonyms found.")
-                progress_bar.progress(100)
+    word_input = st.text_input("Enter a word to analyze:", "beautiful", help="Type any word to see its synonyms ranked by objectivity.")
+    if word_input:
+        with st.spinner(f"Finding and ranking synonyms for '{word_input}'..."):
+            synonyms_raw = get_synonyms(word_input, deep=True, include_external=True, topn=15)
+            if not synonyms_raw:
+                st.warning(f"No synonyms found for '{word_input}'.")
             else:
-                st.error("Please enter a word.")
-                st.session_state["synonyms_disabled"] = False
-            load_text.empty()
-            progress_bar.empty()
-            if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
-                make_notification(title="Synonyms Retrieval Complete", body="The synonym search process has been completed!")
-                notif_text.empty()
-            st.session_state["synonyms_disabled"] = False
+                synonym_data = sorted(
+                    [{
+                        "word": syn['word'],
+                        "definition": syn.get('definition'),
+                        "objectivity": calculate_objectivity(syn['word'])
+                    } for syn in synonyms_raw],
+                    key=lambda x: x['objectivity'],
+                    reverse=True
+                )
+                
+                st.markdown("---")
+                for i, syn in enumerate(synonym_data):
+                    with st.container(border=True):
+                        col1, col2 = st.columns([4, 1])
+                        with col1:
+                            st.markdown(f"**{i+1}. {syn['word']}**")
+                            if syn.get('definition'):
+                                st.caption(f"_{syn['definition']}_")
+                        with col2:
+                            st.metric(label="Objectivity", value=f"{syn['objectivity']:.3f}", help="A score of 1.0 is completely neutral.")
 
-with col2:
-    with st.container():
-        st.subheader("Summarize Text")
-        text_input = st.text_area("Enter text", height=200)
-        summarize_button = st.button("Summarize", disabled=st.session_state["summarize_disabled"], on_click=disable_summarize)
-        if summarize_button:
-            if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
-                notif_text = st.info("The process is underway! We will notify you once it is complete, so you can tab off and come back later. You can disable these notifications in the settings.")
-            progress_bar = st.progress(0)
-            load_text = st.empty()
-            load_text.write("Summarizing text...")
-            if not text_input.strip():
-                st.error("Please enter some text.")
-                st.session_state["summarize_disabled"] = False
-            elif len(text_input) > 4096:
-                st.error("Text exceeds 4096 character limit.")
-                st.session_state["summarize_disabled"] = False
-            else:
-                summary = normalize_text(fix_space_newline(summarize_text(text_input)))
-                st.write(summary)
-                progress_bar.progress(100)
-            load_text.empty()
-            progress_bar.empty()
-            if "push_notification" not in st.session_state or st.session_state["push_notifications"]:
-                make_notification(title="Text Summarization Complete", body="The text summarization process has been completed!")
-                notif_text.empty()
-            st.session_state["summarize_disabled"] = False
+with tab2:
+    st.header("Domain Reliability Checker")
+    st.markdown("Check the internally stored reliability score for a news domain. The score ranges from **-1** (low reliability) to **+1** (high reliability).")
+    st.caption("Try domains like `cnn.com`, `foxnews.com`, `bbc.com`, etc.")
+
+    domain_input = st.text_input("Enter a domain to check:", "nytimes.com", placeholder="e.g., cnn.com", help="Type a news domain to see its reliability score.")
+    if domain_input:
+        with st.container(border=True):
+            normalized = normalize_domain(domain_input)
+            score, _ = get_source_label(normalized, _load_source_df())
+            percent = (score + 1) / 2 * 100
+            
+            st.subheader(f"Reliability for: `{normalized}`")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric(label="Reliability Score [-1 to 1]", value=f"{score:.3f}")
+            with col2:
+                st.metric(label="Reliability Percentage", value=f"{percent:.1f}%")
+            
+            st.progress(int(percent), text=f"{percent:.1f}%")
+        st.info("This score is an internal metric influenced by the objectivity, coverage, and recency of articles processed from that domain.", icon="ℹ️")
+
+    st.divider()
+    st.header("Media Bias & Reliability Resources")
+    st.markdown("The engine's initial reliability scores are based on established datasets, which are then dynamically updated. Here are some key resources for understanding media analysis:")
+    st.markdown("""
+    - **[FakeNewsNet](https://github.com/KaiDMML/FakeNewsNet):** A primary data source for our initial model training.
+    - **[Ad Fontes Media](https://adfontesmedia.com/):** Creator of the Media Bias Chart.
+    - **[AllSides](https://www.allsides.com/):** Provides media bias ratings and stories from multiple perspectives.
+    - **[Pew Research Center](https://www.pewresearch.org/journalism/):** Conducts non-partisan research on the news industry.
+    """)

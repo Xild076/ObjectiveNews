@@ -1,0 +1,305 @@
+2025-07-23 22:46:44 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 22:47:02 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 22:47:56 [39m [GROUPING] [31m [ERROR] [39m Failed reduction: Cannot use scipy.linalg.eigh for sparse A with k >
+2025-07-23 22:59:42 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 23:00:20 [39m [GROUPING] [31m [ERROR] [39m Failed reduction: Cannot use scipy.linalg.eigh for sparse A with k >
+2025-07-23 23:02:11 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 23:11:19 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 23:13:59 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 23:26:51 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 23:27:33 [39m [GROUPING] [31m [ERROR] [39m Failed reduction: Cannot use scipy.linalg.eigh for sparse A with k >
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback failed: [Errno 2] No such file or directory: '/Users/harry/Documents/Python_Projects/ObjectiveNews/src/../../data/golden_truth_dataset.csv'
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:27:41 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:49:57 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
+2025-07-23 23:50:36 [39m [GROUPING] [31m [ERROR] [39m Failed reduction: Cannot use scipy.linalg.eigh for sparse A with k >
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:45 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:46 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m CSV fallback file not found: /Users/harry/Documents/Python_Projects/data/golden_truth_dataset.csv
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:50:47 [39m [RELIABILITY] [31m [ERROR] [39m DB connection failed: unable to open database file
+2025-07-23 23:57:32 [39m [OBJECTIFY] [31m [ERROR] [39m Error fetching MPQA: requests exception...
