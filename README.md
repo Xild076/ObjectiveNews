@@ -24,7 +24,7 @@ This project was created to help combat misinformation in news. The code gathers
 
 ## Directories:
 - `data/`: Stores data about bias
-- `images/`: Stores images for the website page
+ - `images/`: Stores images for the website page
 - `src/`: Source code
     - `pages`: Store website page information
 - `requirements.txt`: Stores requirements

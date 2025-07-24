@@ -1,9 +1,15 @@
+import nltk
 import requests
 from nltk.corpus import wordnet as wn, sentiwordnet as swn
+from utility import DLog, cache_data_decorator, load_nlp_ecws, load_inflect
+
+logger = DLog("SYNONYM")
 
 _COARSE_POS = {"n", "v", "a", "r"}
 
+@cache_data_decorator
 def _normalize_pos(pos):
+    logger.info("_Normalizing part-of-speech...")
     if not pos:
         return None
     p = pos.lower()
@@ -19,18 +25,22 @@ def _normalize_pos(pos):
         return "a"
     return None
 
-def _synset_coarse_pos(synset):
-    p = synset.pos()
+@cache_data_decorator
+def _synset_coarse_pos(_synset):
+    logger.info("_Synset coarse part-of-speech...")
+    p = _synset.pos()
     return "a" if p == "s" else p
 
+@cache_data_decorator
 def _collect_wordnet_synonyms(word, pos=None, deep=False, sentiment_filter=False):
+    logger.info("_Collecting wordnet synonyms...")
     cpos = _normalize_pos(pos)
     synsets = wn.synsets(word, pos=cpos) if cpos else wn.synsets(word)
     if cpos:
         synsets = [s for s in synsets if _synset_coarse_pos(s) == cpos]
 
     if not synsets:
-        return {}, None
+        return {}
 
     target_sent = None
     if sentiment_filter:
@@ -83,7 +93,8 @@ def _collect_wordnet_synonyms(word, pos=None, deep=False, sentiment_filter=False
             if c == "a":
                 related.extend(s.similar_tos())
             related.extend(s.also_sees())
-            related.extend(s.pertainyms())
+            for lemma in s.lemmas():
+                related.extend(lemma.pertainyms())
             for rs in related:
                 rc = _synset_coarse_pos(rs)
                 if cpos and rc != cpos:
@@ -117,9 +128,11 @@ def _collect_wordnet_synonyms(word, pos=None, deep=False, sentiment_filter=False
                         else:
                             candidates[name]["score"] += score
 
-    return candidates, synsets
+    return candidates
 
+@cache_data_decorator
 def _collect_external_synonyms(word, pos=None):
+    logger.info("_Collect external_synonyms...")
     cpos = _normalize_pos(pos)
     out = {}
     try:
@@ -144,12 +157,14 @@ def _collect_external_synonyms(word, pos=None):
                             "definition": None,
                             "sense": None,
                         }
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(f"Error collecting external synonyms: {str(e)[:50]}")
     return out
 
+@cache_data_decorator
 def get_synonyms(word, pos=None, deep=False, sentiment_filter=False, include_external=False, topn=None, simple=False):
-    wn_cands, synsets = _collect_wordnet_synonyms(word, pos=pos, deep=deep, sentiment_filter=sentiment_filter)
+    logger.info("Getting synonyms...")
+    wn_cands = _collect_wordnet_synonyms(word, pos=pos, deep=deep, sentiment_filter=sentiment_filter)
     if include_external:
         ext_cands = _collect_external_synonyms(word, pos=pos)
         for k, v in ext_cands.items():
@@ -157,13 +172,10 @@ def get_synonyms(word, pos=None, deep=False, sentiment_filter=False, include_ext
                 wn_cands[k]["score"] += v["score"]
             else:
                 wn_cands[k] = v
-
     cands = list(wn_cands.values())
     cands.sort(key=lambda d: (-d["score"], d["word"]))
-
     if topn is not None:
         cands = cands[:topn]
-
     if simple:
         return [{"word": d["word"], "pos": d["pos"]} for d in cands]
     return cands

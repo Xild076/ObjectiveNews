@@ -3,31 +3,23 @@ import hdbscan
 import warnings
 import os
 import ast
-import json
-from sentence_transformers import SentenceTransformer
-from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.tokenize import word_tokenize
 from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import cosine_similarity
-from typing import Literal, Tuple, Dict, List, Any
+from sklearn.metrics import silhouette_samples
+from typing import Dict, List, Any
 import umap
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, homogeneity_score, completeness_score, v_measure_score
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import math
-from utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax
+from utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from typing import Union, Type
 
 warnings.filterwarnings("ignore", module="^sklearn")
-
-print("Loading models...")
-model = SentenceTransformer("all-MiniLM-L6-v2")
-lemmatizer = WordNetLemmatizer()
-print("Models loaded.")
+logger = DLog("GROUPING", "DEBUG")
 
 class SelfAttentionModel(nn.Module):
     def __init__(self, embed_dim=384, num_heads=8, num_layers=2, dropout=0.1):
@@ -67,7 +59,9 @@ class SelfAttentionModel(nn.Module):
         
         return x.squeeze(0) if x.size(0) == 1 else x
 
+@cache_resource_decorator
 def load_attention_model(model_path=None):
+    logger.info("Loading Attention model...")
     if model_path is None:
         model_paths = [
             "models/best_attention_model.pth",
@@ -85,16 +79,19 @@ def load_attention_model(model_path=None):
             else:
                 attention_model.load_state_dict(state_dict)
             attention_model.eval()
-            print(f"Loaded attention model from {model_path}")
+            logger.info(f"Loaded attention model from {model_path}")
             return attention_model
         except Exception as e:
-            print(f"Failed to load model from {model_path}: {e}")
+            logger.error(f"Failed to load model from {model_path}: {e}")
             return None
     return None
 
 attention_model = load_attention_model()
 
+@cache_data_decorator
 def preprocess_text(text):
+    logger.info("Preprocessing text...")
+    lemmatizer = load_lemma()
     stop_words = set(stopwords.words('english'))
     text = clean_text(text)
     text = text.lower()
@@ -102,46 +99,10 @@ def preprocess_text(text):
     tokens = [lemmatizer.lemmatize(word) for word in tokens
               if word.isalpha() and word not in stop_words]
     return ' '.join(tokens) if tokens else text
-    abbreviations = {'Mr.', 'Mrs.', 'Dr.', 'Jr.', 'Sr.', 'vs.', 'etc.', 'i.e.', 'e.g.', 'U.S.'}
-    opener_to_closer = {'"': '"', '“': '”'}
-    closers = {v: k for k, v in opener_to_closer.items()}
-    stack = []
-    sentences = []
-    buffer = []
-    i = 0
-    n = len(text)
 
-    while i < n:
-        ch = text[i]
-        buffer.append(ch)
-
-        if ch in opener_to_closer and not stack:
-            stack.append(opener_to_closer[ch])
-        elif stack and ch == stack[-1]:
-            stack.pop()
-
-        if ch in '.?!' and not stack:
-            j = i + 1
-            while j < n and text[j] in '.?!':
-                buffer.append(text[j])
-                j += 1
-
-            tail = ''.join(buffer).strip().split()[-1]
-            if tail not in abbreviations:
-                if j == n or text[j].isspace():
-                    sentences.append(''.join(buffer).strip())
-                    buffer = []
-                    i = j - 1
-
-        i += 1
-
-    rem = ''.join(buffer).strip()
-    if rem:
-        sentences.append(rem)
-
-    return sentences
-
+@cache_data_decorator
 def encode_text_with_attention(embeddings, att_model):
+    logger.info("Encoding text with attention...")
     if att_model is None:
         raise ValueError("Attention model is not loaded or provided.")
     
@@ -153,7 +114,10 @@ def encode_text_with_attention(embeddings, att_model):
         
     return refined_embeddings.detach().cpu().numpy()
 
+@cache_data_decorator
 def encode_text(sentences, weights, context, context_len, preprocess, attention, att_model):
+    logger.info("Encoding text...")
+    model = load_sent_transformer()
     if not sentences or len(sentences) == 0:
         return np.array([])
     if preprocess:
@@ -177,12 +141,28 @@ def encode_text(sentences, weights, context, context_len, preprocess, attention,
         final_embeddings.append(weighted_emb)
     return np.array(final_embeddings)
 
+@cache_data_decorator
 def dim_reduction(embeddings, n_neighbors=15, n_components=2, metric='cosine'):
-    reducer = umap.UMAP(n_neighbors=n_neighbors, n_components=n_components, metric=metric)
-    reduced_embeddings = reducer.fit_transform(embeddings)
-    return reduced_embeddings
+    logger.info("Dimensional Reduction...")
+    n_samples = len(embeddings)
+    if n_samples < 3:
+        return embeddings
+    safe_n_neighbors = min(n_neighbors, n_samples - 1)
+    safe_n_components = min(n_components, n_samples - 1)
+    if safe_n_neighbors < 1:
+        safe_n_neighbors = 1
+    if safe_n_components < 1:
+        safe_n_components = 1
+    try:
+        reducer = umap.UMAP(n_neighbors=safe_n_neighbors, n_components=safe_n_components, metric=metric)
+        reduced_embeddings = reducer.fit_transform(embeddings)
+        return reduced_embeddings
+    except Exception as e:
+        logger.error(f"Failed reduction: {str(e)[:50]}")
+        return embeddings
 
 def cluster_embeddings(embeddings, metric='cosine', algorithm='best', cluster_selection_method='eom', min_cluster_size=2, min_samples=None):
+    logger.info("Clustering embeddings...")
     if metric in ['cosine', 'hamming', 'jaccard', 'canberra', 'braycurtis']:
         if algorithm in ['prims_balltree', 'boruvka_balltree', 'best']:
             algorithm = 'generic'
@@ -190,7 +170,9 @@ def cluster_embeddings(embeddings, metric='cosine', algorithm='best', cluster_se
     cluster = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples, metric=metric, algorithm=algorithm, cluster_selection_method=cluster_selection_method)
     return cluster.fit_predict(embeddings)
 
+@cache_resource_decorator
 def load_samples(file_path='data/grouping_data'):
+    logger.info("Loading samples...")
     paths = os.listdir(file_path)
     data = []
     for path in paths:
@@ -206,6 +188,7 @@ def load_samples(file_path='data/grouping_data'):
     return data
 
 def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_label: int) -> int:
+    logger.info("Finding representative sentences...")
     cluster_indices = np.where(labels == cluster_label)[0]
     if len(cluster_indices) == 0:
         raise ValueError(f"No points found for cluster {cluster_label}.")
@@ -217,8 +200,9 @@ def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_labe
     return rep_idx
 
 def cluster_sentences(sentences, att_model=None, weights=0.1, context:bool = True, context_len:int = 5, preprocess:bool = True, attention:bool = False, norm:str = 'l2', n_neighbors:int = 15, n_components:int = 2, umap_metric:str = 'cosine', cluster_metric:str = 'cosine', algorithm:str = 'best', cluster_selection_method:str = 'eom', min_cluster_size:int = 2, min_samples:int = 1):
+    logger.info("Clustering sentences...")
     if not sentences or len(sentences) == 0:
-        return []
+        return [0]
     if len(sentences) == 1:
         return [0]
     weights_new = {"single": weights, "context": 1 - weights}
@@ -226,19 +210,25 @@ def cluster_sentences(sentences, att_model=None, weights=0.1, context:bool = Tru
         att_model = load_attention_model()
     embeddings = encode_text(sentences, weights_new, context, context_len, preprocess, attention, att_model)
     if embeddings is None or len(embeddings) == 0:
-        return []
+        return [0]
     if len(embeddings) == 1:
         return [0]
     if norm != 'none':
         embeddings = normalize(embeddings, norm=norm)
-    actual_n_neighbors = min(n_neighbors, len(embeddings) - 1)
-    if actual_n_neighbors < 1:
-        actual_n_neighbors = 1
-    embeddings = dim_reduction(embeddings, actual_n_neighbors, n_components, umap_metric)
-    clusters = cluster_embeddings(embeddings, metric=cluster_metric, algorithm=algorithm, cluster_selection_method=cluster_selection_method, min_cluster_size=min_cluster_size, min_samples=min_samples)
-    return clusters.tolist()
+    n_samples = len(embeddings)
+    actual_n_neighbors = min(n_neighbors, max(1, n_samples - 1))
+    actual_n_components = min(n_components, max(1, n_samples - 1))
+    embeddings = dim_reduction(embeddings, actual_n_neighbors, actual_n_components, umap_metric)
+    try:
+        clusters = cluster_embeddings(embeddings, metric=cluster_metric, algorithm=algorithm, cluster_selection_method=cluster_selection_method, min_cluster_size=min_cluster_size, min_samples=min_samples)
+        if clusters is None or len(clusters) == 0 or all(label == -1 for label in clusters):
+            return [0] * len(sentences)
+        return clusters.tolist()
+    except Exception as e:
+        return [0] * len(sentences)
 
 def reward_function(cluster_pred, cluster_true):
+    logger.info("Calculating reward...")
     ari = adjusted_rand_score(cluster_true, cluster_pred)
     nmi = normalized_mutual_info_score(cluster_true, cluster_pred)
     homogeneity = homogeneity_score(cluster_true, cluster_pred)
@@ -266,19 +256,22 @@ OPTIMAL_CLUSTERING_PARAMS = {
 }
 
 def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PARAMS):
+    logger.info("Clustering texts...")
     if not sentences or len(sentences) == 0:
-        return []
-
+        return [{
+            "label": 0,
+            "sentences": [],
+            "representative": None,
+            "representative_with_context": (None, None)
+        }]
     sentences_text = [sentence.text for sentence in sentences]
     cluster_labels = cluster_sentences(
         sentences_text,
         att_model=attention_model,
         **params
     )
-
     if all(label == -1 for label in cluster_labels):
         cluster_labels = [0] * len(sentences)
-
     cluster_dicts = []
     unique_labels = sorted(l for l in set(cluster_labels) if l != -1)
 
@@ -329,6 +322,7 @@ def observe_best_cluster(sentences_holder: List[SentenceHolder],
                          attention=True,
                          clustering_method: Union[Type[AgglomerativeClustering], Type[KMeans]] = KMeans,
                          score_weights = {'sil': 0.4, 'db': 0.2, 'ch': 0.4}) -> Dict[Any, Any]:
+    logger.info("Observing best clsuters...")
     sentences = [sent.text for sent in sentences_holder]
     X = encode_text(sentences, weights, context, context_len, preprocess, attention, attention_model)
 
@@ -408,3 +402,125 @@ def observe_best_cluster(sentences_holder: List[SentenceHolder],
             'score': float(best_score)
         }
     }
+
+def group_representative_sentences(rep_sentences: List,
+                                   min_cluster_size: int = 3,
+                                   min_avg_sim: float = 0.25,
+                                   min_silhouette: float = 0.05,
+                                   max_sim_std: float = 0.13):
+    model = load_sent_transformer()
+    reps_with_context, reps_no_context = [], []
+    for item in rep_sentences:
+        if isinstance(item, tuple):
+            rep, ctx = item
+            c = ctx if hasattr(ctx, 'text') else SentenceHolder(ctx, rep.source, rep.author, rep.date)
+            reps_with_context.append(c)
+            reps_no_context.append(rep)
+        else:
+            reps_with_context.append(item)
+            reps_no_context.append(item)
+
+    if len(reps_no_context) < min_cluster_size:
+        if not reps_no_context:
+            return []
+        return [{
+            'label': 0,
+            'sentences': reps_no_context,
+            'representative': reps_no_context[0],
+            'representative_with_context': (reps_no_context[0], reps_with_context[0])
+        }]
+
+    texts = [s.text for s in reps_with_context]
+    embeddings = model.encode(texts, show_progress_bar=False)
+    normed = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
+    n_samples = len(normed)
+
+    if n_samples <= 1:
+        return []
+
+    umap_neighbors = min(10, n_samples - 1)
+    umap_components = min(5, n_samples - 1)
+    
+    if umap_components == 0:
+        umap_components = 1
+
+    reducer = umap.UMAP(n_neighbors=umap_neighbors,
+                        n_components=umap_components,
+                        metric='cosine',
+                        random_state=42)
+    reduced = reducer.fit_transform(normed)
+
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size,
+                                min_samples=max(1, min_cluster_size // 2),
+                                metric='euclidean',
+                                allow_single_cluster=True)
+    labels = clusterer.fit_predict(reduced)
+
+    unique_labels = np.unique(labels)
+    if len(unique_labels) > 1 and not (len(unique_labels) == 2 and -1 in unique_labels):
+        sil_scores = silhouette_samples(normed, labels, metric='cosine')
+    else:
+        sil_scores = np.ones(n_samples)
+
+    sim_matrix = cosine_similarity(embeddings)
+    clusters = []
+    
+    noise_indices = list(np.where(labels == -1)[0])
+    
+    for lbl in set(labels) - {-1}:
+        idxs = list(np.where(labels == lbl)[0])
+        sub = sim_matrix[np.ix_(idxs, idxs)]
+        pairs = np.triu_indices(len(sub), k=1)
+        
+        is_coherent = True
+        if pairs[0].size > 0:
+            pairwise_sims = sub[pairs]
+            avg_sim = pairwise_sims.mean()
+            sim_std = pairwise_sims.std()
+            
+            if (avg_sim < min_avg_sim or 
+                sim_std > max_sim_std or 
+                sil_scores[idxs].mean() < min_silhouette):
+                is_coherent = False
+        
+        if is_coherent:
+            rep_i = idxs[np.argmax(sub.sum(axis=1))]
+            clusters.append({
+                'label': int(lbl),
+                'sentences': [reps_no_context[i] for i in idxs],
+                'representative': reps_no_context[rep_i],
+                'representative_with_context': (
+                    reps_no_context[rep_i],
+                    reps_with_context[rep_i]
+                )
+            })
+        else:
+            noise_indices.extend(idxs)
+
+    if noise_indices and not clusters:
+        noise_sentences_no_ctx = [reps_no_context[i] for i in noise_indices]
+        noise_sentences_with_ctx = [reps_with_context[i] for i in noise_indices]
+        return [{
+            'label': 0,
+            'sentences': noise_sentences_no_ctx,
+            'representative': noise_sentences_no_ctx[0],
+            'representative_with_context': (noise_sentences_no_ctx[0], noise_sentences_with_ctx[0])
+        }]
+    
+    if not clusters and not noise_indices:
+        return []
+
+    return clusters
+
+def group_individual_articles(article):
+    logger.info("Grouping individual articles...")
+    rep_sentences = []
+    text = article.get('text', '')
+    sentences = split_sentences(text)
+    sentences = [SentenceHolder(text=text, source=article['source'], author=article['author'], date=article['date']) for text in sentences]
+
+    clusters = cluster_texts(sentences)
+
+    for cluster in clusters:
+        rep_sentences.append(cluster['representative_with_context'])
+    return rep_sentences

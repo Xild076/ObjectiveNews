@@ -2,43 +2,45 @@ import logging
 import re
 import os
 import requests
-from functools import lru_cache
-
-import spacy
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 from textblob import TextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from nltk.corpus import wordnet as wn
 from nltk.corpus import sentiwordnet as swn
-from rich import print
+from utility import DLog, load_nlp_ecws, cache_resource_decorator, cache_data_decorator, load_inflect
 
-from synonym import get_synonyms
+from objectify.synonym import get_synonyms
 
+logger = DLog("OBJECTIFY")
 logging.basicConfig(level=logging.CRITICAL)
-nlp = spacy.load("en_core_web_sm")
 
 def simple_tokenizer(text: str) -> list[str]:
+    logger.info("Simple tokenizer...")
     return re.findall(r'\b\w+\b', text.lower())
 
-@lru_cache(maxsize=2048)
+@cache_data_decorator
 def get_objectivity_from_swn(word: str) -> float:
+    logger.info("Getting objectivity from swn...")
     obj_scores = [s.obj_score() for s in swn.senti_synsets(word.lower())]
     return sum(obj_scores) / len(obj_scores) if obj_scores else 0.5
 
+@cache_data_decorator
 def get_objectivity_from_textblob(sentence: str) -> float:
+    logger.info("Getting textblob objectivity...")
     return 1.0 - TextBlob(sentence).subjectivity
 
-try:
-    vader_analyzer = SentimentIntensityAnalyzer()
-    def get_objectivity_from_vader(sentence: str) -> float:
-        return vader_analyzer.polarity_scores(sentence)['neu']
-except Exception:
-    def get_objectivity_from_vader(sentence: str) -> float:
-        raise RuntimeError("VADER is not available.")
+def get_objectivity_from_vader(sentence: str) -> float:
+    try:
+        analyzer = SentimentIntensityAnalyzer()
+        return analyzer.polarity_scores(sentence)['neu']
+    except Exception:
+        return 0.5
 
 MPQA_LEXICON_PATH = "subjclueslen1-all.tff"
 MPQA_LEXICON_URL = "http://mpqa.cs.pitt.edu/lexicons/subj_lexicon/subjclueslen1-all.tff"
 
 def _download_mpqa_lexicon():
+    logger.info("_Downloading MPQA lexicon...")
     if not os.path.exists(MPQA_LEXICON_PATH):
         try:
             response = requests.get(MPQA_LEXICON_URL)
@@ -46,11 +48,13 @@ def _download_mpqa_lexicon():
             with open(MPQA_LEXICON_PATH, 'w') as f:
                 f.write(response.text)
         except requests.exceptions.RequestException:
+            logger.error("Error fetching MPQA: requests exception...")
             return False
     return True
 
-@lru_cache(maxsize=1)
+@cache_resource_decorator
 def _load_mpqa_lexicon() -> dict:
+    logger.info("_Loading MPQA lexicon...")
     lexicon = {}
     if not _download_mpqa_lexicon():
         return lexicon
@@ -61,40 +65,44 @@ def _load_mpqa_lexicon() -> dict:
                 word = parts['word1']
                 polarity = 'objective' if parts['priorpolarity'] == 'neutral' else 'subjective'
                 lexicon[word] = polarity
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error in loading error: {str(e)[:50]}")
         return {}
     return lexicon
 
-MPQA_LEXICON = _load_mpqa_lexicon()
 
+@cache_resource_decorator
+def get_mpqa_lexicon():
+    return _load_mpqa_lexicon()
+
+@cache_data_decorator
 def get_objectivity_from_mpqa(sentence: str) -> float:
-    if not MPQA_LEXICON:
-        raise RuntimeError("MPQA Lexicon is not available.")
-    
+    logger.info("Getting objectivity from MPQA...")
+    lexicon = get_mpqa_lexicon()
+    if not lexicon:
+        return 0.5
     words = simple_tokenizer(sentence)
     if not words:
         return 0.5
-
     subjective_count = 0
     objective_count = 0
-    
     for word in words:
-        polarity = MPQA_LEXICON.get(word)
+        polarity = lexicon.get(word)
         if polarity == 'subjective':
             subjective_count += 1
         elif polarity == 'objective':
             objective_count += 1
-            
     total_found = subjective_count + objective_count
     if total_found == 0:
         return 0.5
-
     return objective_count / total_found
 
+@cache_data_decorator
 def calculate_objectivity(
     text: str,
     ensemble_weights: dict = None
 ) -> float:
+    logger.info("Calculating objectivity...")
     if not text.strip():
         return 0.5
 
@@ -102,7 +110,6 @@ def calculate_objectivity(
     weights = ensemble_weights if ensemble_weights is not None else default_weights
 
     scores = {}
-    
     try:
         tokens = simple_tokenizer(text)
         if tokens:
@@ -110,37 +117,29 @@ def calculate_objectivity(
             scores['swn'] = sum(swn_scores) / len(swn_scores)
     except Exception:
         pass
-
     try:
         scores['textblob'] = get_objectivity_from_textblob(text)
     except Exception:
         pass
-
     try:
         scores['vader'] = get_objectivity_from_vader(text)
     except Exception:
         pass
-        
     try:
         scores['mpqa'] = get_objectivity_from_mpqa(text)
     except Exception:
         pass
-
     if not scores:
         return 0.5
-    
-    # --- BUG FIX IS HERE ---
-    # Use .get(key, 0) to safely handle custom weights that don't include all methods.
     weighted_sum = sum(scores[key] * weights.get(key, 0) for key in scores)
     total_weight = sum(weights.get(key, 0) for key in scores)
-
     if total_weight == 0:
-        # Fallback to simple average if no valid weights are provided for the successful methods.
         return sum(scores.values()) / len(scores)
-
     return weighted_sum / total_weight
 
+@cache_data_decorator
 def get_objective_synonym(word, pos=None):
+    logger.info("Getting most objective synonyms...")
     synonyms = get_synonyms(word, pos, include_external=True)
     if not synonyms:
         return {'word': word}
@@ -153,12 +152,18 @@ def get_objective_synonym(word, pos=None):
     else:
         return synonyms[0]
 
+@cache_data_decorator
 def extract_amod(sentence):
+    logger.info("Extracting amod...")
+    nlp = load_nlp_ecws()
     doc = nlp(sentence)
     return [t for t in doc if t.dep_ == "amod"]
 
 def objectify_text(sentence, remove_dependents=False, objectivity_threshold=0.5):
+    logger.info("Objectifying text...")
+    nlp = load_nlp_ecws()
     doc = nlp(sentence)
+    p = load_inflect()
     skip, replace = set(), {}
     for t in doc:
         score = calculate_objectivity(t.text)
@@ -169,8 +174,27 @@ def objectify_text(sentence, remove_dependents=False, objectivity_threshold=0.5)
                 skip.add(t.i)
         elif t.pos_ in {"ADJ", "VERB", "NOUN"} and score < objectivity_threshold:
             rep = get_objective_synonym(t.text, pos=t.pos_)
-            if rep:
-                replace[t.i] = rep['word']
+            rep_word = rep['word'] if rep else t.text
+            if t.pos_ == "NOUN":
+                if t.tag_ == "NNS":
+                    rep_word = p.plural(rep_word)
+                elif t.tag_ == "NN": 
+                    rep_word = p.singular_noun(rep_word) or rep_word
+            elif t.pos_ == "VERB":
+                if t.tag_ == "VBD":
+                    rep_word = t._.inflect("VBD") if hasattr(t._, "inflect") else rep_word
+                elif t.tag_ == "VBG":
+                    rep_word = t._.inflect("VBG") if hasattr(t._, "inflect") else rep_word
+                elif t.tag_ == "VBZ":
+                    rep_word = t._.inflect("VBZ") if hasattr(t._, "inflect") else rep_word
+                elif t.tag_ == "VBN":
+                    rep_word = t._.inflect("VBN") if hasattr(t._, "inflect") else rep_word
+                elif t.tag_ == "VB":
+                    rep_word = t._.inflect("VB") if hasattr(t._, "inflect") else rep_word
+            elif t.pos_ == "ADJ":
+                if hasattr(t._, "inflect"):
+                    rep_word = t._.inflect(t.tag_) or rep_word
+            replace[t.i] = rep_word
     for tok in doc:
         if tok.dep_ == "punct" and (tok.i - 1 in skip or tok.i + 1 in skip or tok.head.i in skip):
             skip.add(tok.i)
@@ -184,7 +208,13 @@ def objectify_text(sentence, remove_dependents=False, objectivity_threshold=0.5)
     text = re.sub(r"\s([?.!,;:])", r"\1", text)
     return text.strip()
 
+def objectify_clusters(clusters):
+    for cluster in clusters:
+        cluster['summary'] = objectify_text(cluster['summary'])
+    return clusters
+
 def test_objectify_text(text):
+    logger.info("Testing objectify text...")
     objectified = objectify_text(text, remove_dependents=True)
     print(f"Original: {text}")
     print(f"Objectivity Score: {calculate_objectivity(text)}")

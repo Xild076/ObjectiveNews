@@ -1,18 +1,18 @@
 import optuna
 from tqdm import tqdm
-from grouping import cluster_sentencess, load_samples, reward_function, model, SelfAttentionModel
-import warnings
+from grouping.grouping import cluster_sentences, load_samples, reward_function, SelfAttentionModel
+from utility import load_sent_transformer, DLog
 import os
 import csv
 import torch
 import torch.nn as nn
-from typing import List, Tuple
-import sys
 import random
 import numpy as np
 import torch.optim as optim
 from torch.distributions import Normal
 import copy
+
+logger = DLog("OPTIMIZE_GROUPING")
 
 class TripletLoss(nn.Module):
     def __init__(self, margin=1.0):
@@ -80,6 +80,7 @@ class DifferentiableClusteringLoss(nn.Module):
         return loss
 
 def objective(trial):
+    logger.info("Loading objective...")
     weights = trial.suggest_float("weights", 0.0, 1.0)
     context = trial.suggest_categorical("context", [True, False])
     context_len = trial.suggest_int("context_len", 1, 20)
@@ -100,7 +101,7 @@ def objective(trial):
             if not filtered_data: continue
             sentences, clusters_true = zip(*filtered_data)
             if not sentences: continue
-            clusters_pred = cluster_sentencess(list(sentences), 
+            clusters_pred = cluster_sentences(list(sentences), 
                                           weights=weights, 
                                           context=context, 
                                           context_len=context_len, 
@@ -116,10 +117,12 @@ def objective(trial):
             if not clusters_pred or len(clusters_pred) != len(clusters_true): continue
             total_reward += reward_function(clusters_pred, list(clusters_true))
         return total_reward / len(samples) if samples else 0
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Error in objective: {str(e)[:50]}")
         return 0
 
 def log_best_trial_to_csv(study, trial):
+    logger.info("Saving best trial to csv...")
     if trial.state != optuna.trial.TrialState.COMPLETE or study.best_trial.number != trial.number:
         return
     filepath = "optuna_best_trials_log.csv"
@@ -132,6 +135,7 @@ def log_best_trial_to_csv(study, trial):
         writer.writerow({**trial.params, "value": trial.value})
 
 def optuna_optimization():
+    logger.info("Optuna optimizing...")
     study = optuna.create_study(direction="maximize")
     try:
         study.optimize(objective, n_trials=20000, callbacks=[log_best_trial_to_csv])
@@ -141,6 +145,7 @@ def optuna_optimization():
         print("Best trial:", study.best_trial.params, "Value:", study.best_trial.value)
 
 def compute_clustering_reward_loss(embeddings, clusters_true, device):
+    logger.info("Computing clustering reward...")
     cluster_map = {}
     for i, cluster_id in enumerate(clusters_true):
         if cluster_id not in cluster_map:
@@ -247,7 +252,7 @@ def evolutionary_strategy_training(model_refiner, data, population_size=100, gen
                     if len(sample['sentences']) < 3 or len(set(sample['clusters'])) < 2:
                         continue
                     try:
-                        pred_clusters = cluster_sentencess(sample['sentences'], att_model=model_refiner, attention=True)
+                        pred_clusters = cluster_sentences(sample['sentences'], att_model=model_refiner, attention=True)
                         if len(pred_clusters) == len(sample['clusters']):
                             total_reward += reward_function(pred_clusters, sample['clusters'])
                             valid_count += 1
@@ -407,6 +412,8 @@ def evolutionary_strategy_training(model_refiner, data, population_size=100, gen
     return model_refiner
 
 def train_with_policy_gradient(model_refiner, data, epochs=100):
+    logger.info("Training with policy gradient...")
+    model = load_sent_transformer()
     policy_net = PolicyNetwork(384).to(next(model_refiner.parameters()).device)
     optimizer = optim.AdamW(list(model_refiner.parameters()) + list(policy_net.parameters()), lr=0.001, weight_decay=1e-4)
     device = next(model_refiner.parameters()).device
@@ -543,6 +550,8 @@ def train_with_policy_gradient(model_refiner, data, epochs=100):
                 break
 
 def train_with_differentiable_loss(model_refiner, data, val_data, epochs=100, best_params=None):
+    logger.info("Testing with diff loss...")
+    model = load_sent_transformer()
     criterion = DifferentiableClusteringLoss(temperature=0.07)
     optimizer = torch.optim.AdamW(model_refiner.parameters(), lr=0.003, weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.005, epochs=epochs, steps_per_epoch=1)
@@ -624,6 +633,8 @@ def train_with_differentiable_loss(model_refiner, data, val_data, epochs=100, be
     return best_reward
 
 def train_contrastive(model_refiner, data, val_data, epochs=100, best_params=None):
+    logger.info("Training with contrastive...")
+    model = load_sent_transformer()
     criterion = ContrastiveLoss(margin=1.2)
     optimizer = torch.optim.AdamW(model_refiner.parameters(), lr=0.002, weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs//3)
@@ -704,6 +715,8 @@ def train_contrastive(model_refiner, data, val_data, epochs=100, best_params=Non
     return best_reward
 
 def train_triplet(model_refiner, data, val_data, epochs=100, best_params=None):
+    logger.info("Training with triplets...")
+    model = load_sent_transformer()
     criterion = TripletLoss(margin=0.8)
     optimizer = torch.optim.AdamW(model_refiner.parameters(), lr=0.002, weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs//3)
@@ -792,6 +805,7 @@ def train_triplet(model_refiner, data, val_data, epochs=100, best_params=None):
     return best_reward
 
 def hybrid_training(model_refiner, data, val_data, es_generations=40, diff_epochs=50, best_params=None):
+    logger.info("Hybrid training...")
     if best_params is None:
         best_params = {
             "weights": 0.4088, "context": True, "context_len": 2, "preprocess": False, 
@@ -844,7 +858,6 @@ def hybrid_training(model_refiner, data, val_data, es_generations=40, diff_epoch
         else:
             print("Triplet was best, keeping current solution")
     
-    # Save the final hybrid model
     checkpoint = {
         'model_state_dict': model_refiner.state_dict(),
         'epoch': es_generations + diff_epochs + 20,
@@ -858,6 +871,8 @@ def hybrid_training(model_refiner, data, val_data, es_generations=40, diff_epoch
 
 def train_meta_learning(model_refiner, data, val_data, epochs=100, meta_lr=1e-4, task_lr=1e-2, 
                        tasks_per_epoch=20, inner_steps=5, best_params=None):
+    logger.info("Training with meta learning...")
+    model = load_sent_transformer()
     device = next(model_refiner.parameters()).device
     meta_optimizer = torch.optim.AdamW(model_refiner.parameters(), lr=meta_lr, weight_decay=1e-5)
     criterion = TripletLoss(margin=0.5).to(device)
@@ -991,7 +1006,7 @@ def train_meta_learning(model_refiner, data, val_data, epochs=100, meta_lr=1e-4,
             with torch.no_grad():
                 for sample in val_data:
                     try:
-                        pred_clusters = cluster_sentencess(
+                        pred_clusters = cluster_sentences(
                             sentences=sample['sentences'], 
                             att_model=model_refiner, 
                             attention=True, 
@@ -1035,6 +1050,7 @@ def train_meta_learning(model_refiner, data, val_data, epochs=100, meta_lr=1e-4,
     return best_val_score
 
 def save_best_model(checkpoint, model_path="models/best_attention_model.pth"):
+    logger.info("Saving best model...")
     if not os.path.exists("models"):
         os.makedirs("models")
     
@@ -1051,6 +1067,7 @@ def save_best_model(checkpoint, model_path="models/best_attention_model.pth"):
     torch.save(checkpoint, model_path)
 
 def evaluate_model_on_validation(model_refiner, val_data, best_params, attention=True):
+    logger.info("Evaluating model on validation...")
     model_refiner.eval()
     val_reward = 0
     val_count = 0
@@ -1058,7 +1075,7 @@ def evaluate_model_on_validation(model_refiner, val_data, best_params, attention
     with torch.no_grad():
         for sample in val_data:
             try:
-                pred_clusters = cluster_sentencess(
+                pred_clusters = cluster_sentences(
                     sentences=sample['sentences'], 
                     att_model=model_refiner if attention else None, 
                     attention=attention, 
@@ -1073,7 +1090,8 @@ def evaluate_model_on_validation(model_refiner, val_data, best_params, attention
     return val_reward / val_count if val_count > 0 else 0.0
 
 def train_self_attention_model(epochs=2000, lr=1e-4, resume_from_best=True, training_method='triplet'):
-    print(f"Starting Self-Attention model training with {training_method} method...")
+    logger.info(f"Starting Self-Attention model training with {training_method} method...")
+    model = load_sent_transformer()
     
     if torch.backends.mps.is_available():
         device = torch.device("mps")
@@ -1172,7 +1190,7 @@ def train_self_attention_model(epochs=2000, lr=1e-4, resume_from_best=True, trai
             with torch.no_grad():
                 for sample in val_samples:
                     try:
-                        pred_clusters = cluster_sentencess(
+                        pred_clusters = cluster_sentences(
                             sentences=sample['sentences'], 
                             att_model=model_refiner, 
                             attention=True, 
