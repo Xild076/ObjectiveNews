@@ -15,10 +15,19 @@ def render_sentences(sentences):
         """
     return html
 import streamlit as st
-from article_analysis import article_analysis
-from reliability import get_source_label, normalize_domain, _load_source_df
 import logging
-from utility import load_keybert
+try:
+    from article_analysis import article_analysis
+except Exception:
+    from src.article_analysis import article_analysis
+try:
+    from reliability import get_source_label, normalize_domain, _load_source_df
+except Exception:
+    from src.reliability import get_source_label, normalize_domain, _load_source_df
+try:
+    from utility import load_keybert
+except Exception:
+    from src.utility import load_keybert
 import torch
 import gc
 

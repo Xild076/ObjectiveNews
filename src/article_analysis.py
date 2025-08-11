@@ -3,6 +3,10 @@ import time
 from colorama import Fore, Style
 from datetime import datetime
 import sys, os
+# Ensure project root is on sys.path when running under Streamlit Cloud
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
 try:
     from grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
 except Exception:
@@ -190,26 +194,18 @@ def article_analysis(text: str, link_n=5, diverse_links=True, summarize_level:Li
 
     update_progress(5, f"Summarizing {len(clusters)} narratives...")
     logger.info("Summarizing clusters...")
-    try:
-        summarized_clusters = summarize_clusters(clusters, level=summarize_level)
-    except Exception as e:
-        logger.error(f"Summarization failed: {e}")
-        summarized_clusters = [{**c, 'summary': c.get('representative', None).text if c.get('representative') else ''} for c in clusters]
+    summarized_clusters = summarize_clusters(clusters, level=summarize_level)
     if not summarized_clusters:
         logger.warning("No summarized clusters found.")
-        summarized_clusters = clusters
+        return []
     logger.info(f"Summarized {len(summarized_clusters)} clusters.")
 
     update_progress(6, "Making summaries objective...")
     logger.info("Objectifying clusters...")
-    try:
-        objectified_clusters = objectify_clusters(summarized_clusters)
-    except Exception as e:
-        logger.error(f"Objectification failed: {e}")
-        objectified_clusters = summarized_clusters
+    objectified_clusters = objectify_clusters(summarized_clusters)
     if not objectified_clusters:
         logger.warning("No objectified clusters found.")
-        objectified_clusters = summarized_clusters
+        return []
     logger.info(f"Objectified {len(objectified_clusters)} clusters.")
 
     update_progress(7, "Calculating reliability scores...")

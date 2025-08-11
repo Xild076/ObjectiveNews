@@ -1,12 +1,14 @@
-import nltk
-from utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT
-from transformers import pipeline
+import re
 import torch
-from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from typing import List, Literal, Dict, Any
+from sklearn.metrics.pairwise import cosine_similarity
+from transformers import pipeline
 import google.generativeai as genai
-import re
+try:
+    from utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT
+except Exception:
+    from src.utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 logger = DLog(name="SUMMARIZER", level="DEBUG")
@@ -18,17 +20,7 @@ def _get_sent_model():
         _sent_model = load_sent_transformer()
     return _sent_model
 
-"""@cache_resource_decorator
-def load_summarizer():
-    summarizer = pipeline(
-        "summarization",
-        model="facebook/bart-large-cnn",
-        device=0 if torch.cuda.is_available() else -1,
-        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
-    )
-    return summarizer"""
-
-# summarizer_model = load_summarizer()
+ 
 
 def grammar_correct(text: str) -> str:
     logger.info("Correcting grammar...")

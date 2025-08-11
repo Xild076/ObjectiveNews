@@ -7,9 +7,14 @@ ssl._create_default_https_context = ssl._create_unverified_context
 from textblob import TextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from nltk.corpus import sentiwordnet as swn
-from utility import DLog, load_nlp_ecws, cache_resource_decorator, cache_data_decorator, load_inflect
-
-from objectify.synonym import get_synonyms
+try:
+    from utility import DLog, load_nlp_ecws, cache_resource_decorator, cache_data_decorator, load_inflect
+except Exception:
+    from src.utility import DLog, load_nlp_ecws, cache_resource_decorator, cache_data_decorator, load_inflect
+try:
+    from objectify.synonym import get_synonyms
+except Exception:
+    from src.objectify.synonym import get_synonyms
 
 logger = DLog("OBJECTIFY")
 
