@@ -12,7 +12,6 @@ from utility import DLog, load_nlp_ecws, cache_resource_decorator, cache_data_de
 from objectify.synonym import get_synonyms
 
 logger = DLog("OBJECTIFY")
-logging.basicConfig(level=logging.CRITICAL)
 
 def simple_tokenizer(text: str) -> list[str]:
     logger.info("Simple tokenizer...")

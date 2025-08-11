@@ -23,7 +23,6 @@ import torch
 import gc
 
 st.set_page_config(page_title="Article Analysis", layout="wide")
-logging.getLogger("transformers").setLevel(logging.ERROR)
 
 if 'kw_model' not in st.session_state:
     st.session_state.kw_model = load_keybert()
