@@ -2,13 +2,37 @@ import json
 import time
 from colorama import Fore, Style
 from datetime import datetime
-from grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
-# from grouping.grouping_meta import group_representative_sentences
-from objectify.objectify import objectify_clusters
-from summarizer import summarize_clusters
-from reliability import calculate_reliability
-from scraper import process_text_input_for_keyword, retrieve_information_online
-from utility import DLog, IS_STREAMLIT
+import sys, os
+try:
+    from grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
+except Exception:
+    try:
+        from src.grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
+    except Exception:
+        BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+        if BASE_DIR not in sys.path:
+            sys.path.append(BASE_DIR)
+        from src.grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
+try:
+    from objectify.objectify import objectify_clusters
+except Exception:
+    from src.objectify.objectify import objectify_clusters
+try:
+    from summarizer import summarize_clusters
+except Exception:
+    from src.summarizer import summarize_clusters
+try:
+    from reliability import calculate_reliability
+except Exception:
+    from src.reliability import calculate_reliability
+try:
+    from scraper import process_text_input_for_keyword, retrieve_information_online
+except Exception:
+    from src.scraper import process_text_input_for_keyword, retrieve_information_online
+try:
+    from utility import DLog, IS_STREAMLIT
+except Exception:
+    from src.utility import DLog, IS_STREAMLIT
 import os
 from typing import List, Dict, Any, Literal, Callable, Optional
 from math import floor
