@@ -159,8 +159,31 @@ def article_analysis(text: str, link_n=5, diverse_links=True, summarize_level:Li
             clusters[0]['meta'] = clusters[0].get('meta', {})
             clusters[0]['meta']['single_source_fallback'] = True
         else:
-            logger.warning("No clusters produced at all.")
-            return []
+            logger.warning("No clusters produced at all. Building a minimal fallback cluster.")
+            fallback_sents = []
+            for s in filtered_sentences:
+                if isinstance(s, tuple):
+                    rep, ctx = s
+                    fallback_sents.append(rep)
+                else:
+                    fallback_sents.append(s)
+                if len(fallback_sents) >= 3:
+                    break
+            if not fallback_sents and all_representative_sentences:
+                for s in all_representative_sentences[:3]:
+                    if isinstance(s, tuple):
+                        fallback_sents.append(s[0])
+                    else:
+                        fallback_sents.append(s)
+            if not fallback_sents:
+                return []
+            clusters = [{
+                'label': 0,
+                'sentences': fallback_sents,
+                'representative': fallback_sents[0],
+                'representative_with_context': (fallback_sents[0], fallback_sents[0]),
+                'meta': {'constructed_fallback': True}
+            }]
     clusters = merge_similar_clusters(clusters, threshold=0.74)
     logger.info(f"Grouped representative sentences into {len(clusters)} clusters.")
 

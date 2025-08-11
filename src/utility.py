@@ -133,6 +133,42 @@ except Exception:
     pass
 
 
+def ensure_nltk_data():
+    try:
+        root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        data_dir = os.path.join(root, 'nltk_data')
+        os.makedirs(data_dir, exist_ok=True)
+        if data_dir not in nltk.data.path:
+            nltk.data.path.insert(0, data_dir)
+    except Exception:
+        data_dir = None
+    to_check = [
+        ("tokenizers/punkt", "punkt"),
+        ("tokenizers/punkt_tab", "punkt_tab"),
+        ("corpora/stopwords", "stopwords"),
+        ("corpora/wordnet", "wordnet"),
+        ("corpora/sentiwordnet", "sentiwordnet"),
+        ("corpora/omw-1.4", "omw-1.4"),
+    ]
+    for path, pkg in to_check:
+        try:
+            nltk.data.find(path)
+        except LookupError:
+            try:
+                logger.info(f"Downloading NLTK package: {pkg}")
+                if data_dir:
+                    nltk.download(pkg, download_dir=data_dir, quiet=True)
+                else:
+                    nltk.download(pkg, quiet=True)
+            except Exception as e:
+                logger.warning(f"Failed to download NLTK package {pkg}: {e}")
+
+try:
+    ensure_nltk_data()
+except Exception as _e:
+    logger.warning(f"NLTK bootstrap failed: {_e}")
+
+
 @cache_resource_decorator
 def load_nlp_ecws():
     logger.info("Loading spaCy NLP pipeline")

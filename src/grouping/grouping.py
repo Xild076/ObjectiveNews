@@ -225,7 +225,18 @@ def cluster_sentences(sentences, _att_model=None, weights=0.1, context:bool = Tr
         clusters = cluster_embeddings(embeddings, metric=cluster_metric, algorithm=algorithm, cluster_selection_method=cluster_selection_method, min_cluster_size=min_cluster_size, min_samples=min_samples)
         if clusters is None or len(clusters) == 0:
             return [-1] * len(sentences)
-        return clusters.tolist()
+        labels = clusters.tolist()
+        # Fallback: if HDBSCAN returned only noise (-1), try a lightweight KMeans to ensure at least one cluster
+        if all(lbl == -1 for lbl in labels):
+            try:
+                k = 1 if len(embeddings) < 3 else min(2, len(embeddings))
+                km = KMeans(n_clusters=k, n_init=5, random_state=42)
+                labels = km.fit_predict(embeddings).tolist()
+                logger.warning("HDBSCAN produced only noise; falling back to KMeans clustering.")
+            except Exception as e:
+                logger.error(f"KMeans fallback failed: {e}")
+                labels = [0] * len(sentences)
+        return labels
     except Exception as e:
         return [-1] * len(sentences)
 
