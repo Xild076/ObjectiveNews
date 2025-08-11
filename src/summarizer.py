@@ -5,10 +5,7 @@ from typing import List, Literal, Dict, Any
 from sklearn.metrics.pairwise import cosine_similarity
 from transformers import pipeline
 import google.generativeai as genai
-try:
-    from utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT
-except Exception:
-    from src.utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT
+from utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT, encode_sentences_cached
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 logger = DLog(name="SUMMARIZER")
@@ -35,7 +32,7 @@ def extractive_summarize(texts: List[str], top_k: int = 3) -> str:
     logger.info("Performing extractive summarization...")
     if not texts:
         return ""
-    embs = _get_sent_model().encode(texts, show_progress_bar=False)
+    embs = encode_sentences_cached(texts)
     centroid = embs.mean(axis=0, keepdims=True)
     sims = cosine_similarity(centroid, embs)[0]
     idxs = sims.argsort()[::-1][:min(top_k, len(texts))]

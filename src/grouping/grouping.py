@@ -2,6 +2,7 @@ import numpy as np
 import hdbscan
 import warnings
 import os
+import sys
 import ast
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -13,16 +14,13 @@ from umap import UMAP
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, homogeneity_score, completeness_score, v_measure_score
 import torch
 import torch.nn as nn
-try:
-    from ..utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator, get_stopwords
-except Exception:
-    try:
-        from src.utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator, get_stopwords
-    except Exception:
-        from utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator, get_stopwords
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from typing import Union, Type
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
+from utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator, get_stopwords, encode_sentences_cached
 
 warnings.filterwarnings("ignore", module="^sklearn")
 logger = DLog("GROUPING", "DEBUG")
@@ -128,7 +126,7 @@ def encode_text(sentences, weights, context, context_len, preprocess, attention,
         sentences = [s for s in sentences if s and s.strip()]
         if not sentences:
             return np.array([])
-    embeddings = sent_model.encode(sentences, show_progress_bar=False)
+    embeddings = encode_sentences_cached(sentences)
     if attention and _att_model is not None:
         embeddings = encode_text_with_attention(embeddings, _att_model)
     if not context:
@@ -219,7 +217,7 @@ def cluster_sentences(sentences, _att_model=None, weights=0.1, context:bool = Tr
     if norm != 'none':
         embeddings = normalize(embeddings, norm=norm)
     n_samples = len(embeddings)
-    actual_n_neighbors = min(n_neighbors, max(1, n_samples - 1))
+    actual_n_neighbors = min(max(3, n_neighbors), max(1, n_samples - 1))
     actual_n_components = min(n_components, max(1, n_samples - 1))
     if reduce:
         embeddings = dim_reduction(embeddings, actual_n_neighbors, actual_n_components, umap_metric)
@@ -488,9 +486,9 @@ def merge_similar_clusters(clusters: List[dict], threshold: float = 0.82) -> Lis
             texts.append(" ".join(s.text for s in sents[:2]) if sents else "")
         ss = set(getattr(s, 'source', '') or '' for s in c.get('sentences', []))
         source_sets.append({s for s in ss if s})
-    if not any(t.strip() for t in texts):
+    if not texts or not any(t.strip() for t in texts):
         return clusters
-    embs = sent_model.encode(texts, show_progress_bar=False)
+    embs = encode_sentences_cached(texts)
     sim = cosine_similarity(embs)
     n = len(clusters)
     parent = list(range(n))

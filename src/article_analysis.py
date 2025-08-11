@@ -3,41 +3,15 @@ import time
 from colorama import Fore, Style
 from datetime import datetime
 import sys, os
-# Ensure project root is on sys.path when running under Streamlit Cloud
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
-try:
-    from grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
-except Exception:
-    try:
-        from src.grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
-    except Exception:
-        BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-        if BASE_DIR not in sys.path:
-            sys.path.append(BASE_DIR)
-        from src.grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
-try:
-    from objectify.objectify import objectify_clusters
-except Exception:
-    from src.objectify.objectify import objectify_clusters
-try:
-    from summarizer import summarize_clusters
-except Exception:
-    from src.summarizer import summarize_clusters
-try:
-    from reliability import calculate_reliability
-except Exception:
-    from src.reliability import calculate_reliability
-try:
-    from scraper import process_text_input_for_keyword, retrieve_information_online
-except Exception:
-    from src.scraper import process_text_input_for_keyword, retrieve_information_online
-try:
-    from utility import DLog, IS_STREAMLIT
-except Exception:
-    from src.utility import DLog, IS_STREAMLIT
-import os
+from grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
+from objectify.objectify import objectify_clusters
+from summarizer import summarize_clusters
+from reliability import calculate_reliability
+from scraper import process_text_input_for_keyword, retrieve_information_online
+from utility import DLog, IS_STREAMLIT
 from typing import List, Dict, Any, Literal, Callable, Optional
 from math import floor
 
@@ -150,8 +124,6 @@ def article_analysis(text: str, link_n=5, diverse_links=True, summarize_level:Li
         logger.warning(f"Only {len(source_sentence_map)} unique sources found after filtering. Analysis may be limited.")
         
     min_cluster_size = max(2, min(len(source_sentence_map), 4))
-    # weights,context,context_len,preprocess,norm,n_neighbors,n_components,umap_metric,cluster_metric,algorithm,cluster_selection_method,value
-    # 1.0, False, 1, False,l1,10,5,correlation,manhattan,prims_kdtree,eom
     PARAMS = {
         "weights": 1.0,
         "context": False,

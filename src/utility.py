@@ -7,20 +7,15 @@ import re, spacy
 from colorama import init, Fore, Style
 import traceback
 import os
+import sys
+import logging
 from sentence_transformers import SentenceTransformer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 import inflect
 
-LEVEL_COLORS = {
-    "DEBUG": Fore.CYAN,
-    "INFO": Fore.GREEN,
-    "WARNING": Fore.YELLOW,
-    "ERROR": Fore.RED,
-    "CRITICAL": Fore.RED + Style.BRIGHT
-}
+LEVEL_COLORS = {"DEBUG": Fore.CYAN, "INFO": Fore.GREEN, "WARNING": Fore.YELLOW, "ERROR": Fore.RED, "CRITICAL": Fore.RED + Style.BRIGHT}
 
-import functools
 class DLog:
     def __init__(self, name="DLog", level="DEBUG", log_dir="logs", quiet=None):
         init(autoreset=True)
@@ -38,11 +33,13 @@ class DLog:
         self.error_log_path = os.path.join(self.log_dir,f"errors_{self.current_date}.log")
         self.log_file = open(self.log_path,"a")
         self.error_file = open(self.error_log_path,"a")
-        # Always print to stdout unless explicitly set otherwise
         if quiet is None:
             self.quiet = False
         else:
             self.quiet = bool(quiet)
+        if not logging.getLogger().handlers:
+            logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+        self._py_levels = {"DEBUG": logging.DEBUG, "INFO": logging.INFO, "WARNING": logging.WARNING, "ERROR": logging.ERROR, "CRITICAL": logging.CRITICAL}
     
     def _check_date(self):
         d = datetime.now().strftime("%Y-%m-%d")
@@ -67,6 +64,10 @@ class DLog:
                 self.error_file.write(out+"\n")
             self.log_file.flush()
             self.error_file.flush()
+            try:
+                logging.getLogger(self.name).log(self._py_levels.get(level_str, logging.INFO), str(msg))
+            except Exception:
+                pass
 
     def set_level(self, level:str):
         lvl = self.levels.get(level.upper())
@@ -113,25 +114,77 @@ try:
         IS_STREAMLIT = True
         cache_resource_decorator = st.cache_resource
         cache_data_decorator = st.cache_data
-        logger.info("Streamlit runtime detected. Using st.cache_resource and st.cache_data.")
     else:
         raise ImportError("Streamlit not running")
 except ImportError:
     IS_STREAMLIT = False
     cache_resource_decorator = functools.lru_cache(maxsize=1)
     cache_data_decorator = functools.lru_cache(maxsize=128)
-    logger.info("Streamlit runtime not detected. Falling back to functools.lru_cache.")
+
+# Ensure project paths are importable in both local and Streamlit runtimes
+try:
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    SRC_DIR = os.path.abspath(os.path.dirname(__file__))
+    if ROOT_DIR not in sys.path:
+        sys.path.append(ROOT_DIR)
+    if SRC_DIR not in sys.path:
+        sys.path.append(SRC_DIR)
+except Exception:
+    pass
 
 
 @cache_resource_decorator
 def load_nlp_ecws():
-    logger.info("Loading spaCy model 'en_core_web_sm...'")
-    return spacy.load("en_core_web_sm")
+    logger.info("Loading spaCy NLP pipeline")
+    try:
+        return spacy.load("en_core_web_sm")
+    except Exception:
+        try:
+            nlp = spacy.blank("en")
+            if "sentencizer" not in nlp.pipe_names:
+                nlp.add_pipe("sentencizer")
+            logger.warning("Using spaCy blank('en') with sentencizer fallback")
+            return nlp
+        except Exception:
+            raise
 
 @cache_resource_decorator
 def load_sent_transformer():
     logger.info("Loading SentenceTransformer model 'all-MiniLM-L6-v2...'")
     return SentenceTransformer("all-MiniLM-L6-v2")
+
+# Lightweight per-sentence embedding cache to avoid repeated encodes
+_SBERT_CACHE: dict[str, list[float]] = {}
+_SBERT_CACHE_MAX = 8000
+
+def encode_sentences_cached(texts: list[str]):
+    model = load_sent_transformer()
+    to_encode = []
+    indices = []
+    for i, t in enumerate(texts):
+        if t not in _SBERT_CACHE:
+            to_encode.append(t)
+            indices.append(i)
+    if to_encode:
+        new_embs = model.encode(to_encode, show_progress_bar=False)
+        for j, emb in enumerate(new_embs):
+            _SBERT_CACHE[to_encode[j]] = emb.tolist()
+        if len(_SBERT_CACHE) > _SBERT_CACHE_MAX:
+            k = len(_SBERT_CACHE) - _SBERT_CACHE_MAX
+            for _ in range(k):
+                try:
+                    _SBERT_CACHE.pop(next(iter(_SBERT_CACHE)))
+                except Exception:
+                    break
+    out = []
+    for t in texts:
+        e = _SBERT_CACHE.get(t)
+        if e is None:
+            e = model.encode([t], show_progress_bar=False)[0].tolist()
+            _SBERT_CACHE[t] = e
+        out.append(e)
+    import numpy as _np
+    return _np.array(out)
 
 @cache_resource_decorator
 def load_lemma():
