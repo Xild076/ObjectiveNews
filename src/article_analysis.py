@@ -162,6 +162,7 @@ def article_analysis(text: str, link_n=5, diverse_links=True, summarize_level:Li
         "cluster_selection_method": "eom",
     }
     clusters = group_representative_sentences(filtered_sentences, min_cluster_size=min_cluster_size, params=PARAMS)
+    raw_clusters = list(clusters)
     
     final_clusters = []
     for cluster in clusters:
@@ -174,26 +175,41 @@ def article_analysis(text: str, link_n=5, diverse_links=True, summarize_level:Li
             final_clusters.append(cluster)
     
     clusters = final_clusters
-    clusters = merge_similar_clusters(clusters, threshold=0.74)
     if not clusters:
-        logger.warning("No clusters found after grouping representative sentences.")
-        return []
+        logger.warning("No multi-source clusters found; falling back to best single-source cluster.")
+        if raw_clusters:
+            largest = max(raw_clusters, key=lambda c: len(c.get('sentences', [])) if isinstance(c, dict) else 0)
+            clusters = [largest]
+            clusters[0]['meta'] = clusters[0].get('meta', {})
+            clusters[0]['meta']['single_source_fallback'] = True
+        else:
+            logger.warning("No clusters produced at all.")
+            return []
+    clusters = merge_similar_clusters(clusters, threshold=0.74)
     logger.info(f"Grouped representative sentences into {len(clusters)} clusters.")
 
     update_progress(5, f"Summarizing {len(clusters)} narratives...")
     logger.info("Summarizing clusters...")
-    summarized_clusters = summarize_clusters(clusters, level=summarize_level)
+    try:
+        summarized_clusters = summarize_clusters(clusters, level=summarize_level)
+    except Exception as e:
+        logger.error(f"Summarization failed: {e}")
+        summarized_clusters = [{**c, 'summary': c.get('representative', None).text if c.get('representative') else ''} for c in clusters]
     if not summarized_clusters:
         logger.warning("No summarized clusters found.")
-        return []
+        summarized_clusters = clusters
     logger.info(f"Summarized {len(summarized_clusters)} clusters.")
 
     update_progress(6, "Making summaries objective...")
     logger.info("Objectifying clusters...")
-    objectified_clusters = objectify_clusters(summarized_clusters)
+    try:
+        objectified_clusters = objectify_clusters(summarized_clusters)
+    except Exception as e:
+        logger.error(f"Objectification failed: {e}")
+        objectified_clusters = summarized_clusters
     if not objectified_clusters:
         logger.warning("No objectified clusters found.")
-        return []
+        objectified_clusters = summarized_clusters
     logger.info(f"Objectified {len(objectified_clusters)} clusters.")
 
     update_progress(7, "Calculating reliability scores...")
