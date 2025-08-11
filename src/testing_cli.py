@@ -8,7 +8,7 @@ from colorama import Fore, Style
 from article_analysis import article_analysis, visualize_article_analysis
 from utility import DLog
 
-logger = DLog(name="CLI", level="DEBUG")
+logger = DLog(name="CLI")
 
 
 def run_app():

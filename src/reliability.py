@@ -5,10 +5,12 @@ from datetime import datetime
 from collections import defaultdict
 from typing import List, Dict, Tuple
 from urllib.parse import urlparse
-from utility import cache_resource_decorator
+from utility import cache_resource_decorator, DLog
 from objectify.objectify import calculate_objectivity
 
 _SOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "golden_truth_dataset.csv"))
+
+logger = DLog(name="RELIABILITY", level="DEBUG")
 
 @cache_resource_decorator
 def _load_source_df():
@@ -101,6 +103,7 @@ def get_source_reputation01(domain: str, df: pd.DataFrame=None) -> Tuple[float, 
     return rep, df
 
 def calculate_reliability(clusters: List[Dict]) -> List[Dict]:
+    logger.info(f"Starting reliability calculation for {len(clusters)} clusters...")
     source_df = _load_source_df()
     dates = defaultdict(list)
     sources = defaultdict(list)
@@ -139,6 +142,8 @@ def calculate_reliability(clusters: List[Dict]) -> List[Dict]:
 
     src_rep_abs = {i: (float(np.mean(v)) if v else 0.5) for i, v in src_rep_scores.items()}
 
+    logger.debug(f"Total unique sources across clusters: {total_unique_sources}")
+
     for i, c in enumerate(clusters):
         s_rep = src_rep_abs.get(i, 0.5)
         s_div = source_diversity_norm.get(i, 0.0)
@@ -158,6 +163,12 @@ def calculate_reliability(clusters: List[Dict]) -> List[Dict]:
             "temporal_cohesion": t_coh * 100
         }
         c["sources"] = list(unique_cluster_sources.get(i, []))
+        logger.debug(
+            f"Cluster {i}: sentences={len(c.get('sentences', []))}, sources={len(c.get('sources', []))}, "
+            f"rep={s_rep:.2f}, div={s_div:.2f}, obj={o:.2f}, recency={rc:.2f}, cohesion={t_coh:.2f}, "
+            f"final={c['reliability']:.2f}"
+        )
     
     _save_source_df(source_df)
+    logger.info("Reliability calculation complete.")
     return clusters

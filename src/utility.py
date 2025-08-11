@@ -38,9 +38,9 @@ class DLog:
         self.error_log_path = os.path.join(self.log_dir,f"errors_{self.current_date}.log")
         self.log_file = open(self.log_path,"a")
         self.error_file = open(self.error_log_path,"a")
+        # Always print to stdout unless explicitly set otherwise
         if quiet is None:
-            q = os.environ.get("DLOG_QUIET", "1")
-            self.quiet = not (q in ("0","false","False","no","NO"))
+            self.quiet = False
         else:
             self.quiet = bool(quiet)
     

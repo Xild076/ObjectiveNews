@@ -41,7 +41,7 @@ import os
 from typing import List, Dict, Any, Literal, Callable, Optional
 from math import floor
 
-logger = DLog(name="ARTICLE_ANALYSIS", level="DEBUG")
+logger = DLog(name="ARTICLE_ANALYSIS")
 
 def article_analysis(text: str, link_n=5, diverse_links=True, summarize_level:Literal["fast", "medium", "slow"]="fast", progress_callback: Optional[Callable[[float, str], None]] = None):
     total_steps = 7

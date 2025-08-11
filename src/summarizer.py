@@ -11,7 +11,7 @@ except Exception:
     from src.utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-logger = DLog(name="SUMMARIZER", level="DEBUG")
+logger = DLog(name="SUMMARIZER")
 
 _sent_model = None
 def _get_sent_model():

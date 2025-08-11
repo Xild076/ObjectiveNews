@@ -18,7 +18,7 @@ from typing import Any, Dict
 import validators
 
 PROXIES = []
-logger = DLog(name="FETCH_ARTICLE", level="DEBUG")
+logger = DLog(name="FETCH_ARTICLE")
 
 class RateLimiter:
     lock = threading.Lock()
