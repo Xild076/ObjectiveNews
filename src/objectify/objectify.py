@@ -43,7 +43,7 @@ def _download_mpqa_lexicon():
     logger.info("_Downloading MPQA lexicon...")
     if not os.path.exists(MPQA_LEXICON_PATH):
         try:
-            response = requests.get(MPQA_LEXICON_URL)
+            response = requests.get(MPQA_LEXICON_URL, timeout=5)
             response.raise_for_status()
             with open(MPQA_LEXICON_PATH, 'w') as f:
                 f.write(response.text)
@@ -152,18 +152,19 @@ def get_objective_synonym(word, pos=None):
     else:
         return synonyms[0]
 
+nlp = load_nlp_ecws()
+inflect_engine = load_inflect()
+
 @cache_data_decorator
 def extract_amod(sentence):
     logger.info("Extracting amod...")
-    nlp = load_nlp_ecws()
     doc = nlp(sentence)
     return [t for t in doc if t.dep_ == "amod"]
 
 def objectify_text(sentence, remove_dependents=False, objectivity_threshold=0.5):
     logger.info("Objectifying text...")
-    nlp = load_nlp_ecws()
     doc = nlp(sentence)
-    p = load_inflect()
+    p = inflect_engine
     skip, replace = set(), {}
     for t in doc:
         score = calculate_objectivity(t.text)

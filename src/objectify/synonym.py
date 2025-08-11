@@ -3,11 +3,14 @@ import requests
 from nltk.corpus import wordnet as wn, sentiwordnet as swn
 from utility import DLog, cache_data_decorator, load_nlp_ecws, load_inflect
 
+nlp = load_nlp_ecws()
+inflect_engine = load_inflect()
+
 logger = DLog("SYNONYM")
 
 _COARSE_POS = {"n", "v", "a", "r"}
 
-@cache_data_decorator
+# @cache_data_decorator
 def _normalize_pos(pos):
     logger.info("_Normalizing part-of-speech...")
     if not pos:
@@ -25,13 +28,13 @@ def _normalize_pos(pos):
         return "a"
     return None
 
-@cache_data_decorator
+# @cache_data_decorator
 def _synset_coarse_pos(_synset):
     logger.info("_Synset coarse part-of-speech...")
     p = _synset.pos()
     return "a" if p == "s" else p
 
-@cache_data_decorator
+# @cache_data_decorator
 def _collect_wordnet_synonyms(word, pos=None, deep=False, sentiment_filter=False):
     logger.info("_Collecting wordnet synonyms...")
     cpos = _normalize_pos(pos)
@@ -130,7 +133,7 @@ def _collect_wordnet_synonyms(word, pos=None, deep=False, sentiment_filter=False
 
     return candidates
 
-@cache_data_decorator
+# @cache_data_decorator
 def _collect_external_synonyms(word, pos=None):
     logger.info("_Collect external_synonyms...")
     cpos = _normalize_pos(pos)
@@ -161,7 +164,7 @@ def _collect_external_synonyms(word, pos=None):
         logger.error(f"Error collecting external synonyms: {str(e)[:50]}")
     return out
 
-@cache_data_decorator
+# @cache_data_decorator
 def get_synonyms(word, pos=None, deep=False, sentiment_filter=False, include_external=False, topn=None, simple=False):
     logger.info("Getting synonyms...")
     wn_cands = _collect_wordnet_synonyms(word, pos=pos, deep=deep, sentiment_filter=sentiment_filter)

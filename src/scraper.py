@@ -8,12 +8,13 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from bs4 import BeautifulSoup
 import trafilatura
-from newspaper import Article
+from newspaper import Article, Config
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import urllib.request
 from dateutil.parser import parse
-from utility import get_stopwords, DLog, get_keywords, normalize_url, cache_data_decorator
+from utility import get_stopwords, DLog, get_keywords, normalize_url, cache_data_decorator, IS_STREAMLIT
+from typing import Any, Dict
 import validators
 
 PROXIES = []
@@ -22,7 +23,8 @@ logger = DLog(name="FETCH_ARTICLE", level="DEBUG")
 class RateLimiter:
     lock = threading.Lock()
     last_time = 0
-    min_delay = 2
+    # Be gentler under Streamlit's constrained runtime
+    min_delay = 0.35 if IS_STREAMLIT else 1.0
     @staticmethod
     def wait():
         with RateLimiter.lock:
@@ -38,6 +40,11 @@ retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500,502,503,504])
 adapter = HTTPAdapter(max_retries=retries, pool_connections=10, pool_maxsize=10)
 session.mount("http://", adapter)
 session.mount("https://", adapter)
+
+# Configure newspaper to respect a strict request timeout
+_NP_CFG = Config()
+_NP_CFG.request_timeout = 8
+_NP_CFG.memoize_articles = False
 
 def _get_headers():
     uas = [
@@ -60,7 +67,7 @@ def retrieve_links(keywords, amount=10):
         header = random.choice(headers_list)
         RateLimiter.wait()
         try:
-            r = session.get(base_url, headers=header, timeout=10)
+            r = session.get(base_url, headers=header, timeout=8)
             if r.status_code != 200 or "To continue, please type the characters" in r.text:
                 time.sleep(random.uniform(1, 2))
                 continue
@@ -83,7 +90,7 @@ def retrieve_links(keywords, amount=10):
 
 def retrieve_diverse_links(keywords, amount=10):
     logger.info("Retrieving diverse links for keywords: " + ", ".join(keywords))
-    raw = retrieve_links(keywords, amount * 2)
+    raw = retrieve_links(keywords, amount * 5)
     seen = set()
     domain_map = {}
     for u in raw:
@@ -125,73 +132,101 @@ def extract_article_details(url):
     logger.info(f"Extracting article details from URL: {url[:50]}")
     if not url.startswith("http"):
         return None
+
+    # Strict per-article time budget (seconds)
+    BUDGET = 8.0
+    start = time.monotonic()
+
+    def remaining_budget():
+        return max(0.1, BUDGET - (time.monotonic() - start))
+
     RateLimiter.wait()
     proxy = random.choice(PROXIES) if PROXIES else None
-    downloaded = trafilatura.fetch_url(url)
-    if not downloaded:
+    downloaded = None
+
+    # Primary attempt: single HTTP GET with tight timeout, reuse global session adapter
+    try:
+        hdr = {"User-Agent": random.choice(_get_headers())["User-Agent"]}
+        r = session.get(
+            url,
+            headers=hdr,
+            proxies={"http": proxy, "https": proxy} if proxy else None,
+            timeout=min(5.0, remaining_budget())
+        )
+        r.raise_for_status()
+        downloaded = r.text
+    except Exception:
+        pass
+
+    # Fallback 1: urllib with remaining budget
+    if not downloaded and remaining_budget() > 0.2:
         try:
-            RateLimiter.wait()
-            r = session.get(url, headers={"User-Agent": random.choice(_get_headers())["User-Agent"]}, proxies={"http": proxy, "https": proxy} if proxy else None, timeout=10)
-            r.raise_for_status()
-            downloaded = r.text
-        except:
+            with urllib.request.urlopen(url, timeout=min(4.0, remaining_budget())) as r2:
+                downloaded = r2.read().decode("utf-8", errors="ignore")
+        except Exception:
             pass
-    if not downloaded:
-        try:
-            RateLimiter.wait()
-            with urllib.request.urlopen(url, timeout=10) as r:
-                downloaded = r.read().decode("utf-8", errors="ignore")
-        except:
-            pass
+
+    # If we have HTML, prefer local extraction (no network)
     if downloaded:
-        meta = trafilatura.extract_metadata(downloaded, default_url=url)
-        text = trafilatura.extract(downloaded)
-        if meta and text:
+        try:
+            meta = trafilatura.extract_metadata(downloaded, default_url=url)
+            text = trafilatura.extract(downloaded)
+            if meta and text:
+                return {
+                    "source": urlparse(url).netloc.replace("www.",""),
+                    "title": meta.title or "",
+                    "author": meta.author or "",
+                    "date": _format_date(getattr(meta, 'date', None)),
+                    "text": text,
+                    "link": url
+                }
+        except Exception:
+            pass
+
+    # Fallback 2: newspaper3k (respects timeout via config)
+    if remaining_budget() > 0.2:
+        try:
+            RateLimiter.wait()
+            art = Article(url, config=_NP_CFG)
+            # Newspaper manages its own fetching; ensure we don't exceed budget by short-circuiting
+            if remaining_budget() < 1.0:
+                return None
+            art.download()
+            art.parse()
             return {
                 "source": urlparse(url).netloc.replace("www.",""),
-                "title": meta.title or "",
-                "author": meta.author or "",
-                "date": _format_date(meta.date),
-                "text": text,
+                "title": getattr(art, 'title', '') or "",
+                "author": getattr(art, 'authors', []),
+                "date": _format_date(getattr(art, 'publish_date', None)),
+                "text": getattr(art, 'text', ''),
                 "link": url
             }
-    try:
-        RateLimiter.wait()
-        art = Article(url)
-        art.download()
-        art.parse()
-        return {
-            "source": urlparse(url).netloc.replace("www.",""),
-            "title": art.title or "",
-            "author": art.authors,
-            "date": _format_date(art.publish_date),
-            "text": art.text,
-            "link": url
-        }
-    except:
-        return None
+        except Exception:
+            return None
+
+    # If we still have nothing or budget exceeded, give up
+    return None
 
 def extract_many_article_details(urls, workers=10):
     logger.info(f"Extracting details from {len(urls)} URLs...")
     results = []
-    # Use tqdm for progress bar if running outside streamlit
-    from utility import IS_STREAMLIT
     iterable = urls if IS_STREAMLIT else tqdm(urls, desc="Extracting")
-    
+
+    # To stay light in Streamlit, keep it sequential; otherwise, we could parallelize later.
     for u in iterable:
-        d = extract_article_details(u) # This is now called on the main thread
+        d = extract_article_details(u)
         if d:
             results.append(d)
     return results
 
-@cache_data_decorator
-def process_text_input_for_keyword(text:str) -> str:
+# @cache_data_decorator
+def process_text_input_for_keyword(text: str) -> Dict[str, Any] | None:
     logger.info(f"Processing text input for keywords: {str(text)[:50]}")
     COMMON_TLDS = [
         'com', 'org', 'net', 'edu', 'gov', 'mil', 'int',
         'io', 'co', 'us', 'uk', 'de', 'jp', 'fr', 'au',
         'ca', 'cn', 'ru', 'ch', 'it', 'nl', 'se', 'no',
-        'es', 'mil', 'biz', 'info', 'mobi', 'name', 'ly',
+        'es', 'biz', 'info', 'mobi', 'name', 'ly',
         'xyz', 'online', 'site', 'tech', 'store', 'blog'
     ]
     stopwords = get_stopwords()
@@ -201,18 +236,22 @@ def process_text_input_for_keyword(text:str) -> str:
     text = text.strip()
     for tld in COMMON_TLDS:
         if "."+tld in text:
-            if len(" ".split(text)) == 1:
+            if len(text.split()) == 1:
                 if not validators.url(text):
                     text = normalize_url(text)
                 if not validators.url(text):
-                    return get_keywords(text)
+                    return {"method": 1, "keywords": get_keywords(text), "extra_info": None}
                 article = extract_article_details(text)
-                keywords = [word for word in article['title'].split() if word not in stopwords]
+                if article and article.get('title'):
+                    keywords = [word for word in article['title'].split() if word not in stopwords]
+                else:
+                    # Fall back to extracting keywords from the raw text if fetch failed
+                    return {"method": 1, "keywords": get_keywords(text), "extra_info": None}
                 methodology = 0
             break
     if keywords == None:
         methodology = 1
-        if len(" ".split(text)) <= 10:
+        if len(text.split()) <= 10:
             keywords = [word for word in text.split() if word not in stopwords]
         else:
             keywords = get_keywords(text)
@@ -222,7 +261,8 @@ def process_text_input_for_keyword(text:str) -> str:
 
 def retrieve_information_online(keywords, link_num=10, diverse=True, extra_info=None):
     logger.info(f"Retrieving information online for keywords: {keywords}")
-    links = retrieve_diverse_links(" ".join(keywords), link_num) if diverse else retrieve_links(" ".join(keywords), link_num)
+    # Ensure keywords is a list of tokens, not a single joined string
+    links = retrieve_diverse_links(list(keywords), link_num) if diverse else retrieve_links(list(keywords), link_num)
     articles = []
     if links:
         fetched_articles = extract_many_article_details(links, workers=10)
@@ -241,15 +281,35 @@ def retrieve_information_online(keywords, link_num=10, diverse=True, extra_info=
         for a in fetched_articles:
             title = a.get('title', '').strip().lower()
             link = a.get('link')
-            if link and link not in seen_links and title not in seen_titles:
+            source = a.get('source', '')
+            if link and link not in seen_links and title not in seen_titles and source not in seen_sources:
                 articles.append(a)
                 seen_links.add(link)
                 seen_titles.add(title)
+                seen_sources.add(source)
         for a in fetched_articles:
             link = a.get('link')
             if link and link not in seen_links:
                 articles.append(a)
                 seen_links.add(link)
+        # Fallback: boost domain diversity with a larger pool if needed
+        domains = {a.get('source','') for a in articles if a}
+        if diverse and len(domains) < max(3, min(5, link_num//2)):
+            more_links = retrieve_diverse_links(list(keywords), link_num * 3)
+            more_links = [u for u in more_links if u not in seen_links]
+            if more_links:
+                more_articles = extract_many_article_details(more_links, workers=10)
+                for a in more_articles:
+                    if not a:
+                        continue
+                    source = a.get('source', '')
+                    title = a.get('title', '').strip().lower()
+                    link = a.get('link')
+                    if link and link not in seen_links and source not in seen_sources and title not in seen_titles:
+                        articles.append(a)
+                        seen_links.add(link)
+                        seen_sources.add(source)
+                        seen_titles.add(title)
     if extra_info:
         articles.append(extra_info)
     if len(articles) > link_num:

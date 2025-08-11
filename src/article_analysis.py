@@ -1,12 +1,17 @@
+import json
 import time
 from colorama import Fore, Style
-from grouping.grouping import group_individual_articles, group_representative_sentences
+from datetime import datetime
+from grouping.grouping import group_individual_articles, group_representative_sentences, merge_similar_clusters
+# from grouping.grouping_meta import group_representative_sentences
 from objectify.objectify import objectify_clusters
 from summarizer import summarize_clusters
 from reliability import calculate_reliability
 from scraper import process_text_input_for_keyword, retrieve_information_online
-from utility import DLog
+from utility import DLog, IS_STREAMLIT
+import os
 from typing import List, Dict, Any, Literal, Callable, Optional
+from math import floor
 
 logger = DLog(name="ARTICLE_ANALYSIS", level="DEBUG")
 
@@ -37,15 +42,115 @@ def article_analysis(text: str, link_n=5, diverse_links=True, summarize_level:Li
     
     update_progress(3, f"Distilling key sentences from {len(articles)} articles...")
     logger.info("Grouping individual articles into representative sentences...")
-    grouped_articles = [sent for article in articles for sent in group_individual_articles(article)]
-    if not grouped_articles:
+    all_representative_sentences = []
+    article_source_map = {}
+    
+    for article in articles:
+        reps = group_individual_articles(article)
+        source = article.get('source', 'unknown')
+        for rep in reps:
+            if isinstance(rep, tuple):
+                rep_sentence, context_sentence = rep
+                if hasattr(rep_sentence, 'source'):
+                    rep_sentence.source = source
+                if hasattr(context_sentence, 'source'):
+                    context_sentence.source = source
+            elif hasattr(rep, 'source'):
+                rep.source = source
+        all_representative_sentences.extend(reps)
+        
+        if source not in article_source_map:
+            article_source_map[source] = []
+        article_source_map[source].extend(reps)
+
+    if not all_representative_sentences:
         logger.warning("No representative sentences found after grouping articles.")
         return []
-    logger.info(f"Grouped {len(grouped_articles)} representative sentences from articles.")
+    
+    if not IS_STREAMLIT:
+        reps_dir = "src/aa"
+        os.makedirs(reps_dir, exist_ok=True)
+        with open(f"{reps_dir}/reps_{str(datetime.now())}.txt", "w") as f:
+            f.write(str(all_representative_sentences))
+    
+    logger.info(f"Extracted {len(all_representative_sentences)} representative sentences from {len(article_source_map)} unique sources.")
 
-    update_progress(4, f"Grouping {len(grouped_articles)} sentences into narratives...")
+    update_progress(4, f"Grouping {len(all_representative_sentences)} sentences into narratives...")
     logger.info("Grouping representative sentences into clusters...")
-    clusters = group_representative_sentences(grouped_articles)
+    
+    filtered_sentences = []
+    keyword_set = set(kw.lower() for kw in keywords_info['keywords'])
+    
+    for sent in all_representative_sentences:
+        if isinstance(sent, tuple):
+            rep, ctx = sent
+            text = getattr(rep, 'text', '').lower()
+            text_length = len(text.split())
+            
+            keyword_matches = sum(1 for kw in keyword_set if kw in text)
+            relevance_score = keyword_matches / len(keyword_set) if keyword_set else 0
+            
+            if text_length >= 8 and text_length <= 50 and relevance_score >= 0.3:
+                filtered_sentences.append(sent)
+        elif hasattr(sent, 'text'):
+            text = sent.text.lower()
+            text_length = len(text.split())
+            
+            keyword_matches = sum(1 for kw in keyword_set if kw in text)
+            relevance_score = keyword_matches / len(keyword_set) if keyword_set else 0
+            
+            if text_length >= 8 and text_length <= 50 and relevance_score >= 0.3:
+                filtered_sentences.append(sent)
+    
+    if not filtered_sentences:
+        filtered_sentences = all_representative_sentences[:min(len(all_representative_sentences), 10)]
+    
+    logger.info(f"Filtered to {len(filtered_sentences)} relevant sentences from original {len(all_representative_sentences)}")
+    
+    source_sentence_map = {}
+    for sent in filtered_sentences:
+        if isinstance(sent, tuple):
+            source = getattr(sent[0], 'source', 'unknown')
+        else:
+            source = getattr(sent, 'source', 'unknown')
+        
+        if source not in source_sentence_map:
+            source_sentence_map[source] = []
+        source_sentence_map[source].append(sent)
+    
+    if len(source_sentence_map) < 2:
+        logger.warning(f"Only {len(source_sentence_map)} unique sources found after filtering. Analysis may be limited.")
+        
+    min_cluster_size = max(2, min(len(source_sentence_map), 4))
+    # weights,context,context_len,preprocess,norm,n_neighbors,n_components,umap_metric,cluster_metric,algorithm,cluster_selection_method,value
+    # 1.0, False, 1, False,l1,10,5,correlation,manhattan,prims_kdtree,eom
+    PARAMS = {
+        "weights": 1.0,
+        "context": False,
+        "context_len": 1,
+        "preprocess": False,
+        "norm": "l1",
+        "n_neighbors": 10,
+        "n_components": 5,
+        "umap_metric": "correlation",
+        "cluster_metric": "manhattan",
+        "algorithm": "prims_kdtree",
+        "cluster_selection_method": "eom",
+    }
+    clusters = group_representative_sentences(filtered_sentences, min_cluster_size=min_cluster_size, params=PARAMS)
+    
+    final_clusters = []
+    for cluster in clusters:
+        cluster_sources = set()
+        for sent in cluster.get('sentences', []):
+            source = getattr(sent, 'source', 'unknown')
+            cluster_sources.add(source)
+        # require at least 2 unique sources to consider this a robust narrative
+        if len(cluster_sources) >= 2:
+            final_clusters.append(cluster)
+    
+    clusters = final_clusters
+    clusters = merge_similar_clusters(clusters, threshold=0.74)
     if not clusters:
         logger.warning("No clusters found after grouping representative sentences.")
         return []
@@ -83,7 +188,8 @@ def visualize_article_analysis(analysis_result) -> None:
     if not analysis_result:
         logger.warning("No analysis result to visualize.")
         return
-    time.sleep(1)
+    # Avoid unnecessary delays in Streamlit runtime
+    # time.sleep(1)
     print("\n" + f"{Style.BRIGHT}{Fore.CYAN}===== ARTICLE ANALYSIS RESULT ====={Style.RESET_ALL}\n")
     for i, cluster in enumerate(analysis_result):
         print(f"{Style.BRIGHT}{Fore.GREEN}CLUSTER {i+1}{Style.RESET_ALL} {Fore.LIGHTBLACK_EX}| Reliability: {Fore.YELLOW}{cluster.get('reliability', 'N/A'):.2f}{Fore.RESET}")
@@ -113,3 +219,5 @@ def visualize_article_analysis(analysis_result) -> None:
                 print(f"  {detail.replace('_',' ').capitalize():<{maxlen}} : {val}")
         print(f"{Fore.LIGHTBLACK_EX}" + "-"*60 + f"{Fore.RESET}\n")
     print(f"{Style.BRIGHT}{Fore.CYAN}===== END OF ANALYSIS ====={Style.RESET_ALL}\n")
+
+# No top-level execution on import; functions are called by CLI/UI only.

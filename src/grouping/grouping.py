@@ -13,7 +13,13 @@ from umap import UMAP
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, homogeneity_score, completeness_score, v_measure_score
 import torch
 import torch.nn as nn
-from utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator
+try:
+    from ..utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator, get_stopwords
+except Exception:
+    try:
+        from src.utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator, get_stopwords
+    except Exception:
+        from utility import clean_text, SentenceHolder, split_sentences, normalize_values_minmax, DLog, load_sent_transformer, load_lemma, cache_data_decorator, cache_resource_decorator, get_stopwords
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from typing import Union, Type
@@ -86,21 +92,22 @@ def load_attention_model(model_path=None):
             return None
     return None
 
+sent_model = load_sent_transformer()
+lemma_model = load_lemma()
 attention_model = load_attention_model()
 
-@cache_data_decorator
+# @cache_data_decorator
 def preprocess_text(text):
     logger.info("Preprocessing text...")
-    lemmatizer = load_lemma()
     stop_words = set(stopwords.words('english'))
     text = clean_text(text)
     text = text.lower()
     tokens = word_tokenize(text)
-    tokens = [lemmatizer.lemmatize(word) for word in tokens
+    tokens = [lemma_model.lemmatize(word) for word in tokens
               if word.isalpha() and word not in stop_words]
     return ' '.join(tokens) if tokens else text
 
-@cache_data_decorator
+# @cache_data_decorator
 def encode_text_with_attention(embeddings, _att_model):
     logger.info("Encoding text with attention...")
     if _att_model is None:
@@ -111,10 +118,9 @@ def encode_text_with_attention(embeddings, _att_model):
         refined_embeddings = _att_model(embeddings_tensor)
     return refined_embeddings.detach().cpu().numpy()
 
-@cache_data_decorator
+# @cache_data_decorator
 def encode_text(sentences, weights, context, context_len, preprocess, attention, _att_model):
     logger.info("Encoding text...")
-    model = load_sent_transformer()
     if not sentences or len(sentences) == 0:
         return np.array([])
     if preprocess:
@@ -122,7 +128,7 @@ def encode_text(sentences, weights, context, context_len, preprocess, attention,
         sentences = [s for s in sentences if s and s.strip()]
         if not sentences:
             return np.array([])
-    embeddings = model.encode(sentences, show_progress_bar=False)
+    embeddings = sent_model.encode(sentences, show_progress_bar=False)
     if attention and _att_model is not None:
         embeddings = encode_text_with_attention(embeddings, _att_model)
     if not context:
@@ -138,7 +144,7 @@ def encode_text(sentences, weights, context, context_len, preprocess, attention,
         final_embeddings.append(weighted_emb)
     return np.array(final_embeddings)
 
-@cache_data_decorator
+# @cache_data_decorator
 def dim_reduction(embeddings, n_neighbors=15, n_components=2, metric='cosine'):
     logger.info("Dimensional Reduction...")
     n_samples = len(embeddings)
@@ -196,10 +202,10 @@ def find_representative_sentence(X: np.ndarray, labels: np.ndarray, cluster_labe
     rep_idx = cluster_indices[rep_relative_idx]
     return rep_idx
 
-def cluster_sentences(sentences, _att_model=None, weights=0.1, context:bool = True, context_len:int = 5, preprocess:bool = True, attention:bool = False, norm:str = 'l2', n_neighbors:int = 15, n_components:int = 2, umap_metric:str = 'cosine', cluster_metric:str = 'cosine', algorithm:str = 'best', cluster_selection_method:str = 'eom', min_cluster_size:int = 2, min_samples:int = 1):
+def cluster_sentences(sentences, _att_model=None, weights=0.1, context:bool = True, context_len:int = 5, preprocess:bool = True, attention:bool = False, norm:str = 'l2', reduce:bool = False, n_neighbors:int = 15, n_components:int = 2, umap_metric:str = 'cosine', cluster_metric:str = 'cosine', algorithm:str = 'best', cluster_selection_method:str = 'eom', min_cluster_size:int = 2, min_samples:int = 1):
     logger.info("Clustering sentences...")
     if not sentences or len(sentences) == 0:
-        return [0]
+        return []
     if len(sentences) == 1:
         return [0]
     weights_new = {"single": weights, "context": 1 - weights}
@@ -207,7 +213,7 @@ def cluster_sentences(sentences, _att_model=None, weights=0.1, context:bool = Tr
         _att_model = load_attention_model()
     embeddings = encode_text(sentences, weights_new, context, context_len, preprocess, attention, _att_model)
     if embeddings is None or len(embeddings) == 0:
-        return [0]
+        return [-1] * len(sentences)
     if len(embeddings) == 1:
         return [0]
     if norm != 'none':
@@ -215,14 +221,15 @@ def cluster_sentences(sentences, _att_model=None, weights=0.1, context:bool = Tr
     n_samples = len(embeddings)
     actual_n_neighbors = min(n_neighbors, max(1, n_samples - 1))
     actual_n_components = min(n_components, max(1, n_samples - 1))
-    embeddings = dim_reduction(embeddings, actual_n_neighbors, actual_n_components, umap_metric)
+    if reduce:
+        embeddings = dim_reduction(embeddings, actual_n_neighbors, actual_n_components, umap_metric)
     try:
         clusters = cluster_embeddings(embeddings, metric=cluster_metric, algorithm=algorithm, cluster_selection_method=cluster_selection_method, min_cluster_size=min_cluster_size, min_samples=min_samples)
-        if clusters is None or len(clusters) == 0 or all(label == -1 for label in clusters):
-            return [0] * len(sentences)
+        if clusters is None or len(clusters) == 0:
+            return [-1] * len(sentences)
         return clusters.tolist()
     except Exception as e:
-        return [0] * len(sentences)
+        return [-1] * len(sentences)
 
 def reward_function(cluster_pred, cluster_true):
     logger.info("Calculating reward...")
@@ -236,20 +243,21 @@ def reward_function(cluster_pred, cluster_true):
     return composite_score
 
 OPTIMAL_CLUSTERING_PARAMS = {
-    "weights": 0.4088074527809119,
+    "weights": 0.4,
     "context": True,
-    "context_len": 2,
+    "context_len": 1,
     "preprocess": False,
-    "attention": True,
-    "norm": 'max',
-    "n_neighbors": 6,
-    "n_components": 4,
-    "umap_metric": 'correlation',
+    "attention": False,
+    "norm": 'l2',
+    "reduce": False,
+    "n_neighbors": 5,
+    "n_components": 2,
+    "umap_metric": 'cosine',
     "cluster_metric": 'euclidean',
-    "algorithm": 'prims_kdtree',
-    "cluster_selection_method": 'leaf',
-    "min_cluster_size": 2,
-    "min_samples": None
+    "algorithm": 'generic',
+    "cluster_selection_method": 'eom',
+    "min_cluster_size": 3,
+    "min_samples": 1
 }
 
 def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PARAMS):
@@ -267,8 +275,8 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
         _att_model=attention_model,
         **params
     )
-    if all(label == -1 for label in cluster_labels):
-        cluster_labels = [0] * len(sentences)
+    if not cluster_labels:
+        return []
     cluster_dicts = []
     unique_labels = sorted(l for l in set(cluster_labels) if l != -1)
 
@@ -401,11 +409,8 @@ def observe_best_cluster(sentences_holder: List[SentenceHolder],
     }
 
 def group_representative_sentences(rep_sentences: List,
-                                   min_cluster_size: int = 3,
-                                   min_avg_sim: float = 0.25,
-                                   min_silhouette: float = 0.05,
-                                   max_sim_std: float = 0.13):
-    model = load_sent_transformer()
+                                   min_cluster_size: int | None = None,
+                                   params: dict | None = None):
     reps_with_context, reps_no_context = [], []
     for item in rep_sentences:
         if isinstance(item, tuple):
@@ -417,7 +422,7 @@ def group_representative_sentences(rep_sentences: List,
             reps_with_context.append(item)
             reps_no_context.append(item)
 
-    if len(reps_no_context) < min_cluster_size:
+    if min_cluster_size is not None and len(reps_no_context) < min_cluster_size:
         if not reps_no_context:
             return []
         return [{
@@ -427,87 +432,31 @@ def group_representative_sentences(rep_sentences: List,
             'representative_with_context': (reps_no_context[0], reps_with_context[0])
         }]
 
-    texts = [s.text for s in reps_with_context]
-    embeddings = model.encode(texts, show_progress_bar=False)
-    normed = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
-    n_samples = len(normed)
-
-    if n_samples <= 1:
-        return []
-
-    umap_neighbors = min(10, n_samples - 1)
-    umap_components = min(5, n_samples - 1)
-    
-    if umap_components == 0:
-        umap_components = 1
-
-    reducer = UMAP(n_neighbors=umap_neighbors,
-                   n_components=umap_components,
-                   metric='cosine',
-                   random_state=42)
-    reduced = reducer.fit_transform(normed)
-
-    clusterer = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size,
-                                min_samples=max(1, min_cluster_size // 2),
-                                metric='euclidean',
-                                allow_single_cluster=True)
-    labels = clusterer.fit_predict(reduced)
-
-    unique_labels = np.unique(labels)
-    if len(unique_labels) > 1 and not (len(unique_labels) == 2 and -1 in unique_labels):
-        sil_scores = silhouette_samples(normed, labels, metric='cosine')
-    else:
-        sil_scores = np.ones(n_samples)
-
-    sim_matrix = cosine_similarity(embeddings)
-    clusters = []
-    
-    noise_indices = list(np.where(labels == -1)[0])
-    
-    for lbl in set(labels) - {-1}:
-        idxs = list(np.where(labels == lbl)[0])
-        sub = sim_matrix[np.ix_(idxs, idxs)]
-        pairs = np.triu_indices(len(sub), k=1)
-        
-        is_coherent = True
-        if pairs[0].size > 0:
-            pairwise_sims = sub[pairs]
-            avg_sim = pairwise_sims.mean()
-            sim_std = pairwise_sims.std()
-            
-            if (avg_sim < min_avg_sim or 
-                sim_std > max_sim_std or 
-                sil_scores[idxs].mean() < min_silhouette):
-                is_coherent = False
-        
-        if is_coherent:
-            rep_i = idxs[np.argmax(sub.sum(axis=1))]
-            clusters.append({
-                'label': int(lbl),
-                'sentences': [reps_no_context[i] for i in idxs],
-                'representative': reps_no_context[rep_i],
-                'representative_with_context': (
-                    reps_no_context[rep_i],
-                    reps_with_context[rep_i]
-                )
+    clusters = cluster_texts(reps_with_context, params=params) if params is not None else cluster_texts(reps_with_context)
+    output = []
+    for cluster in clusters:
+        cluster_indices = []
+        for sent in cluster['sentences']:
+            for i, ctx_sent in enumerate(reps_with_context):
+                if sent.text == ctx_sent.text and sent.source == ctx_sent.source:
+                    cluster_indices.append(i)
+                    break
+        cluster_reps_no_context = [reps_no_context[i] for i in cluster_indices]
+        rep_idx = None
+        for i, ctx_sent in enumerate(reps_with_context):
+            if (cluster['representative'] is not None and
+                cluster['representative'].text == ctx_sent.text and 
+                cluster['representative'].source == ctx_sent.source):
+                rep_idx = i
+                break
+        if rep_idx is not None:
+            output.append({
+                'label': cluster['label'],
+                'sentences': cluster_reps_no_context,
+                'representative': reps_no_context[rep_idx],
+                'representative_with_context': (reps_no_context[rep_idx], reps_with_context[rep_idx])
             })
-        else:
-            noise_indices.extend(idxs)
-
-    if noise_indices and not clusters:
-        noise_sentences_no_ctx = [reps_no_context[i] for i in noise_indices]
-        noise_sentences_with_ctx = [reps_with_context[i] for i in noise_indices]
-        return [{
-            'label': 0,
-            'sentences': noise_sentences_no_ctx,
-            'representative': noise_sentences_no_ctx[0],
-            'representative_with_context': (noise_sentences_no_ctx[0], noise_sentences_with_ctx[0])
-        }]
-    
-    if not clusters and not noise_indices:
-        return []
-
-    return clusters
+    return output
 
 def group_individual_articles(article):
     logger.info("Grouping individual articles...")
@@ -521,3 +470,79 @@ def group_individual_articles(article):
     for cluster in clusters:
         rep_sentences.append(cluster['representative_with_context'])
     return rep_sentences
+
+def merge_similar_clusters(clusters: List[dict], threshold: float = 0.82) -> List[dict]:
+    if not clusters or len(clusters) < 2:
+        return clusters
+    texts = []
+    source_sets = []
+    stops = set(get_stopwords())
+    for c in clusters:
+        rep_ctx = c.get('representative_with_context')
+        if isinstance(rep_ctx, tuple) and rep_ctx[1] is not None and hasattr(rep_ctx[1], 'text'):
+            texts.append(rep_ctx[1].text)
+        elif c.get('representative') is not None:
+            texts.append(c['representative'].text)
+        else:
+            sents = c.get('sentences', [])
+            texts.append(" ".join(s.text for s in sents[:2]) if sents else "")
+        ss = set(getattr(s, 'source', '') or '' for s in c.get('sentences', []))
+        source_sets.append({s for s in ss if s})
+    if not any(t.strip() for t in texts):
+        return clusters
+    embs = sent_model.encode(texts, show_progress_bar=False)
+    sim = cosine_similarity(embs)
+    n = len(clusters)
+    parent = list(range(n))
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+    def union(a,b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+    token_threshold = 0.50
+    for i in range(n):
+        for j in range(i+1, n):
+            cos_ok = sim[i, j] >= threshold
+            ti = [w for w in texts[i].lower().split() if len(w) > 3 and w not in stops]
+            tj = [w for w in texts[j].lower().split() if len(w) > 3 and w not in stops]
+            tok_ok = False
+            if ti and tj:
+                si = set(ti)
+                sj = set(tj)
+                jacc = len(si & sj) / max(1, len(si | sj))
+                tok_ok = jacc >= token_threshold
+            if cos_ok and tok_ok:
+                union(i, j)
+    groups = {}
+    for i in range(n):
+        r = find(i)
+        groups.setdefault(r, []).append(i)
+    if len(groups) == n:
+        return clusters
+    merged = []
+    new_label = 0
+    for _, idxs in groups.items():
+        if len(idxs) == 1:
+            c = clusters[idxs[0]].copy()
+            c['label'] = new_label
+            merged.append(c)
+            new_label += 1
+            continue
+        base = clusters[idxs[0]].copy()
+        all_sents = []
+        seen = set()
+        for k in idxs:
+            for s in clusters[k].get('sentences', []):
+                key = (getattr(s, 'text', ''), getattr(s, 'source', ''))
+                if key not in seen:
+                    seen.add(key)
+                    all_sents.append(s)
+        base['sentences'] = all_sents
+        base['label'] = new_label
+        merged.append(base)
+        new_label += 1
+    return merged

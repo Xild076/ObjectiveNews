@@ -1,8 +1,23 @@
 import optuna
 from tqdm import tqdm
-from grouping.grouping import cluster_sentences, load_samples, reward_function, SelfAttentionModel
-from utility import load_sent_transformer, DLog
 import os
+import sys
+try:
+    from .grouping import cluster_sentences, load_samples, reward_function, SelfAttentionModel, cluster_texts
+    from ..utility import load_sent_transformer, DLog, SentenceHolder
+except Exception:
+    try:
+        from src.grouping.grouping import cluster_sentences, load_samples, reward_function, SelfAttentionModel, cluster_texts
+        from src.utility import load_sent_transformer, DLog, SentenceHolder
+    except Exception:
+        _CUR = os.path.dirname(__file__)
+        _PARENT = os.path.abspath(os.path.join(_CUR, '..'))
+        _ROOT = os.path.abspath(os.path.join(_CUR, '..', '..'))
+        for _p in (_PARENT, _ROOT):
+            if _p not in sys.path:
+                sys.path.insert(0, _p)
+        from grouping.grouping import cluster_sentences, load_samples, reward_function, SelfAttentionModel, cluster_texts
+        from utility import load_sent_transformer, DLog, SentenceHolder
 import csv
 import torch
 import torch.nn as nn
@@ -1298,13 +1313,259 @@ def train_self_attention_model(epochs=2000, lr=1e-4, resume_from_best=True, trai
     torch.save(final_checkpoint, "models/final_attention_model.pth")
     print(f"Final model saved. Best validation score: {best_val_score:.4f}")
 
+
+def load_aa_rep_sets(dir_path: str = 'data/aa'):
+    import re
+    sets = []
+    if not os.path.isdir(dir_path):
+        return sets
+    try:
+        entries = sorted(os.listdir(dir_path))
+    except Exception:
+        return sets
+    for name in entries:
+        folder = os.path.join(dir_path, name)
+        if not os.path.isdir(folder):
+            continue
+        try:
+            rep_files = [f for f in os.listdir(folder) if f.lower().startswith('reps') and f.lower().endswith('.txt')]
+            if not rep_files:
+                rep_files = [f for f in os.listdir(folder) if f.lower().endswith('.txt')]
+            if not rep_files:
+                continue
+            rep_files.sort(key=lambda fn: os.path.getmtime(os.path.join(folder, fn)), reverse=True)
+            rep_path = os.path.join(folder, rep_files[0])
+            with open(rep_path, 'r') as f:
+                content = f.read()
+            matches = re.findall(r"SentH\[text=(.*?)\]", content, flags=re.DOTALL)
+            if not matches:
+                continue
+            rep_texts = [m.strip() for i, m in enumerate(matches) if i % 2 == 1 and m.strip()]
+            texts = [SentenceHolder(text=t) for t in rep_texts]
+            if texts:
+                sets.append(texts)
+        except Exception:
+            continue
+    return sets
+
+def _score_rep_clusters(rep_sentences, clusters):
+    """Score clustered representative sentences.
+    Improvements:
+    - Penalize noise (unassigned sentences) proportionally.
+    - Use Shannon entropy for source diversity within clusters.
+    - Use standard deviation of dates for temporal coherence (lower std => higher coherence).
+    Returns a score roughly in [-1, 1]. Higher is better.
+    """
+    from sklearn.metrics import silhouette_score
+    from sklearn.preprocessing import normalize as sk_normalize
+    from collections import Counter
+    sent_model = load_sent_transformer()
+
+    # Map sentences to indices for label assignment
+    key_to_index = {}
+    for i, s in enumerate(rep_sentences):
+        key_to_index[(s.text, getattr(s, 'source', None), getattr(s, 'date', None))] = i
+
+    n = len(rep_sentences)
+    if n == 0:
+        return 0.0
+
+    # Assign cluster labels; unassigned remain -1 (noise)
+    labels = np.full(n, -1, dtype=int)
+    for c in clusters:
+        for s in c.get('sentences', []):
+            k = (s.text, getattr(s, 'source', None), getattr(s, 'date', None))
+            if k in key_to_index:
+                labels[key_to_index[k]] = c.get('label', 0)
+
+    assigned_idx = np.where(labels != -1)[0]
+    noise_ratio = float(max(0, n - len(assigned_idx)) / n)
+
+    # Silhouette on assigned items only (if valid)
+    sil = 0.0
+    if len(assigned_idx) >= 3 and len(set(labels[assigned_idx])) >= 2:
+        texts = [rep_sentences[i].text for i in assigned_idx]
+        embs = sent_model.encode(texts, show_progress_bar=False)
+        embs = sk_normalize(embs, norm='l2')
+        try:
+            sil = float(silhouette_score(embs, labels[assigned_idx]))
+        except Exception:
+            sil = 0.0
+
+    # Group assigned positions by cluster id
+    by_cluster = {}
+    for pos, idx in enumerate(assigned_idx):
+        lbl = labels[idx]
+        by_cluster.setdefault(lbl, []).append(pos)
+
+    # Source diversity via normalized entropy (weighted by cluster size)
+    entropy_vals = []
+    entropy_weights = []
+    for lbl, idxs in by_cluster.items():
+        # Sources in this cluster
+        sources = [getattr(rep_sentences[assigned_idx[i]], 'source', None) or 'UNK' for i in idxs]
+        if not sources:
+            continue
+        counts = Counter(sources)
+        total = float(sum(counts.values()))
+        if total <= 0 or len(counts) <= 1:
+            entropy_norm = 0.0
+        else:
+            probs = [c / total for c in counts.values()]
+            H = -sum(p * np.log(p + 1e-12) for p in probs)  # natural log
+            H_max = np.log(len(counts))
+            entropy_norm = float(H / (H_max + 1e-12))
+        entropy_vals.append(entropy_norm)
+        entropy_weights.append(len(idxs))
+    src_entropy = float(np.average(entropy_vals, weights=entropy_weights)) if entropy_vals else 0.0
+
+    # Temporal coherence via std deviation of dates (smaller std => higher coherence)
+    # Convert dates to day-scale floats
+    from datetime import datetime
+    def parse_dt(d):
+        if not d:
+            return None
+        for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%m/%d/%Y"):
+            try:
+                return datetime.strptime(str(d), fmt)
+            except Exception:
+                continue
+        return None
+
+    tcoh_vals = []
+    tcoh_weights = []
+    for lbl, idxs in by_cluster.items():
+        dts = []
+        for i in idxs:
+            d = getattr(rep_sentences[assigned_idx[i]], 'date', None)
+            dt = parse_dt(d)
+            if dt is not None:
+                dts.append(dt)
+        if len(dts) == 0:
+            # Unknown dates: neutral (don’t punish clusters missing metadata)
+            continue
+        if len(dts) == 1:
+            tcoh = 1.0
+        else:
+            days = np.array([dt.timestamp() / 86400.0 for dt in dts], dtype=float)
+            std_days = float(np.std(days))
+            # Convert to [0,1]: tighter clusters get values near 1. Scale ~30 days.
+            tcoh = float(np.exp(-std_days / 30.0))
+        tcoh_vals.append(tcoh)
+        tcoh_weights.append(len(idxs))
+    temp_coh = float(np.average(tcoh_vals, weights=tcoh_weights)) if tcoh_vals else 1.0
+
+    # Combine metrics with a noise penalty
+    noise_weight = 0.3  # penalty strength per fraction of noise
+    score = 0.6 * sil + 0.2 * src_entropy + 0.2 * temp_coh - noise_weight * noise_ratio
+
+    # Clamp to reasonable bounds
+    return float(max(-1.0, min(1.0, score)))
+
+def objective_group_reps(trial):
+    """Optuna objective for grouping representative sentences.
+    Uses contextual sentences (second element) and turns off attention/context mixing.
+    Also uses a relative min_cluster_size ratio for robustness across set sizes.
+    """
+    param_preprocess = trial.suggest_categorical("preprocess", [True, False])
+    param_norm = trial.suggest_categorical("norm", ['l1', 'l2', 'max', 'none'])
+    param_n_neighbors = trial.suggest_int("n_neighbors", 2, 15)
+    param_n_components = trial.suggest_int("n_components", 2, 5)
+    param_umap_metric = trial.suggest_categorical("umap_metric", ['euclidean', 'manhattan', 'cosine', 'correlation', 'chebyshev'])
+    param_cluster_metric = trial.suggest_categorical("cluster_metric", ['euclidean', 'manhattan', 'cosine'])
+    param_algorithm = trial.suggest_categorical("algorithm", ['best', 'generic', 'prims_kdtree', 'boruvka_kdtree'])
+    param_cluster_selection_method = trial.suggest_categorical("cluster_selection_method", ['eom', 'leaf'])
+    param_min_cluster_ratio = trial.suggest_float("min_cluster_ratio", 0.05, 0.3)
+    param_min_samples = trial.suggest_int("min_samples", 1, 6)
+
+    base_params = {
+        "weights": 1.0,
+        "context": False,
+        "context_len": 1,
+        "preprocess": param_preprocess,
+        "attention": False,
+        "norm": param_norm,
+        "n_neighbors": param_n_neighbors,
+        "n_components": param_n_components,
+        "umap_metric": param_umap_metric,
+        "cluster_metric": param_cluster_metric,
+        "algorithm": param_algorithm,
+        "cluster_selection_method": param_cluster_selection_method,
+        # min_cluster_size computed per set from ratio
+        "min_samples": param_min_samples,
+    }
+
+    sets = load_aa_rep_sets('data/aa')
+    if not sets:
+        return 0.0
+
+    total = 0.0
+    count = 0
+    for rep_set in sets:
+        try:
+            # Compute absolute min_cluster_size adaptively for this set
+            size = max(1, len(rep_set))
+            abs_min_cluster_size = max(2, int(round(param_min_cluster_ratio * size)))
+            params = dict(base_params)
+            params["min_cluster_size"] = abs_min_cluster_size
+
+            clusters = cluster_texts(rep_set, params=params)
+            total += _score_rep_clusters(rep_set, clusters)
+            count += 1
+        except Exception:
+            continue
+    return total / max(count, 1)
+
+def log_best_trial_to_csv_group_reps(study, trial):
+    if trial.state != optuna.trial.TrialState.COMPLETE or study.best_trial.number != trial.number:
+        return
+    filepath = "optuna_best_trials_log.csv"
+    fieldnames = list(trial.params.keys()) + ["value", "objective"]
+    file_exists = os.path.isfile(filepath)
+    with open(filepath, mode="a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        if not file_exists:
+            writer.writeheader()
+        row = {**trial.params, "value": trial.value, "objective": "group_reps"}
+        writer.writerow(row)
+
+def optuna_optimization_group_reps(n_trials: int = 500):
+    study = optuna.create_study(direction="maximize")
+    try:
+        study.optimize(objective_group_reps, n_trials=n_trials, callbacks=[log_best_trial_to_csv_group_reps])
+    except KeyboardInterrupt:
+        pass
+    return study
+
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs', type=int, default=2000)
-    parser.add_argument('--lr', type=float, default=1e-4)
-    parser.add_argument('--resume', action='store_true')
-    parser.add_argument('--method', type=str, default='triplet', choices=['triplet', 'contrastive', 'differentiable', 'policy_gradient', 'evolutionary', 'hybrid', 'meta'])
+    parser = argparse.ArgumentParser(prog='optimize_grouping', description='Optimize clustering and train attention model')
+    sub = parser.add_subparsers(dest='cmd')
+
+    p_opt = sub.add_parser('optimize', help='Optimize sentence clustering on labeled samples')
+    p_opt.add_argument('--trials', type=int, default=20000)
+
+    p_reps = sub.add_parser('reps', help='Optimize grouping of representative sentences (data/aa)')
+    p_reps.add_argument('--trials', type=int, default=500)
+
+    p_train = sub.add_parser('train', help='Train self-attention model')
+    p_train.add_argument('--epochs', type=int, default=2000)
+    p_train.add_argument('--lr', type=float, default=1e-4)
+    p_train.add_argument('--resume', action='store_true')
+    p_train.add_argument('--method', type=str, default='triplet', choices=['triplet', 'contrastive', 'differentiable', 'policy_gradient', 'evolutionary', 'hybrid', 'meta'])
+
+    parser.add_argument('--quick', action='store_true', help='Run reps optimization with 100 trials (shortcut)')
+
     args = parser.parse_args()
-    
-    train_self_attention_model(epochs=args.epochs, lr=args.lr, resume_from_best=args.resume, training_method=args.method)
+
+    if args.cmd == 'optimize':
+        optuna_optimization()
+    elif args.cmd == 'reps':
+        optuna_optimization_group_reps(n_trials=args.trials)
+    elif args.cmd == 'train':
+        train_self_attention_model(epochs=args.epochs, lr=args.lr, resume_from_best=args.resume, training_method=args.method)
+    else:
+        if args.quick:
+            optuna_optimization_group_reps(n_trials=100)
+        else:
+            parser.print_help()

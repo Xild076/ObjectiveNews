@@ -19,6 +19,8 @@ from article_analysis import article_analysis
 from reliability import get_source_label, normalize_domain, _load_source_df
 import logging
 from utility import load_keybert
+import torch
+import gc
 
 st.set_page_config(page_title="Article Analysis", layout="wide")
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -41,9 +43,6 @@ def generate_cluster_title(_representative_text: str) -> str:
 
 @st.cache_data
 def fetch_source_reliability(domain: str) -> float:
-    """
-    Returns reliability score in [0,1] for a domain. Handles missing/invalid domains robustly.
-    """
     if not domain or not isinstance(domain, str):
         return 0.0
     try:
@@ -52,7 +51,9 @@ def fetch_source_reliability(domain: str) -> float:
         score, _ = get_source_label(normalized, df)
         if score is None or not isinstance(score, (int, float)):
             return 0.0
-        return max(0.0, min((score + 1) / 2, 1.0))
+        if 0.0 <= score <= 1.0:
+            return max(0.0, min(score, 1.0))
+        return max(0.0, min(score / 100.0, 1.0))
     except Exception:
         return 0.0
 
@@ -66,7 +67,7 @@ def display_analysis_results(analysis_result):
         rep_text = rep_text.text if rep_text else cluster.get('summary', '')
         title = generate_cluster_title(rep_text)
         details = cluster.get('reliability_details', {})
-        details_text = " | ".join([f"{k.replace('_', ' ').title()}: {v*100:.1f}%" for k, v in details.items() if isinstance(v, float)])
+        details_text = " | ".join([f"{k.replace('_', ' ').title()}: {v:.1f}%" for k, v in details.items() if isinstance(v, float)])
         st.markdown(f"""
             <div style='background:linear-gradient(90deg,#f5f7fa,#c3cfe2);border-radius:12px;padding:1.5em 2em;margin-bottom:2em;box-shadow:0 2px 8px rgba(0,0,0,0.04);'>
                 <div style='display:flex;justify-content:space-between;align-items:center;'>
@@ -83,7 +84,6 @@ def display_analysis_results(analysis_result):
                 <details style='margin-top:1.2em;'>
                     <summary style='font-size:1em;color:#1976d2;cursor:pointer;'>Contributing Sentences & Sources</summary>
                     {render_sentences(cluster.get('sentences', []))}
-                </details>
             </div>
         """, unsafe_allow_html=True)
 
@@ -100,6 +100,9 @@ if st.session_state.analysis_result:
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Start New Analysis", use_container_width=True, type="primary"):
         st.session_state.analysis_result = None
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         st.rerun()
 else:
     with st.form("analysis_form"):
@@ -107,19 +110,21 @@ else:
         text_input = st.text_input("Topic or URL", placeholder="e.g., 'global economic outlook'", help="Enter a news topic or paste a news article URL.")
         col1, col2, col3 = st.columns(3)
         link_count = col1.slider("Articles to Fetch", 5, 20, 10, 1, help="Number of articles to analyze.")
-        summarize_level = col2.select_slider("Summarization Detail", ["fast", "medium"], value="medium", help="Heavier models are disabled for this app.")
+        summarize_level = col2.select_slider("Summarization Detail", ["fast", "medium", "best"], value="medium", help="Heavier models are disabled for this app.")
         diverse_links = col3.toggle("Use Diverse Sources", value=True, help="Fetch articles from a wider variety of domains.")
         submitted = st.form_submit_button("Analyze Topic", use_container_width=True, type="primary")
 
     if submitted and text_input:
+        gc.collect()
         progress_bar = st.progress(0, text="Starting analysis...")
         try:
             def update_progress(value, text):
                 progress_bar.progress(value, text=f"Analyzing... {text}")
             with st.spinner("Processing... this may take a moment."):
+                level = {"best": "slow"}.get(summarize_level, summarize_level)
                 result = article_analysis(
                     text=text_input, link_n=link_count, diverse_links=diverse_links,
-                    summarize_level=summarize_level, progress_callback=update_progress
+                    summarize_level=level, progress_callback=update_progress
                 )
             st.session_state.analysis_result = result
             progress_bar.empty()

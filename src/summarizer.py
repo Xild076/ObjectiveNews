@@ -1,18 +1,24 @@
 import nltk
-nltk.download('punkt')
-from utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator
+from utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT
 from transformers import pipeline
 import torch
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from typing import List, Literal, Dict, Any
+import google.generativeai as genai
 import re
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 logger = DLog(name="SUMMARIZER", level="DEBUG")
 
-@cache_resource_decorator
+_sent_model = None
+def _get_sent_model():
+    global _sent_model
+    if _sent_model is None:
+        _sent_model = load_sent_transformer()
+    return _sent_model
+
+"""@cache_resource_decorator
 def load_summarizer():
     summarizer = pipeline(
         "summarization",
@@ -20,7 +26,9 @@ def load_summarizer():
         device=0 if torch.cuda.is_available() else -1,
         torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
     )
-    return summarizer
+    return summarizer"""
+
+# summarizer_model = load_summarizer()
 
 def grammar_correct(text: str) -> str:
     logger.info("Correcting grammar...")
@@ -35,24 +43,48 @@ def extractive_summarize(texts: List[str], top_k: int = 3) -> str:
     logger.info("Performing extractive summarization...")
     if not texts:
         return ""
-    embed_model = load_sent_transformer()
-    embs = embed_model.encode(texts, show_progress_bar=False)
+    embs = _get_sent_model().encode(texts, show_progress_bar=False)
     centroid = embs.mean(axis=0, keepdims=True)
     sims = cosine_similarity(centroid, embs)[0]
     idxs = sims.argsort()[::-1][:min(top_k, len(texts))]
     return " ".join(texts[i] for i in idxs)
 
-def chunked_summarize(text: str, max_length: int = 200, min_length: int = 100, num_beams: int = 4) -> str:
-    logger.info("Performing chunked summarization...")
-    summarizer = load_summarizer()
-    sents = split_sentences(text)
-    chunks = (" ".join(sents[i:i+20]) for i in range(0, len(sents), 20))
-    combined = " ".join(
-        summarizer("summarize: " + chunk, max_length=max_length, min_length=min_length, num_beams=num_beams)[0]["summary_text"]
-        for chunk in chunks
+def ai_summary(text: str, max_length: int = 200, min_length: int = 100) -> str:
+    logger.info("Performing AI summarization...")
+    model = genai.GenerativeModel("gemma-3-27b-it")
+    api_key = None
+    if IS_STREAMLIT:
+        try:
+            import streamlit as st
+            api_key = st.secrets["gemma_api_key"]
+        except Exception:
+            pass
+    if not api_key:
+        try:
+            with open("secrets/gemma.txt", "r") as f:
+                api_key = f.read().strip()
+        except Exception:
+            api_key = None
+    if not api_key:
+        logger.warning("Gemma API key not configured; falling back to extractive summarization.")
+        return extractive_summarize(split_sentences(text), top_k=3)
+    genai.configure(api_key=api_key)
+    generation_config = genai.types.GenerationConfig(
+            temperature=0.1,
+            max_output_tokens=5000,
+            top_p=0.9,
+            top_k=40
     )
-    final = summarizer("summarize: " + combined, max_length=max_length, min_length=min_length, num_beams=num_beams)[0]["summary_text"]
-    return final
+    try:
+        response = model.generate_content(
+            f"""You are an unbaised and objective summarizer. Summarize the following text in a concise and objective manner, focusing on the key points and avoiding any subjective opinions or interpretations. The summary should be between {min_length} and {max_length} characters long. Respond with only the summary text, without any additional commentary or explanations.
+            Text: {text}""",
+            generation_config=generation_config
+        )
+        return response.text.strip()
+    except:
+        logger.error("AI summarization failed. Falling back to extractive summarization.")
+        return extractive_summarize(split_sentences(text), top_k=3)
 
 def summarize(texts: List[str], level: Literal["fast", "medium", "slow"] = "fast") -> str:
     logger.info(f"Summarizing with level: {level}")
@@ -61,7 +93,7 @@ def summarize(texts: List[str], level: Literal["fast", "medium", "slow"] = "fast
     elif level == "medium":
         summary = extractive_summarize(texts, top_k=3)
     else:
-        summary = chunked_summarize(" ".join(texts))
+        summary = ai_summary(texts[0], max_length=1000, min_length=200) if texts else ""
     try:
         summary = grammar_correct(summary)
     except Exception as e:
@@ -75,3 +107,4 @@ def summarize_clusters(clusters: List[Dict[str, Any]], level: Literal["fast", "m
         source = list(texts) or [c["representative"].text]
         c["summary"] = summarize(source, level)
     return clusters
+

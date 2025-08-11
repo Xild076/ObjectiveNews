@@ -1,24 +1,4 @@
 import nltk
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
-try:
-    nltk.data.find('corpora/wordnet')
-except LookupError:
-    nltk.download('wordnet')
-try:
-    nltk.data.find('corpora/omw-1.4')
-except LookupError:
-    nltk.download('omw-1.4')
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
-try:
-    nltk.data.find('corpora/sentiwordnet')
-except LookupError:
-    nltk.download('sentiwordnet')
 import functools
 from keybert import KeyBERT
 from urllib.parse import urlparse, urlunparse
@@ -42,10 +22,13 @@ LEVEL_COLORS = {
 
 import functools
 class DLog:
-    def __init__(self, name="DLog", level="DEBUG", log_dir="logs"):
+    def __init__(self, name="DLog", level="DEBUG", log_dir="logs", quiet=None):
         init(autoreset=True)
         self.name = name
         self.levels = {"DEBUG":10,"INFO":20,"WARNING":30,"ERROR":40,"CRITICAL":50}
+        env_level = os.environ.get("DLOG_LEVEL")
+        if env_level and env_level.upper() in self.levels:
+            level = env_level.upper()
         self.log_level = self.levels.get(level.upper(),10)
         self.log_dir = log_dir
         if not os.path.exists(log_dir):
@@ -55,6 +38,11 @@ class DLog:
         self.error_log_path = os.path.join(self.log_dir,f"errors_{self.current_date}.log")
         self.log_file = open(self.log_path,"a")
         self.error_file = open(self.error_log_path,"a")
+        if quiet is None:
+            q = os.environ.get("DLOG_QUIET", "1")
+            self.quiet = not (q in ("0","false","False","no","NO"))
+        else:
+            self.quiet = bool(quiet)
     
     def _check_date(self):
         d = datetime.now().strftime("%Y-%m-%d")
@@ -72,12 +60,21 @@ class DLog:
             t=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             c=LEVEL_COLORS.get(level_str,"")
             out=f"{t} {Fore.RESET} [{self.name}] {c} [{level_str}] {Fore.RESET} {msg}"
-            print(f"{out}")
+            if not self.quiet:
+                print(f"{out}")
             self.log_file.write(out+"\n")
             if self.levels[level_str]>=self.levels["ERROR"]:
                 self.error_file.write(out+"\n")
             self.log_file.flush()
             self.error_file.flush()
+
+    def set_level(self, level:str):
+        lvl = self.levels.get(level.upper())
+        if lvl is not None:
+            self.log_level = lvl
+
+    def set_quiet(self, quiet:bool=True):
+        self.quiet = bool(quiet)
     
     def debug(self,msg):
         self._check_date()
@@ -107,16 +104,23 @@ logger = DLog(name="UtilityLogger", level="DEBUG")
 
 try:
     import streamlit as st
-    IS_STREAMLIT = True
-    cache_resource_decorator = st.cache_resource
-    cache_data_decorator = st.cache_data
-    logger.info("Streamlit is available. Using st.cache_resource and st.cache_data.")
-
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx  # type: ignore
+        _st_ctx = get_script_run_ctx()
+    except Exception:
+        _st_ctx = None
+    if _st_ctx is not None:
+        IS_STREAMLIT = True
+        cache_resource_decorator = st.cache_resource
+        cache_data_decorator = st.cache_data
+        logger.info("Streamlit runtime detected. Using st.cache_resource and st.cache_data.")
+    else:
+        raise ImportError("Streamlit not running")
 except ImportError:
     IS_STREAMLIT = False
     cache_resource_decorator = functools.lru_cache(maxsize=1)
     cache_data_decorator = functools.lru_cache(maxsize=128)
-    logger.info("Streamlit not available. Falling back to functools.lru_cache.")
+    logger.info("Streamlit runtime not detected. Falling back to functools.lru_cache.")
 
 
 @cache_resource_decorator
@@ -132,7 +136,14 @@ def load_sent_transformer():
 @cache_resource_decorator
 def load_lemma():
     logger.info("Loading WordNetLemmatizer...")
-    return WordNetLemmatizer()
+    try:
+        return WordNetLemmatizer()
+    except Exception:
+        class _IdentityLemma:
+            def lemmatize(self, w):
+                return w
+        logger.warning("Falling back to identity lemmatizer (WordNet unavailable).")
+        return _IdentityLemma()
 
 @cache_resource_decorator
 def load_keybert():
@@ -215,7 +226,15 @@ def get_keywords(text):
 @cache_resource_decorator
 def get_stopwords():
     logger.info("Loading stopwords...")
-    return list(set(stopwords.words("english")))
+    try:
+        return list(set(stopwords.words("english")))
+    except Exception:
+        # Minimal fallback list to avoid heavy downloads
+        fallback = {
+            'the','a','an','and','or','but','if','while','with','to','from','by','on','in','for','of','at','as','is','are','was','were','be','been','being','it','this','that','these','those','i','you','he','she','they','we','them','us','our','your','his','her','their'
+        }
+        logger.warning("Falling back to built-in stopwords list (NLTK stopwords unavailable).")
+        return list(fallback)
 
 @cache_data_decorator
 def normalize_values_minmax(values, reverse=False):
