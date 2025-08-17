@@ -97,7 +97,7 @@ attention_model = load_attention_model()
 # @cache_data_decorator
 def preprocess_text(text):
     logger.info("Preprocessing text...")
-    stop_words = set(stopwords.words('english'))
+    stop_words = set(get_stopwords())
     text = clean_text(text)
     text = text.lower()
     tokens = word_tokenize(text)
@@ -131,16 +131,18 @@ def encode_text(sentences, weights, context, context_len, preprocess, attention,
         embeddings = encode_text_with_attention(embeddings, _att_model)
     if not context:
         return embeddings
-    final_embeddings = []
-    context_window = context_len
-    for i, emb in enumerate(embeddings):
-        start_index = max(0, i - context_window)
-        end_index = min(len(embeddings), i + context_window + 1)
-        context_embeddings = embeddings[start_index:end_index]
-        context_mean = context_embeddings.mean(axis=0)
-        weighted_emb = (emb * weights["single"]) + (context_mean * weights["context"])
-        final_embeddings.append(weighted_emb)
-    return np.array(final_embeddings)
+    n = len(embeddings)
+    w_single = weights.get("single", 0.5)
+    w_context = weights.get("context", 0.5)
+    w = int(context_len)
+    cs = np.vstack([np.zeros((1, embeddings.shape[1]), dtype=embeddings.dtype), embeddings.cumsum(axis=0)])
+    idx = np.arange(n)
+    starts = np.maximum(0, idx - w)
+    ends = np.minimum(n, idx + w + 1)
+    sums = cs[ends] - cs[starts]
+    counts = (ends - starts).reshape(-1, 1)
+    means = sums / np.maximum(1, counts)
+    return (embeddings * w_single) + (means * w_context)
 
 # @cache_data_decorator
 def dim_reduction(embeddings, n_neighbors=15, n_components=2, metric='cosine'):

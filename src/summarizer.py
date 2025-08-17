@@ -3,7 +3,6 @@ import torch
 import numpy as np
 from typing import List, Literal, Dict, Any
 from sklearn.metrics.pairwise import cosine_similarity
-from transformers import pipeline
 import google.generativeai as genai
 from utility import DLog, clean_text, split_sentences, load_sent_transformer, cache_resource_decorator, IS_STREAMLIT, encode_sentences_cached
 
@@ -11,13 +10,6 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 logger = DLog(name="SUMMARIZER")
 
 _sent_model = None
-def _get_sent_model():
-    global _sent_model
-    if _sent_model is None:
-        _sent_model = load_sent_transformer()
-    return _sent_model
-
- 
 
 def grammar_correct(text: str) -> str:
     logger.info("Correcting grammar...")
@@ -92,8 +84,9 @@ def summarize(texts: List[str], level: Literal["fast", "medium", "slow"] = "fast
 def summarize_clusters(clusters: List[Dict[str, Any]], level: Literal["fast", "medium", "slow"] = "fast"):
     logger.info(f"Summarizing clusters with level: {level}")
     for c in clusters:
-        texts = (sent.text for sent in c["sentences"] if sent.text.strip())
-        source = list(texts) or [c["representative"].text]
-        c["summary"] = summarize(source, level)
+        texts = [sent.text for sent in c["sentences"] if getattr(sent, 'text', '').strip()]
+        if not texts and c.get("representative") is not None:
+            texts = [c["representative"].text]
+        c["summary"] = summarize(texts, level)
     return clusters
 
