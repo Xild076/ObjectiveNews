@@ -279,18 +279,6 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
             "representative_with_context": (None, None)
         }]
     sentences_text = [sentence.text for sentence in sentences]
-    cluster_labels = cluster_sentences(
-        sentences_text,
-        _att_model=attention_model,
-        **params
-    )
-    if not cluster_labels:
-        return []
-    cluster_dicts = []
-    unique_labels = sorted(l for l in set(cluster_labels) if l != -1)
-
-    assigned_indices = set()
-
     weights_new = {"single": params.get("weights", 0.1), "context": 1 - params.get("weights", 0.1)}
     embeddings = encode_text(
         sentences_text,
@@ -301,15 +289,52 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
         params.get("attention", False),
         attention_model
     )
+    if embeddings is None or len(embeddings) == 0:
+        return []
+    if len(embeddings) == 1:
+        labels = [0]
+    else:
+        emb_for_cluster = embeddings
+        if params.get("norm", 'none') != 'none':
+            emb_for_cluster = normalize(emb_for_cluster, norm=params.get("norm", 'l2'))
+        if params.get("reduce", False):
+            n = len(emb_for_cluster)
+            nn = min(max(3, params.get("n_neighbors", 15)), max(1, n - 1))
+            nc = min(params.get("n_components", 2), max(1, n - 1))
+            emb_for_cluster = dim_reduction(emb_for_cluster, nn, nc, params.get("umap_metric", 'cosine'))
+        try:
+            labels = cluster_embeddings(
+                emb_for_cluster,
+                metric=params.get("cluster_metric", 'cosine'),
+                algorithm=params.get("algorithm", 'best'),
+                cluster_selection_method=params.get("cluster_selection_method", 'eom'),
+                min_cluster_size=params.get("min_cluster_size", 2),
+                min_samples=params.get("min_samples", 1)
+            ).tolist()
+            if all(lbl == -1 for lbl in labels):
+                try:
+                    k = 1 if len(emb_for_cluster) < 3 else min(2, len(emb_for_cluster))
+                    km = KMeans(n_clusters=k, n_init=5, random_state=42)
+                    labels = km.fit_predict(emb_for_cluster).tolist()
+                    logger.warning("HDBSCAN produced only noise; falling back to KMeans clustering.")
+                except Exception:
+                    labels = [0] * len(emb_for_cluster)
+        except Exception:
+            labels = [-1] * len(emb_for_cluster)
+    if not labels:
+        return []
+    cluster_dicts = []
+    unique_labels = sorted(l for l in set(labels) if l != -1)
+    assigned_indices = set()
 
     for c in unique_labels:
-        cluster_indices = [i for i, label in enumerate(cluster_labels) if label == c and i not in assigned_indices]
+        cluster_indices = [i for i, label in enumerate(labels) if label == c and i not in assigned_indices]
         assigned_indices.update(cluster_indices)
         cluster_sents = [sentences[i] for i in cluster_indices]
         if len(cluster_indices) == 0:
             rep_idx = None
         else:
-            rep_idx = find_representative_sentence(embeddings, np.array(cluster_labels), c)
+            rep_idx = find_representative_sentence(embeddings, np.array(labels), c)
         representative_sentence = sentences[rep_idx] if rep_idx is not None else None
         cluster_dicts.append({
             "label": c,
