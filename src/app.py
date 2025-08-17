@@ -1,13 +1,12 @@
 import streamlit as st
-import time
 import os
+import sys
+from utility import ensure_nltk_data
+if 'nltk' in sys.modules and not hasattr(sys.modules.get('nltk'), 'data'):
+    del sys.modules['nltk']
+ensure_nltk_data()
 
-st.set_page_config(
-    page_title="News Analysis Engine",
-    page_icon="📰",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+st.set_page_config(page_title="Objective News", page_icon="📰", layout="wide", initial_sidebar_state="expanded")
 
 pages = [
     st.Page("pages/intro_page.py", title="Introduction"),
@@ -17,8 +16,8 @@ pages = [
 ]
 
 with st.sidebar:
-    st.title("News Analysis Engine")
-    st.write("An automated suite of tools to deconstruct news, analyze bias, and synthesize information.")
+    st.title("Objective News")
+    st.write("Analyze topics across sources, cluster narratives, and see objective summaries with reliability scores.")
     pg = st.navigation(pages)
 
 pg.run()

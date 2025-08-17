@@ -16,9 +16,9 @@ def render_sentences(sentences):
     return html
 import streamlit as st
 import logging
-from article_analysis import article_analysis
+from utility import load_keybert, ensure_nltk_data
+ensure_nltk_data()
 from reliability import get_source_label, normalize_domain, _load_source_df
-from utility import load_keybert
 import torch
 import gc
 
@@ -121,6 +121,7 @@ else:
                 progress_bar.progress(value, text=f"Analyzing... {text}")
             with st.spinner("Processing... this may take a moment."):
                 level = {"best": "slow"}.get(summarize_level, summarize_level)
+                from article_analysis import article_analysis
                 result = article_analysis(
                     text=text_input, link_n=link_count, diverse_links=diverse_links,
                     summarize_level=level, progress_callback=update_progress

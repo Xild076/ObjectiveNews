@@ -1,4 +1,3 @@
-import nltk
 import functools
 from keybert import KeyBERT
 from urllib.parse import urlparse, urlunparse
@@ -10,8 +9,6 @@ import os
 import sys
 import logging
 from sentence_transformers import SentenceTransformer
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
 import inflect
 
 LEVEL_COLORS = {"DEBUG": Fore.CYAN, "INFO": Fore.GREEN, "WARNING": Fore.YELLOW, "ERROR": Fore.RED, "CRITICAL": Fore.RED + Style.BRIGHT}
@@ -133,7 +130,14 @@ except Exception:
     pass
 
 
+def _import_nltk_safely():
+    import importlib, sys
+    if 'nltk' in sys.modules and not hasattr(sys.modules['nltk'], 'data'):
+        del sys.modules['nltk']
+    return importlib.import_module('nltk')
+
 def ensure_nltk_data():
+    nltk = _import_nltk_safely()
     try:
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         data_dir = os.path.join(root, 'nltk_data')
@@ -162,11 +166,6 @@ def ensure_nltk_data():
                     nltk.download(pkg, quiet=True)
             except Exception as e:
                 logger.warning(f"Failed to download NLTK package {pkg}: {e}")
-
-try:
-    ensure_nltk_data()
-except Exception as _e:
-    logger.warning(f"NLTK bootstrap failed: {_e}")
 
 
 @cache_resource_decorator
@@ -226,7 +225,9 @@ def encode_sentences_cached(texts: list[str]):
 def load_lemma():
     logger.info("Loading WordNetLemmatizer...")
     try:
-        return WordNetLemmatizer()
+        ensure_nltk_data()
+        from nltk.stem import WordNetLemmatizer as _WNL
+        return _WNL()
     except Exception:
         class _IdentityLemma:
             def lemmatize(self, w):
@@ -316,9 +317,10 @@ def get_keywords(text):
 def get_stopwords():
     logger.info("Loading stopwords...")
     try:
-        return list(set(stopwords.words("english")))
+        ensure_nltk_data()
+        from nltk.corpus import stopwords as _stops
+        return list(set(_stops.words("english")))
     except Exception:
-        # Minimal fallback list to avoid heavy downloads
         fallback = {
             'the','a','an','and','or','but','if','while','with','to','from','by','on','in','for','of','at','as','is','are','was','were','be','been','being','it','this','that','these','those','i','you','he','she','they','we','them','us','our','your','his','her','their'
         }
