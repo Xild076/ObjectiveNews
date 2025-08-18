@@ -6,7 +6,7 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-st.title("Introduction to Alitheia AI")
+st.title("Welcome to Objective News")
 
 st.markdown("""
     <h4 style='font-weight: normal; color: #5D6D7E; text-align: center;'>
@@ -26,17 +26,30 @@ st.markdown("In recent years, misinformation has been on the rise. It comes in t
 st.markdown("Echo chambers, greater access to news, algorithms, and much more all serve as catalysts to accelerate the spread of misinformation. According to a survey done by Citizen Data in 2024, at least 83% of the surveyed individuals have reported seeing misinformation.")
 st.markdown("The issues lies with the fact that the survey only considers what the reporting individuals recognize as misinformation, not all misinformation, meaning the numbers are likely much higher, both for the number of people seeing misinformation and the amount of misinformation people see.")
 st.markdown("The consequences of misinformation can be devastating. Studies by the World Health Organization (WHO) found that misinformation can cause people to 'feel mental, social, political and/or economic distress' and also exacerbate issues such as polarization.")
-st.markdown("It is evident that something needs to be done about misinformation, however small, which is why I launched the project Alitheia AI.")
+st.markdown("It is evident that something needs to be done about misinformation, however small, which is why this project was launched.")
 
 colored_header.colored_header(
-    label="What is Alitheia AI?",
+    label="What is Objective News?",
     description="A brief overview of the project and its goals.",
     color_name=st.session_state["header_color"] if "header_color" in st.session_state else "blue-70"
 )
 
 st.markdown("""
-Alitheia AI is a sophisticated pipeline designed to combat misinformation by deconstructing news on any given topic. It provides an automated, objective-first approach to understanding the world by synthesizing multiple sources into clear, unbiased, and reliable narratives.
+Objective News is a sophisticated pipeline designed to combat misinformation by deconstructing news on any given topic. It provides an automated, objective-first approach to understanding the world by synthesizing multiple sources into clear, unbiased, and reliable narratives.
 """)
+
+st.markdown("---")
+st.subheader("Quick start")
+col_a, col_b, col_c = st.columns(3)
+with col_a:
+    if st.button("Analyze Articles", use_container_width=True, type="primary"):
+        st.switch_page("pages/article_analysis_page.py")
+with col_b:
+    if st.button("Objectivity Playground", use_container_width=True):
+        st.switch_page("pages/objectivity_page.py")
+with col_c:
+    if st.button("Utilities", use_container_width=True):
+        st.switch_page("pages/misc_page.py")
 
 st.subheader("How It Works")
 st.markdown("""

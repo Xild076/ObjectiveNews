@@ -2,8 +2,6 @@ import streamlit as st
 from objectify.objectify import objectify_text, calculate_objectivity
 import difflib
 
-st.set_page_config(page_title="Objectivity Playground", layout="wide")
-
 def render_diff_html(original, new):
     sm = difflib.SequenceMatcher(None, original.split(), new.split())
     output_html = ""

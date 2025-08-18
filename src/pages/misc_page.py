@@ -3,8 +3,6 @@ from objectify.synonym import get_synonyms
 from objectify.objectify import calculate_objectivity
 from reliability import get_source_label, normalize_domain, _load_source_df
 
-st.set_page_config(page_title="Utilities Explorer", layout="wide")
-
 st.title("Utilities Explorer")
 st.markdown("Explore some of the underlying components of the analysis engine.")
 
