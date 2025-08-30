@@ -1,0 +1,71 @@
+name: Keep Streamlit Apps Alive (Playwright Fast)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: keep-streamlit-alive
+  cancel-in-progress: true
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      APP_URLS: |
+        https://thinking-gemma.streamlit.app/
+        https://xild-stockpred.streamlit.app/
+        https://alitheiaai.streamlit.app/
+      SLEEP_PAGE_TEXT: app is asleep
+      MINIMUM_CONTENT_LENGTH: "1000"
+      KEEP_OPEN_MS: "8000"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: scripts/requirements-keepalive.txt
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements-keepalive.txt
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-ms-playwright-1.46.0
+          restore-keys: |
+            ${{ runner.os }}-ms-playwright-
+
+      - name: Install Chromium (no extra OS deps)
+        run: python -m playwright install chromium
+
+      - name: Keep Streamlit apps alive with headless browser
+        env:
+          APP_URLS: ${{ env.APP_URLS }}
+          SLEEP_PAGE_TEXT: ${{ env.SLEEP_PAGE_TEXT }}
+          MINIMUM_CONTENT_LENGTH: ${{ env.MINIMUM_CONTENT_LENGTH }}
+          KEEP_OPEN_MS: ${{ env.KEEP_OPEN_MS }}
+        run: |
+          python scripts/keep_streamlit_alive.py
+
+      - name: Upload artifacts (HTML and screenshots)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: keep-alive-artifacts
+          path: |
+            response_*.html
+            screenshot_*.png
+            debug.log
+          if-no-files-found: ignore
