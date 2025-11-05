@@ -56,6 +56,94 @@ def _get_headers():
     ]
     return [{"User-Agent": ua} for ua in uas]
 
+def _try_google_news_html_scraping(keywords, amount=10):
+    """Fallback: Try HTML scraping of Google News search results."""
+    logger.info(f"HTML scraping fallback for keywords: {keywords}")
+    headers_list = [
+        {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+        {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+        {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+    ]
+    search_query = '+'.join([quote_plus(k) for k in keywords])
+    base_url = f"https://www.google.com/search?q={search_query}&gl=us&tbm=nws&num={amount}"
+    logger.info(f"Constructed search URL: {base_url}")
+    session = requests.Session()
+    max_retries = 3
+    for attempt in range(max_retries):
+        logger.info(f"Attempt {attempt + 1}/{max_retries}")
+        header = random.choice(headers_list)
+        logger.debug(f"Using User-Agent: {header['User-Agent'][:50]}...")
+        try:
+            logger.debug("Sending GET request to Google News...")
+            RateLimiter.wait()
+            response = session.get(base_url, headers=header, timeout=10)
+            logger.info(f"Response status code: {response.status_code}")
+            if response.status_code != 200:
+                logger.warning(f"Non-200 status code received: {response.status_code}")
+                time.sleep(1)
+                continue
+            logger.debug(f"Response content length: {len(response.content)} bytes")
+            soup = BeautifulSoup(response.content, "html.parser")
+            all_links = soup.find_all('a', href=True)
+            logger.info(f"Found {len(all_links)} total link elements in page")
+            external_urls = set()
+            sample_urls = [link.get('href', '')[:150] for link in all_links[:10] if link.get('href')]
+            logger.info(f"Sample raw hrefs from page: {sample_urls}")
+            for link_elem in all_links:
+                raw_url = link_elem.get('href', '').strip()
+                if not raw_url:
+                    continue
+                extracted_url = None
+                if raw_url.startswith('https://'):
+                    if any(domain in raw_url for domain in ['google.com', 'accounts.google', 'googleapis.com', 'gstatic.com']):
+                        continue
+                    if any(domain in raw_url for domain in ['facebook.com', 'twitter.com', 'x.com', 'reddit.com', 'youtube.com', 'instagram.com', 'linkedin.com']):
+                        continue
+                    extracted_url = raw_url
+                elif raw_url.startswith('/url?'):
+                    try:
+                        parsed_query = parse_qs(urlparse(raw_url).query)
+                        if 'q' in parsed_query:
+                            candidate = parsed_query['q'][0]
+                            if candidate.startswith('http') and 'google' not in candidate:
+                                extracted_url = candidate
+                                logger.debug(f"Extracted from redirect: {candidate[:80]}...")
+                    except Exception as e:
+                        logger.debug(f"Could not parse redirect URL {raw_url[:100]}: {e}")
+                elif raw_url.startswith('/search?') or raw_url.startswith('?'):
+                    continue
+                if extracted_url:
+                    try:
+                        parsed = urlparse(extracted_url)
+                        clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+                        if parsed.query:
+                            clean_url += f"?{parsed.query}"
+                        if clean_url not in external_urls and len(clean_url) > 20:
+                            external_urls.add(clean_url)
+                            logger.debug(f"Added external URL: {clean_url[:100]}...")
+                    except Exception as e:
+                        logger.debug(f"Error parsing URL {extracted_url}: {e}")
+                        continue
+            results = list(external_urls)[:amount]
+            logger.info(f"Extracted {len(results)} unique external links")
+            if results:
+                logger.info("Successfully extracted URLs:")
+                for i, url in enumerate(results[:5], 1):
+                    logger.info(f"  {i}. {url[:80]}...")
+                return results
+            logger.warning(f"No external links found on attempt {attempt + 1}")
+            logger.warning("This might indicate Google is blocking the request or HTML structure changed")
+        except Exception as e:
+            logger.error(f"Exception on attempt {attempt + 1}: {type(e).__name__}: {str(e)}")
+            import traceback
+            logger.debug(f"Traceback: {traceback.format_exc()}")
+            if attempt < max_retries - 1:
+                logger.info("Retrying after 2 seconds...")
+                time.sleep(2)
+            continue
+    logger.warning(f"Failed to retrieve links after {max_retries} attempts, returning empty list")
+    return []
+
 def retrieve_links(keywords, amount=10):
     logger.info("Retrieving links for keywords: " + ", ".join(keywords))
     headers_list = _get_headers()
@@ -86,7 +174,8 @@ def retrieve_links(keywords, amount=10):
         except:
             time.sleep(random.uniform(1, 2))
             continue
-    return []
+    fallback_results = _try_google_news_html_scraping(keywords, amount)
+    return fallback_results
 
 def retrieve_diverse_links(keywords, amount=10):
     logger.info("Retrieving diverse links for keywords: " + ", ".join(keywords))
