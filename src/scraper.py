@@ -56,6 +56,64 @@ def _get_headers():
     ]
     return [{"User-Agent": ua} for ua in uas]
 
+def retrieve_links(keywords, amount=10):
+    """Retrieve news article links using RSS first, HTML scraping as fallback."""
+    logger.info(f"Starting link retrieval for keywords: {keywords}")
+    logger.info(f"Requested amount: {amount}")
+    rss_results = _try_google_news_rss(keywords, amount)
+    if rss_results:
+        logger.info(f"Successfully retrieved {len(rss_results)} links from Google News RSS")
+        return rss_results
+    logger.info("RSS approach failed, falling back to HTML scraping...")
+    return _try_google_news_html_scraping(keywords, amount)
+
+def _try_google_news_rss(keywords, amount=10):
+    try:
+        import xml.etree.ElementTree as ET
+        search_query = '+'.join([quote_plus(k) for k in keywords])
+        rss_url = f"https://news.google.com/rss/search?q={search_query}&hl=en-US&gl=US&ceid=US:en"
+        logger.info(f"Trying Google News RSS: {rss_url}")
+        headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        RateLimiter.wait()
+        response = requests.get(rss_url, headers=headers, timeout=10)
+        logger.info(f"RSS response status: {response.status_code}")
+        if response.status_code != 200:
+            logger.warning(f"RSS feed returned status {response.status_code}")
+            return []
+        root = ET.fromstring(response.content)
+        results = []
+        for item in root.findall('.//item'):
+            link_elem = item.find('link')
+            if link_elem is None or not link_elem.text:
+                continue
+            url = link_elem.text.strip()
+            if not url or not url.startswith('http'):
+                continue
+            resolved = _resolve_google_news_url(url, headers)
+            final_url = resolved or url
+            if final_url and final_url.startswith('http'):
+                results.append(final_url)
+                logger.debug(f"Resolved RSS link: {final_url[:80]}...")
+            if len(results) >= amount:
+                break
+        logger.info(f"Extracted {len(results)} links from RSS feed")
+        return results[:amount]
+    except Exception as e:
+        logger.warning(f"RSS parsing failed: {type(e).__name__}: {e}")
+        return []
+
+def _resolve_google_news_url(google_news_url, headers):
+    try:
+        RateLimiter.wait()
+        response = requests.head(google_news_url, headers=headers, allow_redirects=True, timeout=5)
+        final_url = response.url
+        if final_url and final_url.startswith('http') and 'google' not in final_url:
+            return final_url
+        return None
+    except Exception as e:
+        logger.debug(f"Could not resolve Google News URL: {e}")
+        return None
+
 def _try_google_news_html_scraping(keywords, amount=10):
     """Fallback: Try HTML scraping of Google News search results."""
     logger.info(f"HTML scraping fallback for keywords: {keywords}")
@@ -143,39 +201,6 @@ def _try_google_news_html_scraping(keywords, amount=10):
             continue
     logger.warning(f"Failed to retrieve links after {max_retries} attempts, returning empty list")
     return []
-
-def retrieve_links(keywords, amount=10):
-    logger.info("Retrieving links for keywords: " + ", ".join(keywords))
-    headers_list = _get_headers()
-    search_query = '+'.join([quote_plus(k) for k in keywords])
-    base_url = f"https://www.google.com/search?q={search_query}&gl=us&tbm=nws&num={amount}"
-    session = requests.Session()
-    max_retries = 8
-    for _ in range(max_retries):
-        header = random.choice(headers_list)
-        RateLimiter.wait()
-        try:
-            r = session.get(base_url, headers=header, timeout=8)
-            if r.status_code != 200 or "To continue, please type the characters" in r.text:
-                time.sleep(random.uniform(1, 2))
-                continue
-            soup = BeautifulSoup(r.content, "html.parser")
-            results = []
-            for el in soup.select('div.Gx5Zad.xpd.EtOod.pkphOe a'):
-                raw_url = el.get('href')
-                if raw_url:
-                    parsed = parse_qs(urlparse(raw_url).query).get('q')
-                    if parsed:
-                        candidate = parsed[0]
-                        if candidate.startswith('http'):
-                            results.append(candidate)
-                            if len(results) >= amount:
-                                return results
-        except:
-            time.sleep(random.uniform(1, 2))
-            continue
-    fallback_results = _try_google_news_html_scraping(keywords, amount)
-    return fallback_results
 
 def retrieve_diverse_links(keywords, amount=10):
     logger.info("Retrieving diverse links for keywords: " + ", ".join(keywords))
