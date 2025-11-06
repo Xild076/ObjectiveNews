@@ -56,64 +56,6 @@ def _get_headers():
     ]
     return [{"User-Agent": ua} for ua in uas]
 
-def retrieve_links(keywords, amount=10):
-    """Retrieve news article links using RSS first, HTML scraping as fallback."""
-    logger.info(f"Starting link retrieval for keywords: {keywords}")
-    logger.info(f"Requested amount: {amount}")
-    rss_results = _try_google_news_rss(keywords, amount)
-    if rss_results:
-        logger.info(f"Successfully retrieved {len(rss_results)} links from Google News RSS")
-        return rss_results
-    logger.info("RSS approach failed, falling back to HTML scraping...")
-    return _try_google_news_html_scraping(keywords, amount)
-
-def _try_google_news_rss(keywords, amount=10):
-    try:
-        import xml.etree.ElementTree as ET
-        search_query = '+'.join([quote_plus(k) for k in keywords])
-        rss_url = f"https://news.google.com/rss/search?q={search_query}&hl=en-US&gl=US&ceid=US:en"
-        logger.info(f"Trying Google News RSS: {rss_url}")
-        headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
-        RateLimiter.wait()
-        response = requests.get(rss_url, headers=headers, timeout=10)
-        logger.info(f"RSS response status: {response.status_code}")
-        if response.status_code != 200:
-            logger.warning(f"RSS feed returned status {response.status_code}")
-            return []
-        root = ET.fromstring(response.content)
-        results = []
-        for item in root.findall('.//item'):
-            link_elem = item.find('link')
-            if link_elem is None or not link_elem.text:
-                continue
-            url = link_elem.text.strip()
-            if not url or not url.startswith('http'):
-                continue
-            resolved = _resolve_google_news_url(url, headers)
-            final_url = resolved or url
-            if final_url and final_url.startswith('http'):
-                results.append(final_url)
-                logger.debug(f"Resolved RSS link: {final_url[:80]}...")
-            if len(results) >= amount:
-                break
-        logger.info(f"Extracted {len(results)} links from RSS feed")
-        return results[:amount]
-    except Exception as e:
-        logger.warning(f"RSS parsing failed: {type(e).__name__}: {e}")
-        return []
-
-def _resolve_google_news_url(google_news_url, headers):
-    try:
-        RateLimiter.wait()
-        response = requests.head(google_news_url, headers=headers, allow_redirects=True, timeout=5)
-        final_url = response.url
-        if final_url and final_url.startswith('http') and 'google' not in final_url:
-            return final_url
-        return None
-    except Exception as e:
-        logger.debug(f"Could not resolve Google News URL: {e}")
-        return None
-
 def _try_google_news_html_scraping(keywords, amount=10):
     """Fallback: Try HTML scraping of Google News search results."""
     logger.info(f"HTML scraping fallback for keywords: {keywords}")
@@ -152,10 +94,8 @@ def _try_google_news_html_scraping(keywords, amount=10):
                 if not raw_url:
                     continue
                 extracted_url = None
-                if raw_url.startswith('https://'):
+                if raw_url.startswith('http://') or raw_url.startswith('https://'):
                     if any(domain in raw_url for domain in ['google.com', 'accounts.google', 'googleapis.com', 'gstatic.com']):
-                        continue
-                    if any(domain in raw_url for domain in ['facebook.com', 'twitter.com', 'x.com', 'reddit.com', 'youtube.com', 'instagram.com', 'linkedin.com']):
                         continue
                     extracted_url = raw_url
                 elif raw_url.startswith('/url?'):
@@ -173,6 +113,8 @@ def _try_google_news_html_scraping(keywords, amount=10):
                 if extracted_url:
                     try:
                         parsed = urlparse(extracted_url)
+                        if 'google' in parsed.netloc:
+                            continue
                         clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
                         if parsed.query:
                             clean_url += f"?{parsed.query}"
@@ -201,6 +143,11 @@ def _try_google_news_html_scraping(keywords, amount=10):
             continue
     logger.warning(f"Failed to retrieve links after {max_retries} attempts, returning empty list")
     return []
+
+
+def retrieve_links(keywords, amount=10):
+    logger.info(f"Retrieving links for keywords: {keywords}")
+    return _try_google_news_html_scraping(keywords, amount)
 
 def retrieve_diverse_links(keywords, amount=10):
     logger.info("Retrieving diverse links for keywords: " + ", ".join(keywords))
