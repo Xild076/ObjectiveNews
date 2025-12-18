@@ -8,19 +8,31 @@ This project was created to help combat misinformation in news. The code gathers
 - Install dependancies by running `pip install -r requirements.txt` or `pip3 install -r requirements.txt`
 
 ## Usage
-### Installation
+### Streamlit research studio (local)
 - Run `streamlit run src/app.py` or `python3 -m streamlit run src/app.py`
 - Import from article_analysis.py, grouping.py, objectify_text.py, summarizer.py, synonym.py, scraper.py, or util.py for any of the tools
-### Vercel Deployment (API)
-- This repo now includes a FastAPI server under `api/index.py` and `vercel.json` for deployment on Vercel.
+
+- The Next.js source now lives in `frontend/` to keep it isolated from the Streamlit codebase.
+- Install Node dependencies once: `cd frontend && npm install`
+- Local development (in one terminal run the API, in another the UI):
+    ```bash
+    /Users/harry/Documents/Python_Projects/ObjectiveNews/.venv/bin/python -m uvicorn api.index:app --reload --port 8000
+    cd frontend && NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000 npm run dev
+    ```
+- Production build: `cd frontend && npm run build` (used automatically by Vercel)
+- The deployed site calls the Python API through `/api/*` thanks to `vercel.json` rewrites.
+
+### FastAPI endpoints / Vercel deployment
+- FastAPI server lives in `api/index.py` and is exposed on Vercel via `api/index.py`.
 - Deploy steps:
     1. Install the Vercel CLI: `npm i -g vercel`
     2. Login: `vercel login`
-    3. From the repo root, deploy: `vercel`
+    3. From the repo root, deploy: `vercel` (the CLI runs `npm run build` and packages the Python function with `requirements.txt`).
 - After deploy, call endpoints:
     - Health: `GET /api/health`
     - Cluster sentences: `POST /api/cluster` with `{ "sentences": ["...", "..."] }`
     - Cluster texts: `POST /api/cluster-texts` with a list of `{text, source?, author?, date?}`
+    - Group a long-form article: `POST /api/group-article` with `{text, source?, author?, date?}`
 - Streamlit remains available for local use: `streamlit run src/app.py`.
 ### Website
 - See [Objective News](https://objectivenews.streamlit.app/) for the applications run on streamlit.

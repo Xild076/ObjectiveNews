@@ -1,4 +1,14 @@
 {
+  "builds": [
+    { "src": "frontend/next.config.mjs", "use": "@vercel/next" },
+    { "src": "api/index.py", "use": "@vercel/python" }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    }
+  ],
   "functions": {
     "api/index.py": {
       "runtime": "python3.11"

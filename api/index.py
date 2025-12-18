@@ -114,12 +114,12 @@ def _serialize_cluster_dict(cluster: Dict[str, Any]) -> Dict[str, Any]:
 
 # --- Routes ---
 
-@app.get("/api/health")
+@app.get("/health")
 async def health():
     return {"status": "ok"}
 
 
-@app.post("/api/cluster")
+@app.post("/cluster")
 async def api_cluster(req: ClusterRequest):
     labels = cluster_sentences(
         sentences=req.sentences,
@@ -143,7 +143,7 @@ async def api_cluster(req: ClusterRequest):
     return {"labels": labels}
 
 
-@app.post("/api/cluster-texts")
+@app.post("/cluster-texts")
 async def api_cluster_texts(req: ClusterTextsRequest):
     sents = [SentenceHolder(text=s.text, source=s.source, author=s.author, date=s.date) for s in req.sentences]
     params = (req.params.dict() if req.params is not None else OPTIMAL_CLUSTERING_PARAMS)
@@ -151,7 +151,7 @@ async def api_cluster_texts(req: ClusterTextsRequest):
     return {"clusters": [_serialize_cluster_dict(c) for c in clusters]}
 
 
-@app.post("/api/group-article")
+@app.post("/group-article")
 async def api_group_article(article: ArticleIn):
     reps = group_individual_articles({
         "text": article.text,

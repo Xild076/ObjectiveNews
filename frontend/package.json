@@ -1,0 +1,36 @@
+{
+  "name": "objectivenews",
+  "version": "1.0.0",
+  "description": "By: Xild076 (Harry Yin)",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Xild076/ObjectiveNews.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Xild076/ObjectiveNews/issues"
+  },
+  "homepage": "https://github.com/Xild076/ObjectiveNews#readme",
+  "dependencies": {
+    "next": "^15.5.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.3",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^15.5.9",
+    "typescript": "^5.9.3"
+  }
+}
