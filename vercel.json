@@ -1,8 +1,6 @@
 {
-  "builds": [
-    { "src": "frontend/next.config.mjs", "use": "@vercel/next" },
-    { "src": "api/index.py", "use": "@vercel/python" }
-  ],
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.next",
   "rewrites": [
     {
       "source": "/api/(.*)",
