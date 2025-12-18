@@ -90,9 +90,7 @@ def load_attention_model(model_path=None):
             return None
     return None
 
-sent_model = load_sent_transformer()
-lemma_model = load_lemma()
-attention_model = load_attention_model()
+# Lazy-load models inside functions to reduce cold-start time
 
 # @cache_data_decorator
 def preprocess_text(text):
@@ -101,7 +99,8 @@ def preprocess_text(text):
     text = clean_text(text)
     text = text.lower()
     tokens = word_tokenize(text)
-    tokens = [lemma_model.lemmatize(word) for word in tokens
+    lemma = load_lemma()
+    tokens = [lemma.lemmatize(word) for word in tokens
               if word.isalpha() and word not in stop_words]
     return ' '.join(tokens) if tokens else text
 
@@ -282,6 +281,7 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
         }]
     sentences_text = [sentence.text for sentence in sentences]
     weights_new = {"single": params.get("weights", 0.1), "context": 1 - params.get("weights", 0.1)}
+    _att_model = load_attention_model() if params.get("attention", False) else None
     embeddings = encode_text(
         sentences_text,
         weights_new,
@@ -289,7 +289,7 @@ def cluster_texts(sentences: List[SentenceHolder], params=OPTIMAL_CLUSTERING_PAR
         params.get("context_len", 5),
         params.get("preprocess", True),
         params.get("attention", False),
-        attention_model
+        _att_model
     )
     if embeddings is None or len(embeddings) == 0:
         return []
@@ -365,7 +365,8 @@ def observe_best_cluster(sentences_holder: List[SentenceHolder],
                          score_weights = {'sil': 0.4, 'db': 0.2, 'ch': 0.4}) -> Dict[Any, Any]:
     logger.info("Observing best clsuters...")
     sentences = [sent.text for sent in sentences_holder]
-    X = encode_text(sentences, weights, context, context_len, preprocess, attention, attention_model)
+    _att_model = load_attention_model() if attention else None
+    X = encode_text(sentences, weights, context, context_len, preprocess, attention, _att_model)
 
     max_clusters = min(max_clusters, len(X))
 
