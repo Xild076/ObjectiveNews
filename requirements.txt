@@ -89,6 +89,7 @@ llvmlite==0.44.0
 lxml==5.4.0
 lxml_html_clean==0.4.2
 Mako==1.3.10
+mangum
 marisa-trie==1.2.1
 Markdown==3.8.2
 markdown-it-py==3.0.0

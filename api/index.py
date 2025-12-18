@@ -3,6 +3,13 @@ import sys
 from typing import List, Optional, Dict, Any, Union, Tuple
 
 from fastapi import FastAPI
+
+# Mangum adapts ASGI apps (FastAPI) to serverless runtimes such as Vercel/AWS Lambda.
+# We import lazily so local runs without Mangum still work.
+try:
+    from mangum import Mangum
+except ImportError:  # pragma: no cover - Mangum only needed in serverless
+    Mangum = None
 from pydantic import BaseModel
 
 # Ensure we can import from src/
@@ -17,8 +24,29 @@ from grouping.grouping import (
     OPTIMAL_CLUSTERING_PARAMS,
 )
 from utility import SentenceHolder
+from objectify.objectify import objectify_text, calculate_objectivity
+from objectify.synonym import get_synonyms
+from reliability import get_source_label, normalize_domain, _load_source_df
+from article_analysis import article_analysis
 
 app = FastAPI(title="ObjectiveNews API", version="1.0")
+
+# Allow local Next.js dev server to call the API when developing locally.
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins + ["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class SentenceIn(BaseModel):
@@ -76,6 +104,26 @@ class ArticleIn(BaseModel):
     source: Optional[str] = None
     author: Optional[str] = None
     date: Optional[str] = None
+
+
+class ObjectifyRequest(BaseModel):
+    text: str
+
+
+class AnalysisRequest(BaseModel):
+    text: str
+    link_n: int = 10
+    diverse_links: bool = True
+    summarize_level: str = "medium"
+
+
+class SynonymRequest(BaseModel):
+    word: str
+    topn: int = 15
+
+
+class DomainReliabilityRequest(BaseModel):
+    domain: str
 
 
 # --- Helpers ---
@@ -167,3 +215,78 @@ async def api_group_article(article: ArticleIn):
             b = _serialize_sentence(b) if isinstance(b, SentenceHolder) else b
             serialized.append((a, b))
     return {"representatives": serialized}
+
+
+@app.post("/objectify")
+async def api_objectify(req: ObjectifyRequest):
+    original_score = calculate_objectivity(req.text)
+    objectified = objectify_text(req.text)
+    new_score = calculate_objectivity(objectified)
+    return {
+        "original_text": req.text,
+        "objectified_text": objectified,
+        "original_score": original_score,
+        "new_score": new_score,
+        "improvement": new_score - original_score
+    }
+
+
+@app.post("/analyze")
+async def api_analyze(req: AnalysisRequest):
+    try:
+        level = {"best": "slow"}.get(req.summarize_level, req.summarize_level)
+        result = article_analysis(
+            text=req.text,
+            link_n=req.link_n,
+            diverse_links=req.diverse_links,
+            summarize_level=level,
+            progress_callback=None
+        )
+        serialized = []
+        for cluster in result:
+            c_out = {
+                "summary": cluster.get("summary", ""),
+                "reliability": cluster.get("reliability", 0.0),
+                "sentences": []
+            }
+            rep = cluster.get("representative")
+            if rep and hasattr(rep, "text"):
+                c_out["representative"] = _serialize_sentence(rep)
+            
+            sents = cluster.get("sentences", []) or []
+            for s in sents:
+                if isinstance(s, tuple):
+                    s = s[0]
+                if hasattr(s, "text"):
+                    c_out["sentences"].append(_serialize_sentence(s))
+            serialized.append(c_out)
+        return {"clusters": serialized}
+    except Exception as e:
+        return {"error": str(e), "clusters": []}
+
+
+@app.post("/synonyms")
+async def api_synonyms(req: SynonymRequest):
+    synonyms_raw = get_synonyms(req.word, deep=True, include_external=True, topn=req.topn)
+    out = []
+    for syn in synonyms_raw or []:
+        word = syn.get("word")
+        definition = syn.get("definition")
+        obj = calculate_objectivity(word) if word else 0.0
+        out.append({"word": word, "definition": definition, "objectivity": obj})
+    return {"synonyms": out}
+
+
+@app.post("/domain-reliability")
+async def api_domain_reliability(req: DomainReliabilityRequest):
+    normalized = normalize_domain(req.domain)
+    score, _ = get_source_label(normalized, _load_source_df())
+    percent = (score + 1) / 2 * 100 if score is not None else 0.0
+    return {"domain": normalized, "score": score, "percent": percent}
+
+
+# Adapter for Vercel/AWS Lambda. Exposed as `handler` so the runtime can invoke FastAPI.
+if Mangum is not None:
+    handler = Mangum(app)
+else:
+    handler = None

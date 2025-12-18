@@ -12,8 +12,13 @@ This project was created to help combat misinformation in news. The code gathers
 - Run `streamlit run src/app.py` or `python3 -m streamlit run src/app.py`
 - Import from article_analysis.py, grouping.py, objectify_text.py, summarizer.py, synonym.py, scraper.py, or util.py for any of the tools
 
+### Next.js web UI (Vercel-ready)
 - The Next.js source now lives in `frontend/` to keep it isolated from the Streamlit codebase.
 - Install Node dependencies once: `cd frontend && npm install`
+- **Features (matches Streamlit functionality):**
+  - **Article Analysis** (`/analysis`): Fetch articles on a topic, cluster narratives, show reliability scores
+  - **Objectivity Playground** (`/objectivity`): Rewrite subjective text to be more neutral
+  - **Sentence Clustering** (`/clustering`): Compare articles and cluster similar sentences
 - Local development (in one terminal run the API, in another the UI):
     ```bash
     /Users/harry/Documents/Python_Projects/ObjectiveNews/.venv/bin/python -m uvicorn api.index:app --reload --port 8000
@@ -30,9 +35,11 @@ This project was created to help combat misinformation in news. The code gathers
     3. From the repo root, deploy: `vercel` (the CLI runs `npm run build` and packages the Python function with `requirements.txt`).
 - After deploy, call endpoints:
     - Health: `GET /api/health`
-    - Cluster sentences: `POST /api/cluster` with `{ "sentences": ["...", "..."] }`
+    - Objectify text: `POST /api/objectify` with `{text: "..."}`
+    - Analyze topic: `POST /api/analyze` with `{text: "topic", link_n: 10, diverse_links: true, summarize_level: "medium"}`
+    - Cluster sentences: `POST /api/cluster` with `{sentences: ["...", "..."]}`
     - Cluster texts: `POST /api/cluster-texts` with a list of `{text, source?, author?, date?}`
-    - Group a long-form article: `POST /api/group-article` with `{text, source?, author?, date?}`
+    - Group article: `POST /api/group-article` with `{text, source?, author?, date?}`
 - Streamlit remains available for local use: `streamlit run src/app.py`.
 ### Website
 - See [Objective News](https://objectivenews.streamlit.app/) for the applications run on streamlit.
