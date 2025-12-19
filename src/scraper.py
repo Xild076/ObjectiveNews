@@ -1,7 +1,7 @@
 import random
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlparse, parse_qs, quote_plus
 import requests
 from requests.adapters import HTTPAdapter
@@ -114,6 +114,9 @@ def _format_date(dt):
         return ""
     if isinstance(dt, datetime):
         return dt.strftime("%Y-%m-%d")
+    if isinstance(dt, timedelta):
+        # Some sources return relative times as timedeltas; anchor to now minus delta
+        return (datetime.now() - dt).strftime("%Y-%m-%d")
     try:
         return parse(dt).strftime("%Y-%m-%d")
     except:

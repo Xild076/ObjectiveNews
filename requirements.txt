@@ -112,9 +112,6 @@ packaging==25.0
 pandas==2.3.1
 pillow==11.3.0
 platformdirs==4.3.8
-dash==2.17.1
-dash-bootstrap-components==1.6.0
-plotly==6.2.0
 duckduckgo-search==5.3.0
 preshed==3.0.10
 prometheus_client==0.22.1
@@ -216,5 +213,4 @@ weasel==0.4.1
 websockets==15.0.1
 wrapt==1.17.2
 fastapi==0.115.5
-gunicorn==21.2.0
 uvicorn==0.32.0

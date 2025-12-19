@@ -6,75 +6,81 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-st.title("Welcome to Objective News")
+st.title("Objective News")
+st.caption("Multi-source clustering · Bias neutralization · Reliability scoring")
 
-st.markdown("""
-    <h4 style='font-weight: normal; color: #5D6D7E; text-align: center;'>
-        Aiming towards finding and presenting the most objective news, texts, and information possible in a growing world of misinformation.
-    </h4>
-    """, unsafe_allow_html=True)
-
-colored_header.colored_header(
-    label="The Status Quo of Misinformation",
-    description="A quick description of the current state of misinformation.",
-    color_name=st.session_state["header_color"] if "header_color" in st.session_state else "blue-70"
+st.markdown(
+    """
+    <style>
+    .hero {
+        padding: 18px 22px;
+        border-radius: 14px;
+        background: linear-gradient(120deg, rgba(59,130,246,0.12), rgba(16,185,129,0.12));
+        border: 1px solid #e5e7eb;
+    }
+    .pill {display:inline-block;padding:4px 10px;border-radius:999px;background:#e0e7ff;color:#1e3a8a;font-weight:600;font-size:12px;}
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
-st.image(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../data/images/misinformation_stats.png')))
-
-st.markdown("In recent years, misinformation has been on the rise. It comes in tandem with new technological innovations and growing polarization, and the dissemination of false, innacurate, and exaggerated informations has outstripped the ability to discern fact from fiction.")
-st.markdown("Echo chambers, greater access to news, algorithms, and much more all serve as catalysts to accelerate the spread of misinformation. According to a survey done by Citizen Data in 2024, at least 83% of the surveyed individuals have reported seeing misinformation.")
-st.markdown("The issues lies with the fact that the survey only considers what the reporting individuals recognize as misinformation, not all misinformation, meaning the numbers are likely much higher, both for the number of people seeing misinformation and the amount of misinformation people see.")
-st.markdown("The consequences of misinformation can be devastating. Studies by the World Health Organization (WHO) found that misinformation can cause people to 'feel mental, social, political and/or economic distress' and also exacerbate issues such as polarization.")
-st.markdown("It is evident that something needs to be done about misinformation, however small, which is why this project was launched.")
-
-colored_header.colored_header(
-    label="What is Objective News?",
-    description="A brief overview of the project and its goals.",
-    color_name=st.session_state["header_color"] if "header_color" in st.session_state else "blue-70"
-)
-
-st.markdown("""
-Objective News is a sophisticated pipeline designed to combat misinformation by deconstructing news on any given topic. It provides an automated, objective-first approach to understanding the world by synthesizing multiple sources into clear, unbiased, and reliable narratives.
-""")
+hero = st.container()
+with hero:
+    st.markdown("<div class='pill'>Objective-first pipeline</div>", unsafe_allow_html=True)
+    h1, h2 = st.columns([2.5, 1.5])
+    with h1:
+        st.subheader("From messy headlines to objective narratives")
+        st.write("We fetch diverse sources, cluster narratives, neutralize bias, and score reliability so you can trust what you read.")
+        cta1, cta2, cta3 = st.columns([1.2,1.2,1.2])
+        if cta1.button("Analyze Articles", use_container_width=True, type="primary"):
+            st.switch_page("pages/article_analysis_page.py")
+        if cta2.button("Objectivity Lab", use_container_width=True):
+            st.switch_page("pages/objectivity_page.py")
+        if cta3.button("Utilities", use_container_width=True):
+            st.switch_page("pages/misc_page.py")
+    with h2:
+        st.image(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../data/images/misinformation_stats.png')))
 
 st.markdown("---")
+
+st.subheader("Why this matters")
+col1, col2 = st.columns(2)
+with col1:
+    colored_header.colored_header(
+        label="Misinformation is rising",
+        description="83% of people report seeing misinformation (Citizen Data, 2024).",
+        color_name="blue-70",
+    )
+    st.write("Algorithms, echo chambers, and volume make it hard to separate fact from spin.")
+with col2:
+    colored_header.colored_header(
+        label="We counter with objectivity",
+        description="Fetch diverse sources, cluster, neutralize language, and score reliability.",
+        color_name="green-70",
+    )
+    st.write("The pipeline reduces noise, exposes bias, and surfaces trustworthy narratives.")
+
+st.markdown("---")
+
+st.subheader("How it works")
+steps = [
+    ("Gather & filter", "Fetch diverse articles, avoid echo chambers, and keep relevant, dense sentences."),
+    ("Cluster & summarize", "Group narratives, merge overlaps, and summarize cleanly."),
+    ("Neutralize & score", "Rewrite to objective language and score reliability across domains."),
+]
+c1, c2, c3 = st.columns(3)
+for (title, desc), col in zip(steps, [c1, c2, c3]):
+    with col.container(border=True):
+        st.markdown(f"**{title}**")
+        st.write(desc)
+
+st.markdown("---")
+
 st.subheader("Quick start")
-col_a, col_b, col_c = st.columns(3)
-with col_a:
-    if st.button("Analyze Articles", use_container_width=True, type="primary"):
-        st.switch_page("pages/article_analysis_page.py")
-with col_b:
-    if st.button("Objectivity Playground", use_container_width=True):
-        st.switch_page("pages/objectivity_page.py")
-with col_c:
-    if st.button("Utilities", use_container_width=True):
-        st.switch_page("pages/misc_page.py")
-
-st.subheader("How It Works")
-st.markdown("""
-When you provide a topic or article, the engine executes a multi-step analysis to deliver insightful results. This process is designed to move from a wide range of chaotic information to a set of clear, structured, and trustworthy narratives.
-""")
-
-st.markdown("""
-1.  **Gathers Intelligence**: Instead of you needing to read a dozen different articles, the engine does it for you. It automatically fetches a diverse set of news articles related to your topic, intentionally avoiding ideological echo chambers.
-
-2.  **Identifies Core Narratives**: Using a custom-trained grouping model, the engine reads through all the collected texts to identify the main underlying themes or "narratives." This step distills the essential points from all the noise.
-
-3.  **Rewrites for Objectivity**: Each narrative is analyzed for biased, subjective, and emotionally-charged language. These words are then replaced with neutral, objective synonyms, stripping away the spin and leaving the factual core of the story.
-
-4.  **Assigns a Reliability Score**: Finally, each neutralized narrative is given a comprehensive reliability score. This isn't a simple "true/false" rating, but a nuanced metric calculated from:
-    *   The **reputation** of the contributing news sources.
-    *   The **objectivity** of the language used.
-    *   The **recency** and **coverage** of the reporting.
-""")
-
-st.subheader("Our Solution to Key Problems")
-st.markdown("""
-This entire process is engineered to directly address the primary challenges of modern news consumption:
-""")
-st.markdown("""
--   **Information Overload**: We synthesize vast amounts of information into a few key, digestible narratives, saving you time and effort.
--   **Hidden Bias**: Our objectification engine actively identifies and neutralizes biased language, presenting you with the facts, not the spin.
--   **Uncertain Credibility**: We provide a transparent, multi-factor reliability score to help you gauge the trustworthiness of the information you're reading.
-""")
+qs1, qs2, qs3 = st.columns(3)
+with qs1:
+    st.button("Analyze a topic", use_container_width=True, type="primary", on_click=lambda: st.switch_page("pages/article_analysis_page.py"))
+with qs2:
+    st.button("Try objectivity lab", use_container_width=True, on_click=lambda: st.switch_page("pages/objectivity_page.py"))
+with qs3:
+    st.button("Open utilities", use_container_width=True, on_click=lambda: st.switch_page("pages/misc_page.py"))
