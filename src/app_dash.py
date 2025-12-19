@@ -5,9 +5,10 @@ import logging
 from collections import Counter
 from functools import lru_cache
 from typing import Any, Dict, List
+from urllib.parse import parse_qs
 
 import dash
-from dash import Dash, Input, Output, State, callback_context, dcc, html, no_update
+from dash import Dash, Input, Output, State, ctx, dcc, html, no_update
 import dash_bootstrap_components as dbc
 
 GLOBAL_STYLE = """
@@ -606,6 +607,7 @@ server = app.server
 
 app.layout = dbc.Container(
     [
+        dcc.Location(id="url", refresh=False),
         dcc.Markdown(f"<style>{GLOBAL_STYLE}</style>", dangerously_allow_html=True),
         html.Div(
             [
@@ -682,8 +684,15 @@ app.validation_layout = html.Div([
 ])
 
 
+@app.callback(Output("main-tabs", "value"), Input("url", "search"))
+def sync_tabs_from_url(search):
+    qs = parse_qs((search or "").lstrip("?"))
+    page = (qs.get("page", ["intro"]) or ["intro"])[0]
+    return page if page in {"intro", "analysis", "objectivity", "utilities"} else "intro"
+
+
 @app.callback(
-    Output("main-tabs", "value"),
+    Output("url", "search"),
     [
         Input("goto-analysis", "n_clicks"),
         Input("goto-objectivity", "n_clicks"),
@@ -692,22 +701,26 @@ app.validation_layout = html.Div([
         Input("nav-analysis", "n_clicks"),
         Input("nav-objectivity", "n_clicks"),
         Input("nav-utilities", "n_clicks"),
+        Input("main-tabs", "value"),
     ],
     prevent_initial_call=True,
 )
-def handle_quick_nav(to_analysis, to_objectivity, to_utilities, nav_intro, nav_analysis, nav_objectivity, nav_utilities):
-    if not callback_context.triggered:
-        return no_update
-    trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
-    if trigger in ("goto-analysis", "nav-analysis"):
-        return "analysis"
-    if trigger in ("goto-objectivity", "nav-objectivity"):
-        return "objectivity"
-    if trigger in ("goto-utilities", "nav-utilities"):
-        return "utilities"
-    if trigger == "nav-intro":
-        return "intro"
-    return no_update
+def update_url_from_nav(to_analysis, to_objectivity, to_utilities, nav_intro, nav_analysis, nav_objectivity, nav_utilities, tab_value):
+    trigger = ctx.triggered_id
+    page_by_trigger = {
+        "goto-analysis": "analysis",
+        "nav-analysis": "analysis",
+        "goto-objectivity": "objectivity",
+        "nav-objectivity": "objectivity",
+        "goto-utilities": "utilities",
+        "nav-utilities": "utilities",
+        "nav-intro": "intro",
+    }
+    if trigger == "main-tabs":
+        target = tab_value or "intro"
+    else:
+        target = page_by_trigger.get(trigger, "intro")
+    return f"?page={target}"
 
 
 @app.callback(Output("tab-content", "children"), Input("main-tabs", "value"))
