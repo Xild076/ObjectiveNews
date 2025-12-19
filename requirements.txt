@@ -112,7 +112,7 @@ packaging==25.0
 pandas==2.3.1
 pillow==11.3.0
 platformdirs==4.3.8
-duckduckgo-search==5.3.0
+duckduckgo-search==8.1.1
 preshed==3.0.10
 prometheus_client==0.22.1
 proto-plus==1.26.1
