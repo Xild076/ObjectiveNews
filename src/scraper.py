@@ -56,21 +56,76 @@ def _get_headers():
     ]
     return [{"User-Agent": ua} for ua in uas]
 
+def _ddg_html_links(query: str, amount: int):
+    """Fallback: scrape DuckDuckGo HTML results to avoid library date parsing bugs."""
+    import re
+    import urllib.parse
+    url = "https://duckduckgo.com/html/?q=" + urllib.parse.quote_plus(query)
+    hdr = random.choice(_get_headers())
+    try:
+        r = session.get(url, headers=hdr, timeout=8)
+        r.raise_for_status()
+        candidates = re.findall(r'href="(http[^"]+)"', r.text)
+        cleaned = []
+        for h in candidates:
+            # DuckDuckGo wraps external links as "/l/?kh=1&uddg=<url>"
+            if "/l/?" in h and "uddg=" in h:
+                parsed = urllib.parse.urlparse(h)
+                qs = urllib.parse.parse_qs(parsed.query)
+                real = qs.get("uddg", [None])[0]
+                if real and real.startswith("http"):
+                    h = urllib.parse.unquote(real)
+            if h.startswith("http") and "duckduckgo.com" not in h and h not in cleaned:
+                cleaned.append(h)
+            if len(cleaned) >= amount:
+                break
+        return cleaned
+    except Exception:
+        return []
+
+
 def _ddg_news_links(keywords, amount=10):
-    """Fetch news-ish links via DuckDuckGo text search to avoid timedelta date bugs in ddgs.news."""
-    logger.info(f"DuckDuckGo text search for keywords: {keywords}")
+    """Fetch news-ish links via DuckDuckGo.
+
+    Order of attempts:
+    1) ddgs.news (fast, structured)
+    2) ddgs.text (fallback if news breaks)
+    3) HTML scrape (last resort)
+    """
     query = " ".join(keywords)
-    links = []
+    links: list[str] = []
+
+    # Attempt 1: structured news API
     try:
         with DDGS() as ddgs:
-            for res in ddgs.text(keywords=query, max_results=amount * 6):
-                href = res.get("href") or res.get("url")
+            for res in ddgs.news(keywords=query, max_results=amount * 4):
+                href = res.get("url") or res.get("href")
                 if href and href.startswith("http") and href not in links:
                     links.append(href)
                 if len(links) >= amount * 2:
                     break
     except Exception as e:
-        logger.warning(f"DuckDuckGo search failed: {e}")
+        logger.warning(f"DuckDuckGo news failed: {e}")
+
+    # Attempt 2: text search fallback
+    if not links:
+        logger.info("Falling back to DuckDuckGo text search")
+        try:
+            with DDGS() as ddgs:
+                for res in ddgs.text(keywords=query, max_results=amount * 6):
+                    href = res.get("href") or res.get("url")
+                    if href and href.startswith("http") and href not in links:
+                        links.append(href)
+                    if len(links) >= amount * 2:
+                        break
+        except Exception as e:
+            logger.warning(f"DuckDuckGo text search failed: {e}")
+
+    # Attempt 3: HTML scrape fallback
+    if not links:
+        logger.info("Falling back to DuckDuckGo HTML scrape")
+        links = _ddg_html_links(query, amount * 2)
+
     return links[: max(amount * 2, amount)]
 
 
