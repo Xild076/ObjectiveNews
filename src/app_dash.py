@@ -95,24 +95,28 @@ body {
 .form-label { font-weight: 600; color: #111827; }
 """
 
-from article_analysis import article_analysis
+# Defer heavy imports - only import when needed
 from objectify.objectify import calculate_objectivity, objectify_text
 from objectify.synonym import get_synonyms
 from reliability import _load_source_df, get_source_label, normalize_domain
-from utility import ensure_nltk_data, load_keybert
-
-# Ensure required data/models are available before serving requests
-ensure_nltk_data()
+from utility import load_keybert
 logger = logging.getLogger(__name__)
 
-KW_MODEL = load_keybert()
+KW_MODEL = None
+
+
+def _get_kw_model():
+    global KW_MODEL
+    if KW_MODEL is None:
+        KW_MODEL = load_keybert()
+    return KW_MODEL
 
 
 def generate_cluster_title(text: str) -> str:
     if not text:
         return "Untitled Narrative"
     try:
-        kws = KW_MODEL.extract_keywords(
+        kws = _get_kw_model().extract_keywords(
             text,
             keyphrase_ngram_range=(2, 4),
             stop_words="english",
@@ -605,6 +609,11 @@ def layout_utilities():
 app: Dash = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], suppress_callback_exceptions=True)
 server = app.server
 
+# Lightweight health endpoint for platform probes
+@server.route("/healthz")
+def _healthcheck():
+    return "ok", 200
+
 app.layout = dbc.Container(
     [
         dcc.Location(id="url", refresh=False),
@@ -746,6 +755,9 @@ def run_analysis(n_clicks, topic, link_count, summarize_level, diverse_links):
     if not topic:
         return no_update, "Please enter a topic or URL."
     try:
+        # Import only when analysis is actually run (lazy loading)
+        from article_analysis import article_analysis
+        
         level = {"best": "slow"}.get(summarize_level, summarize_level)
         result = article_analysis(
             text=topic,

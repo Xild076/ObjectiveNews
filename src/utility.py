@@ -137,6 +137,9 @@ def _import_nltk_safely():
     return importlib.import_module('nltk')
 
 def ensure_nltk_data():
+    if os.environ.get("SKIP_NLTK_DOWNLOAD"):
+        logger.info("SKIP_NLTK_DOWNLOAD set; skipping NLTK downloads")
+        return
     nltk = _import_nltk_safely()
     try:
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
