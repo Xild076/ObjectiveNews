@@ -137,9 +137,6 @@ def _import_nltk_safely():
     return importlib.import_module('nltk')
 
 def ensure_nltk_data():
-    if os.environ.get("SKIP_NLTK_DOWNLOAD"):
-        logger.info("SKIP_NLTK_DOWNLOAD set; skipping NLTK downloads")
-        return
     nltk = _import_nltk_safely()
     try:
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -193,7 +190,7 @@ def load_sent_transformer():
 
 # Lightweight per-sentence embedding cache to avoid repeated encodes
 _SBERT_CACHE: dict[str, list[float]] = {}
-_SBERT_CACHE_MAX = 8000
+_SBERT_CACHE_MAX = 2000 if IS_STREAMLIT else 8000
 
 def encode_sentences_cached(texts: list[str]):
     model = load_sent_transformer()

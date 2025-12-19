@@ -70,6 +70,17 @@ def _ddg_news_links(keywords, amount=10):
                     break
     except Exception as e:
         logger.warning(f"DuckDuckGo news search failed: {e}")
+        # Fallback: use general search API to gather URLs if news endpoint chokes on date parsing
+        try:
+            with DDGS() as ddgs:
+                for res in ddgs.text(keywords=query, max_results=amount * 4):
+                    href = res.get("href") or res.get("url")
+                    if href and href.startswith("http"):
+                        links.append(href)
+                    if len(links) >= amount * 2:
+                        break
+        except Exception:
+            pass
     return links[: amount * 3]
 
 
