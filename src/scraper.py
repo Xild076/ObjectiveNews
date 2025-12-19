@@ -57,31 +57,21 @@ def _get_headers():
     return [{"User-Agent": ua} for ua in uas]
 
 def _ddg_news_links(keywords, amount=10):
-    logger.info(f"DuckDuckGo news search for keywords: {keywords}")
+    """Fetch news-ish links via DuckDuckGo text search to avoid timedelta date bugs in ddgs.news."""
+    logger.info(f"DuckDuckGo text search for keywords: {keywords}")
     query = " ".join(keywords)
     links = []
     try:
         with DDGS() as ddgs:
-            for res in ddgs.news(keywords=query, max_results=amount * 3):
-                href = res.get("url")
-                if href and href.startswith("http"):
+            for res in ddgs.text(keywords=query, max_results=amount * 6):
+                href = res.get("href") or res.get("url")
+                if href and href.startswith("http") and href not in links:
                     links.append(href)
-                if len(links) >= amount * 3:
+                if len(links) >= amount * 2:
                     break
     except Exception as e:
-        logger.warning(f"DuckDuckGo news search failed: {e}")
-        # Fallback: use general search API to gather URLs if news endpoint chokes on date parsing
-        try:
-            with DDGS() as ddgs:
-                for res in ddgs.text(keywords=query, max_results=amount * 4):
-                    href = res.get("href") or res.get("url")
-                    if href and href.startswith("http"):
-                        links.append(href)
-                    if len(links) >= amount * 2:
-                        break
-        except Exception:
-            pass
-    return links[: amount * 3]
+        logger.warning(f"DuckDuckGo search failed: {e}")
+    return links[: max(amount * 2, amount)]
 
 
 def retrieve_links(keywords, amount=10):
@@ -94,6 +84,8 @@ def retrieve_links(keywords, amount=10):
 def retrieve_diverse_links(keywords, amount=10):
     logger.info("Retrieving diverse links for keywords: " + ", ".join(keywords))
     raw = _ddg_news_links(keywords, amount * 6)
+    if not raw:
+        return []
     seen = set()
     domain_map = {}
     for u in raw:
