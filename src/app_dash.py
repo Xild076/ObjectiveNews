@@ -95,17 +95,14 @@ body {
 .form-label { font-weight: 600; color: #111827; }
 """
 
-# Defer heavy imports - only import when needed
-from objectify.objectify import calculate_objectivity, objectify_text
-from objectify.synonym import get_synonyms
-from reliability import _load_source_df, get_source_label, normalize_domain
-from utility import load_keybert
+# Defer ALL heavy imports to callback execution time
 logger = logging.getLogger(__name__)
 
 KW_MODEL = None
 
 
 def _get_kw_model():
+    from utility import load_keybert
     global KW_MODEL
     if KW_MODEL is None:
         KW_MODEL = load_keybert()
@@ -153,6 +150,7 @@ def serialize_cluster(c: Dict[str, Any]) -> Dict[str, Any]:
 
 @lru_cache(maxsize=256)
 def fetch_source_reliability(domain: str) -> float:
+    from reliability import _load_source_df, get_source_label, normalize_domain
     if not domain:
         return 0.0
     try:
@@ -839,6 +837,7 @@ def download_csv(n_clicks, data):
 
 @app.callback(Output("objectify-results", "children"), Input("objectify-button", "n_clicks"), State("objectify-input", "value"), prevent_initial_call=True)
 def handle_objectify(n_clicks, text):
+    from objectify.objectify import calculate_objectivity, objectify_text
     if not text:
         return dbc.Alert("Please enter a sentence first.", color="warning")
     original_score = calculate_objectivity(text)
@@ -866,6 +865,8 @@ def handle_objectify(n_clicks, text):
 
 @app.callback(Output("synonym-results", "children"), Input("synonym-run", "n_clicks"), State("synonym-word", "value"), prevent_initial_call=True)
 def handle_synonyms(n_clicks, word):
+    from objectify.synonym import get_synonyms
+    from objectify.objectify import calculate_objectivity
     if not word:
         return dbc.Alert("Please enter a word to analyze.", color="warning")
     synonyms_raw = get_synonyms(word, deep=True, include_external=True, topn=15)
@@ -899,6 +900,7 @@ def handle_synonyms(n_clicks, word):
 
 @app.callback(Output("domain-results", "children"), Input("domain-run", "n_clicks"), State("domain-input", "value"), prevent_initial_call=True)
 def handle_domain(n_clicks, domain):
+    from reliability import _load_source_df, get_source_label, normalize_domain
     if not domain:
         return dbc.Alert("Please enter a domain.", color="warning")
     normalized = normalize_domain(domain)
